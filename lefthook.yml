@@ -1,0 +1,6 @@
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: "*.{js,jsx,ts,tsx,json}"
+      run: pnpm lint --no-cache --quiet --file {staged_files}
