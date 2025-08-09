@@ -23,8 +23,8 @@ export function FabActions() {
   };
 
   return (
-    <div className="fixed right-6 bottom-24 z-50">
-      <div className="flex flex-col overflow-hidden rounded-md border bg-background shadow-xs dark:border-input">
+    <div className="fixed right-4 bottom-20 z-50">
+      <div className="flex flex-row overflow-hidden rounded-md border bg-background shadow-xs dark:border-input">
         {/* Theme Switcher Button */}
         <button
           type="button"
@@ -39,7 +39,7 @@ export function FabActions() {
         </button>
 
         {/* Divider */}
-        <div className="border-t dark:border-input" />
+        <div className="border-l dark:border-input" />
 
         {/* Support Button */}
         <button

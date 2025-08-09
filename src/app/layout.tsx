@@ -3,10 +3,11 @@ import { FabActions } from "@/components/fab-actions";
 import IntercomInitializer from "@/components/intercom";
 import { MiniKitContextProvider } from "@/providers/MiniKitProvider";
 import { Web3Provider } from "@/providers/Web3Provider";
-import "@coinbase/onchainkit/styles.css";
+// import "@coinbase/onchainkit/styles.css";
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
+import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -25,8 +26,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME,
     description: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
-    viewport:
-      "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
     robots: {
       index: false,
       follow: false,
@@ -70,6 +69,7 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               <main className="flex min-h-screen flex-col justify-between gap-4 md:min-h-screen md:items-center md:justify-center relative">
+                <NextTopLoader showSpinner={false} />
                 {children}
                 <IntercomInitializer
                   appId={process.env.INTERCOM_APP_ID as string}

@@ -18,3 +18,8 @@ export function getFirstTwoWordInitialsFromName(name: string): string {
     firstTwo[0].charAt(0).toUpperCase() + firstTwo[1].charAt(0).toUpperCase()
   );
 }
+
+export function formatAddress(address: string | null | undefined) {
+  if (!address) return "No address";
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}

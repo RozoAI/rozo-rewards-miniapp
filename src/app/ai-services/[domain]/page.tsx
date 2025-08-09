@@ -1,7 +1,7 @@
 "use client";
 
 import { PageHeader } from "@/components/page-header";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
@@ -10,31 +10,26 @@ import { RozoPayButton } from "@rozoai/intent-pay";
 import {
   ArrowLeft,
   CreditCard,
+  ExternalLink,
   Loader2,
-  MapPin,
-  StoreIcon,
+  SparkleIcon,
+  Tag,
   Wallet,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "sonner";
 
-type LocationItem = {
-  _id: string;
+type CatalogItem = {
+  domain: string;
   name: string;
-  formatted: string;
-  address_line1: string;
-  address_line2?: string;
-  lat: number;
-  lon: number;
-  createdAt?: string;
-  updatedAt?: string;
+  category: string;
+  description: string;
+  logo_url?: string;
+  source?: string;
 };
 
-type CoffeeMapResponse = {
-  locations: LocationItem[];
-  status?: string;
-};
+type CatalogResponse = CatalogItem[];
 
 type PaymentIntentProps = {
   toAddress: string;
@@ -43,32 +38,30 @@ type PaymentIntentProps = {
   toToken: string;
 };
 
-export default function RestaurantDetailPage() {
+export default function AIServiceDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const restaurantId = params.id as string;
+  const serviceDomain = params.domain as string;
 
   const [payment, setPayment] = useState<PaymentIntentProps>();
-  const [restaurant, setRestaurant] = React.useState<LocationItem | null>(null);
+  const [service, setService] = React.useState<CatalogItem | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = React.useState(false);
 
   React.useEffect(() => {
-    async function loadRestaurant() {
+    async function loadService() {
       try {
-        const res = await fetch("/coffee_mapdata.json", { cache: "no-store" });
+        const res = await fetch("/ai_commerce_catalog.json");
         if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        const data: CoffeeMapResponse = await res.json();
+        const data: CatalogResponse = await res.json();
 
-        const foundRestaurant = data.locations.find(
-          (loc) => loc._id === restaurantId
-        );
-        if (!foundRestaurant) {
-          throw new Error("Restaurant not found");
+        const foundService = data.find((item) => item.domain === serviceDomain);
+        if (!foundService) {
+          throw new Error("AI Service not found");
         }
 
-        setRestaurant(foundRestaurant);
+        setService(foundService);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
@@ -76,13 +69,13 @@ export default function RestaurantDetailPage() {
       }
     }
 
-    if (restaurantId) {
-      loadRestaurant();
+    if (serviceDomain) {
+      loadService();
     }
-  }, [restaurantId]);
+  }, [serviceDomain]);
 
   const handlePayment = async () => {
-    if (!restaurant) return;
+    if (!service) return;
 
     setPayment({
       toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
@@ -91,9 +84,9 @@ export default function RestaurantDetailPage() {
     });
   };
 
-  const openMaps = () => {
-    if (restaurant) {
-      const url = `https://maps.google.com/?q=${restaurant.lat},${restaurant.lon}`;
+  const visitWebsite = () => {
+    if (service) {
+      const url = service.source || `https://${service.domain}`;
       window.open(url, "_blank");
     }
   };
@@ -130,7 +123,7 @@ export default function RestaurantDetailPage() {
     );
   }
 
-  if (error || !restaurant) {
+  if (error || !service) {
     return (
       <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
         <div className="flex items-center gap-2 mb-6">
@@ -142,19 +135,22 @@ export default function RestaurantDetailPage() {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-lg sm:text-2xl font-bold">Restaurant Details</h1>
+          <h1 className="text-lg sm:text-2xl font-bold">AI Service Details</h1>
         </div>
         <Card className="w-full">
           <CardContent className="flex flex-col items-center justify-center p-8 text-center">
             <p className="text-destructive text-lg font-medium mb-2">
-              {error || "Restaurant not found"}
+              {error || "AI Service not found"}
             </p>
             <p className="text-muted-foreground mb-4">
-              The restaurant you&apos;re looking for doesn&apos;t exist or has
+              The AI service you&apos;re looking for doesn&apos;t exist or has
               been removed.
             </p>
-            <Button onClick={() => router.push("/")} variant="outline">
-              Back to Restaurants
+            <Button
+              onClick={() => router.push("/ai-services")}
+              variant="outline"
+            >
+              Back to AI Services
             </Button>
           </CardContent>
         </Card>
@@ -162,24 +158,32 @@ export default function RestaurantDetailPage() {
     );
   }
 
-  const initials = getFirstTwoWordInitialsFromName(restaurant.name);
+  const initials = getFirstTwoWordInitialsFromName(service.name);
+  const websiteUrl = service.source || `https://${service.domain}`;
 
   return (
     <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
       {/* Header */}
       <PageHeader
-        title="Back to Restaurants"
-        icon={<StoreIcon className="size-6" />}
+        title="Back to AI Services"
+        icon={<SparkleIcon className="size-6" />}
         isBackButton
       />
 
-      {/* Restaurant Info Card */}
+      {/* Service Info Card */}
       <Card className="w-full gap-3">
         <CardHeader>
           <div className="flex items-start gap-3">
             <Avatar className="size-16 sm:size-20 rounded-lg ring-1 ring-border bg-muted flex-shrink-0">
+              {service.logo_url ? (
+                <AvatarImage
+                  src={service.logo_url}
+                  alt={service.name}
+                  className="object-cover"
+                />
+              ) : null}
               <AvatarFallback
-                title={restaurant.name}
+                title={service.name}
                 className="font-medium text-base sm:text-lg"
               >
                 {initials}
@@ -188,17 +192,15 @@ export default function RestaurantDetailPage() {
             <div className="min-w-0 flex-1 space-y-2">
               <h2
                 className="text-xl sm:text-2xl font-bold leading-tight"
-                title={restaurant.name}
+                title={service.name}
               >
-                {restaurant.name}
+                {service.name}
               </h2>
-              <div className="flex items-start gap-2 text-muted-foreground">
-                <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Tag className="h-4 w-4 shrink-0" />
                 <div className="text-sm leading-relaxed">
-                  <p className="font-medium">{restaurant.address_line1}</p>
-                  {restaurant.address_line2 && (
-                    <p>{restaurant.address_line2}</p>
-                  )}
+                  <p className="font-medium">{service.category}</p>
+                  <p className="text-xs">{service.domain}</p>
                 </div>
               </div>
             </div>
@@ -206,32 +208,32 @@ export default function RestaurantDetailPage() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Location Details */}
-          {/* <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+          {/* Service Details */}
+          <div className="bg-muted/30 rounded-lg p-4 space-y-3">
             <h3 className="text-sm tracking-wide text-muted-foreground">
-              Location Information
+              Service Information
             </h3>
             <div className="space-y-2">
               <p className="text-sm leading-relaxed">
                 <span className="font-medium text-muted-foreground">
-                  Full Address:
+                  Description:
                 </span>{" "}
-                {restaurant.formatted}
+                {service.description}
               </p>
               <p className="text-sm">
                 <span className="font-medium text-muted-foreground">
-                  Coordinates:
+                  Website:
                 </span>{" "}
-                {restaurant.lat}, {restaurant.lon}
+                {service.domain}
               </p>
-              {restaurant.createdAt && (
-                <p className="text-xs text-muted-foreground">
-                  <span className="font-medium">Added:</span>{" "}
-                  {new Date(restaurant.createdAt).toLocaleDateString()}
-                </p>
-              )}
+              <p className="text-sm">
+                <span className="font-medium text-muted-foreground">
+                  Category:
+                </span>{" "}
+                {service.category}
+              </p>
             </div>
-          </div> */}
+          </div>
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 pt-2">
@@ -269,7 +271,7 @@ export default function RestaurantDetailPage() {
                   toUnits: payment.toUnits,
                 })}
                 toToken={payment.toToken as `0x${string}`}
-                intent={`Pay for ${restaurant.name}`}
+                intent={`Pay for ${service.name}`}
                 onPaymentStarted={() => {
                   setLoading(true);
                 }}
@@ -277,7 +279,7 @@ export default function RestaurantDetailPage() {
                   setLoading(false);
                 }}
                 onPaymentCompleted={(args: PaymentCompletedEvent) => {
-                  toast.success(`Payment successful to ${restaurant.name}!`, {
+                  toast.success(`Payment successful to ${service.name}!`, {
                     description:
                       "Your payment has been processed successfully. Redirecting to receipt...",
                     duration: 2000,
@@ -308,13 +310,13 @@ export default function RestaurantDetailPage() {
             )}
 
             <Button
-              onClick={openMaps}
+              onClick={visitWebsite}
               variant="outline"
               className="w-full h-11 sm:h-12 text-sm sm:text-base font-medium"
               size="lg"
             >
-              <MapPin className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-              Open in Maps
+              <ExternalLink className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+              Visit Website
             </Button>
           </div>
         </CardContent>

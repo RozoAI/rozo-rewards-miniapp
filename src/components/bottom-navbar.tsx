@@ -21,41 +21,41 @@ export function BottomNavbar() {
         <Link
           href="/"
           className={cn(
-            "flex flex-col items-center justify-center gap-1 transition-colors",
+            "flex flex-col items-center justify-center gap-1 transition-colors min-w-0",
             isActive("/")
               ? "text-primary dark:text-primary font-bold"
               : "text-gray-500 hover:text-gray-900 focus:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 dark:focus:text-gray-50"
           )}
           prefetch={false}
         >
-          <StoreIcon className="h-6 w-6" />
-          <span className="text-xs">Restaurants</span>
+          <StoreIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+          <span className="text-xs font-medium">Restaurants</span>
         </Link>
         <Link
           href="/ai-services"
           className={cn(
-            "flex flex-col items-center justify-center gap-1 transition-colors",
+            "flex flex-col items-center justify-center gap-1 transition-colors min-w-0",
             isActive("/ai-services")
               ? "text-primary dark:text-primary font-bold"
               : "text-gray-500 hover:text-gray-900 focus:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 dark:focus:text-gray-50"
           )}
           prefetch={false}
         >
-          <Sparkle className="h-6 w-6" />
-          <span className="text-xs">AI Services</span>
+          <Sparkle className="h-5 w-5 sm:h-6 sm:w-6" />
+          <span className="text-xs font-medium">AI Services</span>
         </Link>
         <Link
           href="/mcp-services"
           className={cn(
-            "flex flex-col items-center justify-center gap-1 transition-colors",
+            "flex flex-col items-center justify-center gap-1 transition-colors min-w-0",
             isActive("/mcp-services")
               ? "text-primary dark:text-primary font-bold"
               : "text-gray-500 hover:text-gray-900 focus:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 dark:focus:text-gray-50"
           )}
           prefetch={false}
         >
-          <ServerIcon className="h-6 w-6" />
-          <span className="text-xs">MCP Services</span>
+          <ServerIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+          <span className="text-xs font-medium">MCP Services</span>
         </Link>
       </div>
     </nav>

@@ -1,9 +1,9 @@
 "use client";
 
-import * as React from "react";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
+import * as React from "react";
 
 export type ComingSoonProps = {
   title?: string;
@@ -32,12 +32,12 @@ export function ComingSoon({
 
   return (
     <section className={cn("w-full", className)}>
-      <div className="mx-auto max-w-xl px-4 py-16 sm:py-24 text-center">
-        <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-muted ring-1 ring-border shadow-sm">
-          {icon ?? <span className="text-2xl">🚧</span>}
+      <div className="mx-auto max-w-md px-4 py-12 sm:py-16 text-center">
+        <div className="mx-auto mb-6 flex size-14 sm:size-16 items-center justify-center rounded-2xl bg-muted ring-1 ring-border shadow-sm">
+          {icon ?? <span className="text-xl sm:text-2xl">🚧</span>}
         </div>
 
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight">
           {title}
         </h1>
         {eta ? (
@@ -47,7 +47,7 @@ export function ComingSoon({
         ) : null}
 
         {description ? (
-          <p className="mx-auto mt-3 max-w-prose text-balance text-muted-foreground">
+          <p className="mx-auto mt-3 text-sm sm:text-base text-balance text-muted-foreground leading-relaxed">
             {description}
           </p>
         ) : null}
