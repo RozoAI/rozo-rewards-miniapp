@@ -1,5 +1,5 @@
 function withValidProperties(
-  properties: Record<string, undefined | string | string[]>
+  properties: Record<string, undefined | string | string[]>,
 ) {
   return Object.fromEntries(
     Object.entries(properties).filter(([key, value]) => {
@@ -7,7 +7,7 @@ function withValidProperties(
         return value.length > 0;
       }
       return !!value;
-    })
+    }),
   );
 }
 
