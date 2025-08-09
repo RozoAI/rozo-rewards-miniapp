@@ -3,8 +3,6 @@
 import { formatAddress } from "@/lib/utils";
 import { WalletProvider } from "@coinbase/onchainkit/wallet";
 import Link from "next/link";
-import { useEffect } from "react";
-import { toast } from "sonner";
 import { useAccount, useConnect } from "wagmi";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
@@ -12,12 +10,6 @@ import { Button } from "./ui/button";
 export function WalletComponents() {
   const { address: accountAddress, status } = useAccount();
   const { connectors, connect, status: connectStatus } = useConnect();
-
-  useEffect(() => {
-    if (accountAddress) {
-      toast.success(`Connected to ${accountAddress}`);
-    }
-  }, [accountAddress]);
 
   return (
     <WalletProvider>
