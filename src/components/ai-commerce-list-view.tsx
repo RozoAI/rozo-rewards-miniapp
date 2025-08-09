@@ -1,60 +1,69 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import React from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import Link from "next/link";
-import React from "react";
+import { ExternalLink, LinkIcon } from "lucide-react";
 
-type LocationItem = {
-  _id: string;
+type CatalogItem = {
+  domain: string;
   name: string;
-  formatted: string;
-  address_line1: string;
-  address_line2?: string;
-  lat: number;
-  lon: number;
+  category: string;
+  description: string;
+  logo_url?: string;
+  source?: string;
 };
 
-type CoffeeMapResponse = {
-  locations: LocationItem[];
-  status?: string;
-};
+type CatalogResponse = CatalogItem[];
 
-function ListRow({ location }: { location: LocationItem }) {
-  const initials = getFirstTwoWordInitialsFromName(location.name);
+function ListRow({ item }: { item: CatalogItem }) {
+  const initials = getFirstTwoWordInitialsFromName(item.name);
+  const href = item.source || `https://${item.domain}`;
 
   return (
     <li className="flex items-start gap-4 px-4 py-3 border-b last:border-b-0 hover:bg-accent/30 transition-colors">
       <Avatar className="size-16 rounded-xl ring-1 ring-border bg-muted">
-        <AvatarFallback title={location.name} className="font-medium">
+        {item.logo_url ? (
+          <AvatarImage src={item.logo_url} alt={item.name} />
+        ) : null}
+        <AvatarFallback title={item.name} className="font-medium">
           {initials}
         </AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold truncate" title={location.name}>
-            {location.name}
+          <h3 className="text-lg font-semibold truncate" title={item.name}>
+            {item.name}
           </h3>
         </div>
         <p
-          className="text-sm text-muted-foreground line-clamp-1"
-          title={location.formatted}
+          className="text-xs text-muted-foreground mb-1 line-clamp-1"
+          title={item.category}
         >
-          {location.formatted}
+          {item.category} · {item.domain}
+        </p>
+        <p
+          className="text-sm text-muted-foreground line-clamp-1"
+          title={item.description}
+        >
+          {item.description}
         </p>
         <Link
-          href={`/restaurant/${location._id}`}
-          className="text-xs text-primary line-clamp-1"
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className="text-xs text-primary line-clamp-1 flex items-center gap-1"
         >
-          Click to view details
+          <ExternalLink className="size-3" /> Visit website
         </Link>
       </div>
     </li>
   );
 }
 
-export function RestaurantListView({ className }: { className?: string }) {
-  const [locations, setLocations] = React.useState<LocationItem[] | null>(null);
+export function AiCommerceListView({ className }: { className?: string }) {
+  const [items, setItems] = React.useState<CatalogItem[] | null>(null);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -62,13 +71,15 @@ export function RestaurantListView({ className }: { className?: string }) {
 
     async function load() {
       try {
-        const res = await fetch("/coffee_mapdata.json", { cache: "no-store" });
+        const res = await fetch("/ai_commerce_catalog.json", {
+          cache: "no-store",
+        });
         if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        const data: CoffeeMapResponse = await res.json();
-        if (!data || !Array.isArray(data.locations)) {
+        const data: CatalogResponse = await res.json();
+        if (!Array.isArray(data)) {
           throw new Error("Invalid data shape");
         }
-        if (isMounted) setLocations(data.locations);
+        if (isMounted) setItems(data);
       } catch (err) {
         if (isMounted)
           setErrorMessage(
@@ -91,7 +102,7 @@ export function RestaurantListView({ className }: { className?: string }) {
     );
   }
 
-  if (!locations) {
+  if (!items) {
     return (
       <ul className={cn("divide-y rounded-md rounded-b-none ", className)}>
         {Array.from({ length: 6 }).map((_, idx) => (
@@ -110,8 +121,8 @@ export function RestaurantListView({ className }: { className?: string }) {
 
   return (
     <ul className={cn("divide-y rounded-md rounded-b-none border", className)}>
-      {locations.map((loc) => (
-        <ListRow key={loc._id} location={loc} />
+      {items.map((item) => (
+        <ListRow key={item.domain} item={item} />
       ))}
     </ul>
   );

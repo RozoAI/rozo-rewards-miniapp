@@ -1,16 +1,9 @@
 "use client";
 
-import {
-  HomeIcon,
-  SearchIcon,
-  ServerIcon,
-  Sparkle,
-  StoreIcon,
-  UserIcon,
-} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ServerIcon, Sparkle, StoreIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
 
 export function BottomNavbar() {
   const pathname = usePathname();
@@ -23,7 +16,7 @@ export function BottomNavbar() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 h-20 bg-background border-t shadow-t shadow-card flex items-center sm:max-w-xl sm:mx-auto sm:border-x">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 h-16 bg-background border-t shadow-t shadow-card flex items-center max-w-xl mx-auto border-x">
       <div className="w-full items-center justify-around flex md:max-w-lg md:mx-auto">
         <Link
           href="/"

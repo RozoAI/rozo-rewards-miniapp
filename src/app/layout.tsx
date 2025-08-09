@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import "@coinbase/onchainkit/styles.css";
 import "./globals.css";
 import IntercomInitializer from "@/components/intercom";
 import { ThemeProvider } from "next-themes";
@@ -7,6 +8,7 @@ import { FabActions } from "@/components/fab-actions";
 import { Toaster } from "sonner";
 import { BottomNavbar } from "@/components/bottom-navbar";
 import { MiniKitContextProvider } from "@/providers/MiniKitProvider";
+import { Web3Provider } from "@/providers/Web3Provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,24 +55,26 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <MiniKitContextProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem={false}
-            disableTransitionOnChange
-          >
-            <main className="flex min-h-screen flex-col justify-between gap-4 md:min-h-screen md:items-center md:justify-center relative">
-              {children}
-              <IntercomInitializer
-                appId={process.env.INTERCOM_APP_ID as string}
-              />
-              <Toaster position="top-center" />
-              <FabActions />
-              <BottomNavbar />
-            </main>
-          </ThemeProvider>
-        </MiniKitContextProvider>
+        <Web3Provider>
+          <MiniKitContextProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              enableSystem={false}
+              disableTransitionOnChange
+            >
+              <main className="flex min-h-screen flex-col justify-between gap-4 md:min-h-screen md:items-center md:justify-center relative">
+                {children}
+                <IntercomInitializer
+                  appId={process.env.INTERCOM_APP_ID as string}
+                />
+                <Toaster position="top-center" />
+                <FabActions />
+                <BottomNavbar />
+              </main>
+            </ThemeProvider>
+          </MiniKitContextProvider>
+        </Web3Provider>
       </body>
     </html>
   );

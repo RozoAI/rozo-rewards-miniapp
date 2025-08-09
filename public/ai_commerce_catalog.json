@@ -1,0 +1,194 @@
+[
+  {
+    "domain": "openrouter.ai",
+    "name": "OpenRouter",
+    "category": "AI",
+    "description": "A unified API and marketplace to access hundreds of AI models across providers with routing, fallbacks, pricing insights, and developer docs.",
+    "logo_url": "https://openrouter.ai/favicon.ico",
+    "source": "https://openrouter.ai/"
+  },
+  {
+    "domain": "civitai.com",
+    "name": "Civitai",
+    "category": "AI",
+    "description": "A community and marketplace to discover, share, and generate with Stable Diffusion/Flux models and other open‑source generative AI resources.",
+    "logo_url": "https://civitai.com/favicon.ico",
+    "source": "https://civitai.com/"
+  },
+  {
+    "domain": "pykaso.ai",
+    "name": "Pykaso AI",
+    "category": "AI",
+    "description": "Toolset for AI influencers: text‑to‑image, AI video generation, 4K face swaps, image editing, and upscaling. Monetization and community features.",
+    "logo_url": "https://www.pykaso.ai/favicon.ico",
+    "source": "https://www.pykaso.ai/"
+  },
+  {
+    "domain": "app.pykaso.ai",
+    "name": "Pykaso App",
+    "category": "AI",
+    "description": "Web app for Pykaso’s tools including AI image/video generator and bulk 4K face swaps.",
+    "logo_url": "https://app.pykaso.ai/favicon.ico",
+    "source": "https://app.pykaso.ai/"
+  },
+  {
+    "domain": "deepswap.ai",
+    "name": "DeepSwap",
+    "category": "AI",
+    "description": "Online AI face swapping editor for videos, GIFs, and photos, with background removal, enhancement, and cartoonize features.",
+    "logo_url": "https://www.deepswap.ai/favicon.ico",
+    "source": "https://www.deepswap.ai/"
+  },
+  {
+    "domain": "deepswap.net",
+    "name": "DeepSwap (alt domain)",
+    "category": "AI",
+    "description": "Sister site/app for DeepSwap providing account login, pricing, and premium features for face swapping and related AI tools.",
+    "logo_url": "https://www.deepswap.net/favicon.ico",
+    "source": "https://www.deepswap.net/"
+  },
+  {
+    "domain": "soulgen.net",
+    "name": "SoulGen",
+    "category": "AI",
+    "description": "Web‑based AI art generator focused on creating customizable anime/real‑style characters from text prompts with account‑based services.",
+    "logo_url": "https://www.soulgen.net/favicon.ico",
+    "source": "https://www.soulgen.net/"
+  },
+  {
+    "domain": "soulgen.ai",
+    "name": "SoulGen AI (alt)",
+    "category": "AI",
+    "description": "Informational/alt domain related to SoulGen’s AI character image tools.",
+    "logo_url": "https://www.soulgen.ai/favicon.ico",
+    "source": "https://www.soulgen.ai/"
+  },
+  {
+    "domain": "joi.com",
+    "name": "Joi AI",
+    "category": "AI",
+    "description": "AI companion platform offering real‑time chat, photos, and videos with virtual characters and digital celebrities in a sex‑positive environment.",
+    "logo_url": "https://joi.com/favicon.ico",
+    "source": "https://joi.com/"
+  },
+  {
+    "domain": "venice.ai",
+    "name": "Venice",
+    "category": "AI",
+    "description": "Privacy‑first AI chat client offering access to leading open‑source LLMs and image models with fewer content restrictions and local‑first options.",
+    "logo_url": "https://venice.ai/favicon.ico",
+    "source": "https://venice.ai/"
+  },
+  {
+    "domain": "kupid.ai",
+    "name": "Kupid AI",
+    "category": "AI",
+    "description": "AI companion platform to create and chat with personalized virtual partners, supporting image generation and voice/text chat.",
+    "logo_url": "https://www.kupid.ai/favicon.ico",
+    "source": "https://www.kupid.ai/"
+  },
+  {
+    "domain": "compassmining.io",
+    "name": "Compass Mining",
+    "category": "CRYPTO",
+    "description": "Bitcoin‑first company that sources ASICs and provides managed hosting across facilities with uptime SLAs and account tools.",
+    "logo_url": "https://compassmining.io/favicon.ico",
+    "source": "https://compassmining.io/"
+  },
+  {
+    "domain": "whop.com",
+    "name": "Whop",
+    "category": "COMMERCE",
+    "description": "Platform to sell digital products, communities, and software with payments, access control, and a discovery marketplace.",
+    "logo_url": "https://whop.com/favicon.ico",
+    "source": "https://whop.com/"
+  },
+  {
+    "domain": "boxed.gg",
+    "name": "BOXED.GG",
+    "category": "COMMERCE",
+    "description": "E‑commerce platform for opening and purchasing trading card ‘boxes’ and singles for Pokémon, Magic, and One Piece, with shipping fulfillment.",
+    "logo_url": "https://boxed.gg/favicon.ico",
+    "source": "https://boxed.gg/"
+  },
+  {
+    "domain": "app.koinly.io",
+    "name": "Koinly (App)",
+    "category": "CRYPTO",
+    "description": "Web app for Koinly’s crypto portfolio import and tax reporting across exchanges and blockchains.",
+    "logo_url": "https://app.koinly.io/favicon.ico",
+    "source": "https://koinly.io/"
+  },
+  {
+    "domain": "fameswap.com",
+    "name": "Fameswap",
+    "category": "COMMERCE",
+    "description": "Marketplace to buy and sell established Instagram, TikTok, and YouTube accounts with escrow and verification workflows.",
+    "logo_url": "https://fameswap.com/favicon.ico",
+    "source": "https://fameswap.com/"
+  },
+  {
+    "domain": "porkbun.com",
+    "name": "Porkbun",
+    "category": "DOMAIN",
+    "description": "ICANN‑accredited domain name registrar offering low‑cost domains, email, SSL, and a simple control panel.",
+    "logo_url": "https://porkbun.com/favicon.ico",
+    "source": "https://porkbun.com/"
+  },
+  {
+    "domain": "buzzoid.com",
+    "name": "Buzzoid",
+    "category": "MARKETING",
+    "description": "Service selling Instagram followers, likes, and views with instant delivery packages and 24/7 support.",
+    "logo_url": "https://buzzoid.com/favicon.ico",
+    "source": "https://buzzoid.com/"
+  },
+  {
+    "domain": "playerauctions.com",
+    "name": "PlayerAuctions",
+    "category": "COMMERCE",
+    "description": "Player‑to‑player marketplace for in‑game currency, items/skins, accounts, and boosting across 300+ games.",
+    "logo_url": "https://www.playerauctions.com/favicon.ico",
+    "source": "https://www.playerauctions.com/"
+  },
+  {
+    "domain": "lootie.com",
+    "name": "Lootie",
+    "category": "COMMERCE",
+    "description": "Provably fair online mystery boxes with real‑world items from brands like Apple, Supreme, Off‑White, with shipping and authentication.",
+    "logo_url": "https://www.lootie.com/favicon.ico",
+    "source": "https://www.lootie.com/"
+  },
+  {
+    "domain": "app.gomining.com",
+    "name": "GoMining (App)",
+    "category": "CRYPTO",
+    "description": "Account portal for GoMining’s digital miners and rewards—buy, manage, and trade tokenized miners tied to real data centers.",
+    "logo_url": "https://app.gomining.com/favicon.ico",
+    "source": "https://gomining.com/"
+  },
+  {
+    "domain": "owobot.com",
+    "name": "OwO Bot",
+    "category": "GAMING",
+    "description": "Popular Discord bot with hunting, battling, pets, gambling mini‑games, and leaderboards to engage server communities.",
+    "logo_url": "https://owobot.com/favicon.ico",
+    "source": "https://owobot.com/"
+  },
+  {
+    "domain": "dynadot.com",
+    "name": "Dynadot",
+    "category": "DOMAIN",
+    "description": "Domain registrar with competitive pricing, free privacy, APIs, and tools for bulk domain management.",
+    "logo_url": "https://www.dynadot.com/favicon.ico",
+    "source": "https://www.dynadot.com/"
+  },
+  {
+    "domain": "doctorsim.com",
+    "name": "doctorSIM",
+    "category": "COMMERCE",
+    "description": "Online service for IMEI phone unlocking, carrier checks, mobile top‑ups, and discounted digital gift cards.",
+    "logo_url": "https://www.doctorsim.com/favicon.ico",
+    "source": "https://www.doctorsim.com/"
+  }
+]
