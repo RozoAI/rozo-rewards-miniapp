@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton } from "@rozoai/intent-pay";
+import "leaflet/dist/leaflet.css";
 import {
   ArrowLeft,
   CreditCard,
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import { toast } from "sonner";
 
 type LocationItem = {
@@ -205,36 +207,49 @@ export default function RestaurantDetailPage() {
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-4">
-          {/* Location Details */}
-          {/* <div className="bg-muted/30 rounded-lg p-4 space-y-3">
-            <h3 className="text-sm tracking-wide text-muted-foreground">
-              Location Information
-            </h3>
-            <div className="space-y-2">
-              <p className="text-sm leading-relaxed">
-                <span className="font-medium text-muted-foreground">
-                  Full Address:
-                </span>{" "}
-                {restaurant.formatted}
-              </p>
-              <p className="text-sm">
-                <span className="font-medium text-muted-foreground">
-                  Coordinates:
-                </span>{" "}
-                {restaurant.lat}, {restaurant.lon}
-              </p>
-              {restaurant.createdAt && (
-                <p className="text-xs text-muted-foreground">
-                  <span className="font-medium">Added:</span>{" "}
-                  {new Date(restaurant.createdAt).toLocaleDateString()}
-                </p>
-              )}
-            </div>
-          </div> */}
+        <CardContent className="space-y-2">
+          {/* Map View */}
+          <div className="h-64 w-full rounded-lg overflow-hidden border">
+            <MapContainer
+              center={[restaurant.lat, restaurant.lon]}
+              zoom={15}
+              scrollWheelZoom={false}
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={[restaurant.lat, restaurant.lon]}>
+                <Popup>
+                  <div className="text-center">
+                    <strong>{restaurant.name}</strong>
+                    <br />
+                    {restaurant.address_line1}
+                    {restaurant.address_line2 && (
+                      <>
+                        <br />
+                        {restaurant.address_line2}
+                      </>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            </MapContainer>
+          </div>
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 pt-2">
+            <Button
+              onClick={openMaps}
+              variant="outline"
+              className="w-full h-11 sm:h-12 text-sm sm:text-base font-medium"
+              size="lg"
+            >
+              <MapPin className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+              Open in Maps
+            </Button>
+
             {!payment && (
               <Button
                 onClick={handlePayment}
@@ -306,16 +321,6 @@ export default function RestaurantDetailPage() {
                 )}
               </RozoPayButton.Custom>
             )}
-
-            <Button
-              onClick={openMaps}
-              variant="outline"
-              className="w-full h-11 sm:h-12 text-sm sm:text-base font-medium"
-              size="lg"
-            >
-              <MapPin className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-              Open in Maps
-            </Button>
           </div>
         </CardContent>
       </Card>
