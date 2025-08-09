@@ -3,6 +3,12 @@
 ## Overview
 This document describes the REST API endpoints for the Rozo Rewards MiniApp - an AI promo and cashback platform built on Coinbase with Supabase backend.
 
+**🆕 Latest Updates:**
+- **ROZO Cashback System**: Complete refactor from rewards to ROZO tokens (100:1 USD conversion)
+- **Order Management**: Full shopping cart and order lifecycle management
+- **Product-Specific Rates**: Individual cashback rates per product/SKU
+- **Payment Offset**: Use ROZO tokens to reduce payment amounts
+
 ## Base URL
 ```
 https://your-project.supabase.co/functions/v1
@@ -14,6 +20,11 @@ All authenticated endpoints require a JWT token in the Authorization header:
 Authorization: Bearer <jwt_token>
 ```
 
+## ROZO Token System
+- **Conversion Rate**: 1 ROZO = $0.01 USD (100:1 ratio)
+- **Storage**: Integer values (no decimals)
+- **Usage**: Earn from purchases, use for payment offsets
+
 ## Data Models
 
 ### User
@@ -24,11 +35,87 @@ interface User {
   email?: string;
   username?: string;
   avatar_url?: string;
-  total_cashback_earned: number;
-  total_cashback_claimed: number;
+  total_cashback_earned: number; // Legacy USD amount
+  total_cashback_claimed: number; // Legacy USD amount
+  total_cashback_rozo: number; // Total ROZO earned
+  available_cashback_rozo: number; // Available ROZO balance
+  used_cashback_rozo: number; // Total ROZO used
   tier: 'bronze' | 'silver' | 'gold' | 'platinum';
   referral_code: string;
   referred_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+### Product
+```typescript
+interface Product {
+  id: string;
+  merchant_id: string;
+  sku: string;
+  name: string;
+  description?: string;
+  price_usd: number;
+  currency: string;
+  cashback_rate: number; // Product-specific cashback rate
+  image_url?: string;
+  is_active: boolean;
+  metadata: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+### Order
+```typescript
+interface Order {
+  id: string;
+  user_id: string;
+  order_number: string; // Human-readable (e.g., RZ2501099876)
+  status: 'cart' | 'pending' | 'paid' | 'completed' | 'cancelled' | 'refunded';
+  subtotal_usd: number;
+  rozo_offset_amount: number; // ROZO tokens used for payment offset
+  rozo_offset_usd: number; // USD value of ROZO offset
+  final_amount_usd: number; // Final amount after ROZO offset
+  total_cashback_rozo: number; // Total ROZO to be earned
+  payment_intent_id?: string;
+  transaction_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+### OrderItem
+```typescript
+interface OrderItem {
+  id: string;
+  order_id: string;
+  product_id: string;
+  product_name: string;
+  product_sku: string;
+  unit_price_usd: number;
+  cashback_rate: number; // Rate at time of purchase
+  quantity: number;
+  line_total_usd: number;
+  line_cashback_rozo: number;
+  line_cashback_usd: number;
+}
+```
+
+### Cashback (formerly Reward)
+```typescript
+interface Cashback {
+  id: string;
+  user_id: string;
+  transaction_id?: string;
+  type: 'purchase_cashback' | 'referral_bonus' | 'tier_bonus' | 'promotion';
+  amount_rozo: number; // ROZO tokens (integer)
+  amount_usd: number; // USD equivalent
+  currency: string;
+  status: 'pending' | 'available' | 'used' | 'expired';
+  used_at?: string;
+  metadata: Record<string, any>;
   created_at: string;
   updated_at: string;
 }
@@ -99,6 +186,262 @@ interface Reward {
 ```
 
 ## API Endpoints
+
+## 🆕 ROZO Cashback System
+
+### GET `/cashback/balance`
+Get user's current ROZO cashback balance
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "total_cashback_rozo": 5000,
+    "available_cashback_rozo": 3500,
+    "used_cashback_rozo": 1500,
+    "total_cashback_usd": 50.00,
+    "available_cashback_usd": 35.00,
+    "used_cashback_usd": 15.00,
+    "conversion_rate": "1 ROZO = $0.01 USD",
+    "pending_cashback": {
+      "rozo": 250,
+      "usd": 2.50,
+      "count": 2
+    }
+  }
+}
+```
+
+### POST `/cashback/apply-offset`
+Calculate ROZO payment offset
+
+**Request:**
+```json
+{
+  "amount_usd": 20.00,
+  "rozo_amount": 1000
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "original_amount_usd": 20.00,
+    "rozo_to_use": 1000,
+    "usd_offset": 10.00,
+    "final_amount_usd": 10.00,
+    "savings_percentage": 50.00
+  }
+}
+```
+
+### POST `/cashback/claim`
+Claim ROZO cashback from purchase
+
+**Request:**
+```json
+{
+  "transaction_id": "uuid",
+  "product_id": "uuid",
+  "amount_usd": 20.00
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "amount_rozo": 150,
+    "amount_usd": 1.50,
+    "final_rate": 7.5,
+    "user_tier": "gold"
+  }
+}
+```
+
+## 🆕 Products API
+
+### GET `/products`
+List products with cashback rates
+
+**Query Parameters:**
+- `merchant_id`: Filter by merchant
+- `category`: Filter by category  
+- `min_cashback_rate`: Minimum cashback rate
+- `search`: Search products
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "uuid",
+        "name": "Premium Access",
+        "price_usd": 29.99,
+        "cashback_rate": 8.5,
+        "merchant_name": "OpenRouter"
+      }
+    ]
+  }
+}
+```
+
+### GET `/products/{id}`
+Get product details with cashback preview
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "name": "Premium Access",
+    "price_usd": 29.99,
+    "cashback_rate": 8.5,
+    "cashback_preview": {
+      "user_tier": "gold",
+      "final_rate": 12.75,
+      "cashback_rozo": 382
+    }
+  }
+}
+```
+
+## 🆕 Order Management
+
+### GET `/orders/cart`
+Get current shopping cart
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "order_id": "uuid",
+    "order_number": "RZ2501099876", 
+    "items": [
+      {
+        "product_name": "Premium Access",
+        "quantity": 1,
+        "line_total_usd": 29.99,
+        "line_cashback_rozo": 450
+      }
+    ],
+    "totals": {
+      "subtotal_usd": 29.99,
+      "total_cashback_rozo": 450
+    }
+  }
+}
+```
+
+### POST `/orders/cart`
+Add item to cart
+
+**Request:**
+```json
+{
+  "product_id": "uuid",
+  "quantity": 2
+}
+```
+
+### PUT `/orders/cart/{item_id}`
+Update cart item quantity
+
+**Request:**
+```json
+{
+  "quantity": 3
+}
+```
+
+### DELETE `/orders/cart/{item_id}`
+Remove item from cart
+
+### DELETE `/orders/cart`
+Clear entire cart
+
+### POST `/orders/checkout`
+Proceed to checkout with ROZO offset
+
+**Request:**
+```json
+{
+  "order_id": "uuid",
+  "rozo_offset_amount": 1500,
+  "shipping_address": {
+    "line1": "123 Main St",
+    "city": "San Francisco"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "order_number": "RZ2501099876",
+    "status": "pending",
+    "payment_summary": {
+      "subtotal_usd": 29.99,
+      "rozo_offset_usd": 15.00,
+      "final_amount_usd": 14.99,
+      "savings_percentage": 50.02
+    },
+    "payment_intent_needed": true
+  }
+}
+```
+
+### GET `/orders`
+List user's orders
+
+**Query Parameters:**
+- `status`: Filter by status
+- `limit`: Results per page
+- `offset`: Pagination offset
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "order_number": "RZ2501099876",
+        "status": "completed",
+        "final_amount_usd": 14.99,
+        "total_cashback_rozo": 450
+      }
+    ]
+  }
+}
+```
+
+### GET `/orders/{order_id}`
+Get detailed order information
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "order_number": "RZ2501099876",
+    "status": "completed",
+    "items": [...],
+    "payment_details": {...},
+    "status_history": [...]
+  }
+}
+```
 
 ## Authentication
 
