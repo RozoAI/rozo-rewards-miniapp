@@ -1,0 +1,1143 @@
+openapi: 3.0.3
+info:
+  title: Rozo Rewards MiniApp API
+  description: |
+    API for the Rozo Rewards MiniApp - an AI promo and cashback platform built on Coinbase with Supabase backend.
+    
+    ## Authentication
+    Most endpoints require JWT authentication. Include the token in the Authorization header:
+    ```
+    Authorization: Bearer <jwt_token>
+    ```
+    
+    ## Rate Limiting
+    - Authentication endpoints: 10 requests per minute
+    - General endpoints: 100 requests per minute  
+    - Payment endpoints: 20 requests per minute
+  version: 1.0.0
+  contact:
+    name: Rozo AI Team
+    url: https://rozo.ai
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://your-project.supabase.co/functions/v1
+    description: Production server
+  - url: http://localhost:54321/functions/v1
+    description: Development server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /auth/wallet-login:
+    post:
+      tags:
+        - Authentication
+      summary: Authenticate user with wallet signature
+      description: Login or register user using Web3 wallet signature verification
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - wallet_address
+                - signature
+                - message
+                - nonce
+              properties:
+                wallet_address:
+                  type: string
+                  pattern: '^0x[a-fA-F0-9]{40}$'
+                  example: '0x742d35Cc6634C0532925a3b8D3A6a9e2C5C2c8d0'
+                signature:
+                  type: string
+                  pattern: '^0x[a-fA-F0-9]+$'
+                  example: '0x...'
+                message:
+                  type: string
+                  example: 'Sign this message to authenticate with Rozo Rewards'
+                nonce:
+                  type: string
+                  example: 'random_nonce_123'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh authentication token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+
+  /users/profile:
+    get:
+      tags:
+        - Users
+      summary: Get current user profile
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/User'
+    put:
+      tags:
+        - Users
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  maxLength: 50
+                email:
+                  type: string
+                  format: email
+                avatar_url:
+                  type: string
+                  format: uri
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/User'
+
+  /users/stats:
+    get:
+      tags:
+        - Users
+      summary: Get user statistics
+      responses:
+        '200':
+          description: User statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserStats'
+
+  /merchants:
+    get:
+      tags:
+        - Merchants
+      summary: Get list of merchants
+      security: []
+      parameters:
+        - in: query
+          name: category
+          schema:
+            $ref: '#/components/schemas/MerchantCategory'
+        - in: query
+          name: featured
+          schema:
+            type: boolean
+        - in: query
+          name: search
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: Merchants retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MerchantList'
+
+  /merchants/{id}:
+    get:
+      tags:
+        - Merchants
+      summary: Get merchant details
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/MerchantId'
+      responses:
+        '200':
+          description: Merchant details retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Merchant'
+
+  /merchants/categories:
+    get:
+      tags:
+        - Merchants
+      summary: Get available merchant categories
+      security: []
+      responses:
+        '200':
+          description: Categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          categories:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/CategoryInfo'
+
+  /transactions:
+    get:
+      tags:
+        - Transactions
+      summary: Get user transactions
+      parameters:
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/TransactionStatus'
+        - in: query
+          name: merchant_id
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/TransactionList'
+    post:
+      tags:
+        - Transactions
+      summary: Create a new transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransactionRequest'
+      responses:
+        '201':
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Transaction'
+
+  /transactions/{id}:
+    get:
+      tags:
+        - Transactions
+      summary: Get transaction details
+      parameters:
+        - $ref: '#/components/parameters/TransactionId'
+      responses:
+        '200':
+          description: Transaction details retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Transaction'
+
+  /transactions/{id}/verify:
+    post:
+      tags:
+        - Transactions
+      summary: Verify transaction on blockchain
+      parameters:
+        - $ref: '#/components/parameters/TransactionId'
+      responses:
+        '200':
+          description: Transaction verified successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/TransactionVerification'
+
+  /rewards:
+    get:
+      tags:
+        - Rewards
+      summary: Get user rewards
+      parameters:
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/RewardStatus'
+        - in: query
+          name: type
+          schema:
+            $ref: '#/components/schemas/RewardType'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: Rewards retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RewardList'
+
+  /rewards/{id}/claim:
+    post:
+      tags:
+        - Rewards
+      summary: Claim a reward
+      parameters:
+        - $ref: '#/components/parameters/RewardId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - to_address
+              properties:
+                to_address:
+                  type: string
+                  pattern: '^0x[a-fA-F0-9]{40}$'
+      responses:
+        '200':
+          description: Reward claimed successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RewardClaim'
+
+  /rewards/leaderboard:
+    get:
+      tags:
+        - Rewards
+      summary: Get rewards leaderboard
+      security: []
+      parameters:
+        - in: query
+          name: timeframe
+          schema:
+            type: string
+            enum: [week, month, all]
+            default: month
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Leaderboard retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Leaderboard'
+
+  /payments/create-intent:
+    post:
+      tags:
+        - Payments
+      summary: Create payment intent for merchant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentIntentRequest'
+      responses:
+        '201':
+          description: Payment intent created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PaymentIntent'
+
+  /payments/{intent_id}/confirm:
+    post:
+      tags:
+        - Payments
+      summary: Confirm payment with transaction hash
+      parameters:
+        - in: path
+          name: intent_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - transaction_hash
+              properties:
+                transaction_hash:
+                  type: string
+                  pattern: '^0x[a-fA-F0-9]{64}$'
+      responses:
+        '200':
+          description: Payment confirmed successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PaymentConfirmation'
+
+  /referrals/apply-code:
+    post:
+      tags:
+        - Referrals
+      summary: Apply referral code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - referral_code
+              properties:
+                referral_code:
+                  type: string
+                  maxLength: 20
+      responses:
+        '200':
+          description: Referral code applied successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReferralBonus'
+
+  /referrals/stats:
+    get:
+      tags:
+        - Referrals
+      summary: Get referral statistics
+      responses:
+        '200':
+          description: Referral statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReferralStats'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Limit:
+      in: query
+      name: limit
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Offset:
+      in: query
+      name: offset
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    MerchantId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TransactionId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    RewardId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    SuccessResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          example: true
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Invalid request data
+            details:
+              type: object
+
+    AuthResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                access_token:
+                  type: string
+                refresh_token:
+                  type: string
+                user:
+                  $ref: '#/components/schemas/User'
+                expires_in:
+                  type: integer
+                  example: 3600
+
+    RefreshResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                access_token:
+                  type: string
+                expires_in:
+                  type: integer
+                  example: 3600
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        wallet_address:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{40}$'
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+        avatar_url:
+          type: string
+          format: uri
+        total_cashback_earned:
+          type: number
+          format: decimal
+        total_cashback_claimed:
+          type: number
+          format: decimal
+        tier:
+          type: string
+          enum: [bronze, silver, gold, platinum]
+        referral_code:
+          type: string
+        referred_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UserStats:
+      type: object
+      properties:
+        total_transactions:
+          type: integer
+        total_spent:
+          type: number
+          format: decimal
+        total_cashback_earned:
+          type: number
+          format: decimal
+        total_cashback_claimed:
+          type: number
+          format: decimal
+        pending_cashback:
+          type: number
+          format: decimal
+        tier:
+          type: string
+          enum: [bronze, silver, gold, platinum]
+        tier_progress:
+          type: object
+          properties:
+            current_points:
+              type: integer
+            next_tier_points:
+              type: integer
+            progress_percentage:
+              type: number
+              format: float
+
+    MerchantCategory:
+      type: string
+      enum: [AI, CRYPTO, COMMERCE, DOMAIN, MARKETING, GAMING]
+
+    Merchant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        category:
+          $ref: '#/components/schemas/MerchantCategory'
+        description:
+          type: string
+        logo_url:
+          type: string
+          format: uri
+        website_url:
+          type: string
+          format: uri
+        domain:
+          type: string
+        cashback_percentage:
+          type: number
+          format: decimal
+        is_featured:
+          type: boolean
+        is_active:
+          type: boolean
+        location:
+          type: object
+          properties:
+            address_line1:
+              type: string
+            address_line2:
+              type: string
+            formatted_address:
+              type: string
+            lat:
+              type: number
+              format: double
+            lon:
+              type: number
+              format: double
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    MerchantList:
+      type: object
+      properties:
+        merchants:
+          type: array
+          items:
+            $ref: '#/components/schemas/Merchant'
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    CategoryInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        display_name:
+          type: string
+        count:
+          type: integer
+
+    TransactionStatus:
+      type: string
+      enum: [pending, confirmed, failed, refunded]
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        merchant_id:
+          type: string
+          format: uuid
+        transaction_hash:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{64}$'
+        amount:
+          type: number
+          format: decimal
+        currency:
+          type: string
+        cashback_amount:
+          type: number
+          format: decimal
+        cashback_percentage:
+          type: number
+          format: decimal
+        status:
+          $ref: '#/components/schemas/TransactionStatus'
+        to_address:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{40}$'
+        from_address:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{40}$'
+        chain_id:
+          type: integer
+        block_number:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    TransactionList:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    CreateTransactionRequest:
+      type: object
+      required:
+        - merchant_id
+        - transaction_hash
+        - amount
+        - to_address
+        - chain_id
+      properties:
+        merchant_id:
+          type: string
+          format: uuid
+        transaction_hash:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{64}$'
+        amount:
+          type: number
+          format: decimal
+        currency:
+          type: string
+          default: USDC
+        to_address:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{40}$'
+        chain_id:
+          type: integer
+
+    TransactionVerification:
+      type: object
+      properties:
+        verified:
+          type: boolean
+        block_number:
+          type: integer
+        transaction:
+          $ref: '#/components/schemas/Transaction'
+
+    RewardType:
+      type: string
+      enum: [cashback, referral, bonus, promotion]
+
+    RewardStatus:
+      type: string
+      enum: [pending, available, claimed, expired]
+
+    Reward:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        transaction_id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/RewardType'
+        amount:
+          type: number
+          format: decimal
+        currency:
+          type: string
+        status:
+          $ref: '#/components/schemas/RewardStatus'
+        claimed_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    RewardList:
+      type: object
+      properties:
+        rewards:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reward'
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+        summary:
+          type: object
+          properties:
+            total_available:
+              type: number
+              format: decimal
+            total_pending:
+              type: number
+              format: decimal
+            total_claimed:
+              type: number
+              format: decimal
+
+    RewardClaim:
+      type: object
+      properties:
+        transaction_hash:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{64}$'
+        amount:
+          type: number
+          format: decimal
+        currency:
+          type: string
+        reward:
+          $ref: '#/components/schemas/Reward'
+
+    Leaderboard:
+      type: object
+      properties:
+        leaderboard:
+          type: array
+          items:
+            type: object
+            properties:
+              rank:
+                type: integer
+              user_id:
+                type: string
+                format: uuid
+              username:
+                type: string
+              avatar_url:
+                type: string
+                format: uri
+              total_cashback:
+                type: number
+                format: decimal
+              tier:
+                type: string
+                enum: [bronze, silver, gold, platinum]
+        user_rank:
+          type: integer
+        timeframe:
+          type: string
+          enum: [week, month, all]
+
+    PaymentIntent:
+      type: object
+      properties:
+        payment_intent_id:
+          type: string
+          format: uuid
+        to_address:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{40}$'
+        amount:
+          type: number
+          format: decimal
+        currency:
+          type: string
+        chain_id:
+          type: integer
+        cashback_amount:
+          type: number
+          format: decimal
+        cashback_percentage:
+          type: number
+          format: decimal
+        expires_at:
+          type: string
+          format: date-time
+
+    CreatePaymentIntentRequest:
+      type: object
+      required:
+        - merchant_id
+        - amount
+        - chain_id
+      properties:
+        merchant_id:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: decimal
+        currency:
+          type: string
+          default: USDC
+        chain_id:
+          type: integer
+        metadata:
+          type: object
+          properties:
+            order_id:
+              type: string
+            description:
+              type: string
+
+    PaymentConfirmation:
+      type: object
+      properties:
+        transaction:
+          $ref: '#/components/schemas/Transaction'
+        rewards:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reward'
+
+    ReferralBonus:
+      type: object
+      properties:
+        bonus_amount:
+          type: number
+          format: decimal
+        currency:
+          type: string
+        referrer_bonus:
+          type: number
+          format: decimal
+
+    ReferralStats:
+      type: object
+      properties:
+        referral_code:
+          type: string
+        total_referrals:
+          type: integer
+        total_referral_bonus:
+          type: number
+          format: decimal
+        pending_bonus:
+          type: number
+          format: decimal
+        referrals:
+          type: array
+          items:
+            type: object
+            properties:
+              username:
+                type: string
+              joined_at:
+                type: string
+                format: date-time
+              bonus_earned:
+                type: number
+                format: decimal

@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+*.test.ts.snap
+*.test.js.snap
 
 # next.js
 /.next/
@@ -19,10 +21,12 @@
 
 # production
 /build
+/dist/
 
 # misc
 .DS_Store
 *.pem
+.vscode/settings.json
 
 # debug
 npm-debug.log*
@@ -32,6 +36,16 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# supabase
+/supabase/.temp/
+/supabase/.branches/
+/supabase/.git/
+.supabase/
 
 # vercel
 .vercel
@@ -39,3 +53,63 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# logs
+logs/
+*.log
+
+# temporary files
+.tmp/
+.temp/
+tmp/
+temp/
+
+# OS generated files
+Thumbs.db
+.DS_Store?
+ehthumbs.db
+Icon?
+
+# Package manager files
+package-lock.json
+yarn.lock
+.pnpm-lock.yaml
+
+# Runtime data
+pids/
+*.pid
+*.seed
+
+# Coverage directory used by tools like istanbul
+coverage/
+.nyc_output/
+
+# API keys and secrets (in case they slip in)
+secrets.json
+config/secrets.js
+
+# Documentation build artifacts
+docs/_build/
+docs/.doctrees/
+
+# Backup files
+*.backup
+*.bak
+*.orig
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache directories
+.cache/
+.parcel-cache/
+.eslintcache
