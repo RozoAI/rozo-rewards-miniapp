@@ -1,3 +1,4 @@
+import { createMiniAppMetadata } from "@/lib/miniapp-embed";
 import type { Metadata } from "next";
 
 type CatalogItem = {
@@ -11,7 +12,7 @@ type CatalogItem = {
 
 type CatalogResponse = CatalogItem[];
 
-export async function getService(domain: string): Promise<CatalogItem | null> {
+async function getService(domain: string): Promise<CatalogItem | null> {
   const base = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
   try {
     const res = await fetch(`${base}/ai_commerce_catalog.json`, {
@@ -39,25 +40,37 @@ export async function generateMetadata({
     ? service.description
     : "Discover AI service details and pay with crypto.";
   const urlPath = `/ai-services/${domain}`;
+  const fullUrl = `${process.env.NEXT_PUBLIC_URL}${urlPath}`;
 
-  return {
-    title,
-    description,
-    openGraph: {
+  return createMiniAppMetadata(
+    {
+      imageUrl:
+        service?.logo_url ||
+        process.env.NEXT_PUBLIC_APP_HERO_IMAGE ||
+        "/logo.png",
+      buttonTitle: service ? `✨ Use ${service.name}` : "✨ Try AI Service",
+      name: service ? service.name : "AI Service",
+      url: fullUrl,
+    },
+    {
       title,
       description,
-      url: urlPath,
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-    },
-    alternates: {
-      canonical: urlPath,
-    },
-  };
+      openGraph: {
+        title,
+        description,
+        url: urlPath,
+        type: "website",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+      },
+      alternates: {
+        canonical: urlPath,
+      },
+    }
+  );
 }
 
 export default function AIServiceDetailLayout({

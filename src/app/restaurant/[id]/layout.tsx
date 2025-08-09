@@ -1,3 +1,4 @@
+import { createMiniAppMetadata } from "@/lib/miniapp-embed";
 import type { Metadata } from "next";
 
 type LocationItem = {
@@ -15,7 +16,7 @@ type CoffeeMapResponse = {
   status?: string;
 };
 
-export async function getRestaurant(id: string): Promise<LocationItem | null> {
+async function getRestaurant(id: string): Promise<LocationItem | null> {
   const base = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
   try {
     const res = await fetch(`${base}/coffee_mapdata.json`, {
@@ -43,31 +44,42 @@ export async function generateMetadata({
     ? `${restaurant.name} — Restaurant`
     : "Restaurant Details";
   const description = restaurant
-    ? `${restaurant.address_line1}$${
+    ? `${restaurant.address_line1}${
         restaurant.address_line2 ? `, ${restaurant.address_line2}` : ""
-      }`.replace("$,", ",")
+      }`
     : "View restaurant details, address and pay with crypto.";
 
   const urlPath = `/restaurant/${id}`;
+  const fullUrl = `${process.env.NEXT_PUBLIC_URL}${urlPath}`;
 
-  return {
-    title,
-    description,
-    openGraph: {
+  return createMiniAppMetadata(
+    {
+      imageUrl: process.env.NEXT_PUBLIC_APP_HERO_IMAGE || "/logo.png",
+      buttonTitle: restaurant
+        ? `🍽️ Visit ${restaurant.name}`
+        : "🍽️ View Restaurant",
+      name: restaurant ? restaurant.name : "Restaurant Details",
+      url: fullUrl,
+    },
+    {
       title,
       description,
-      url: urlPath,
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-    },
-    alternates: {
-      canonical: urlPath,
-    },
-  };
+      openGraph: {
+        title,
+        description,
+        url: urlPath,
+        type: "website",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+      },
+      alternates: {
+        canonical: urlPath,
+      },
+    }
+  );
 }
 
 export default function RestaurantDetailLayout({
