@@ -7,7 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "test:e2e": "tsx tests/e2e/run-tests.ts",
+    "test:e2e:auth": "tsx tests/e2e/run-tests.ts auth",
+    "test:e2e:payments": "tsx tests/e2e/run-tests.ts payments", 
+    "test:e2e:orders": "tsx tests/e2e/run-tests.ts orders",
+    "test:e2e:quick": "tsx tests/e2e/run-tests.ts quick"
   },
   "dependencies": {
     "@coinbase/onchainkit": "^0.38.19",
