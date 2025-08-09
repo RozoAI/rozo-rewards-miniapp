@@ -14,6 +14,11 @@ export interface User {
   tier: 'bronze' | 'silver' | 'gold' | 'platinum';
   referral_code: string;
   referred_by?: string;
+  // CDP Spend Permission fields
+  spend_permission_authorized: boolean;
+  spend_permission_allowance: number;
+  spend_permission_expiry?: string;
+  last_spend_permission_check?: string;
   metadata: Record<string, any>;
   created_at: string;
   updated_at: string;
@@ -147,6 +152,49 @@ export interface OrderItem {
   metadata: Record<string, any>;
   created_at: string;
   updated_at: string;
+}
+
+// CDP Payment System Types
+export interface ProcessPaymentRequest {
+  receiver: string;           // Merchant wallet address
+  cashback_rate: number;      // Percentage (e.g., 1, 5)
+  amount: number;             // USD amount
+  is_using_credit: boolean;   // true = use ROZO credits, false = direct payment
+  user_signature?: string;    // Optional: for additional verification
+  nonce?: string;            // Optional: for replay protection
+}
+
+export interface ProcessPaymentResponse {
+  transaction_id: string;
+  payment_method: "direct_usdc" | "rozo_credit";
+  amount_paid_usd: number;
+  rozo_balance_change: number; // Positive for earned, negative for spent
+  new_rozo_balance: number;
+  cashback_earned?: number;    // Only for direct payments
+  tx_hash?: string;           // Only for direct payments
+}
+
+export interface PaymentEligibility {
+  eligible: boolean;
+  reason?: string;
+  payment_method?: 'direct_usdc' | 'rozo_credit';
+  rozo_cost?: number;
+  remaining_balance?: number;
+  allowance_remaining?: number;
+  required?: number;
+  available?: number;
+  allowance?: number;
+  recommendations?: string[];
+}
+
+export interface SpendPermission {
+  user_id: string;
+  authorized: boolean;
+  allowance: number;
+  expiry: string | null;
+  last_check: string;
+  status: 'active' | 'expired' | 'unauthorized' | 'insufficient_allowance';
+  recommendations: string[];
 }
 
 export interface PaymentIntent {

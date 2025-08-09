@@ -443,6 +443,96 @@ Get detailed order information
 }
 ```
 
+## 🆕 CDP Payment System
+
+### POST `/payments/process`
+Process payment with ROZO offset or direct USDC
+
+**Request:**
+```json
+{
+  "receiver": "0x22",
+  "cashback_rate": 5,
+  "amount": 20,
+  "is_using_credit": false,
+  "user_signature": "0x...",
+  "nonce": "unique_payment_id"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "transaction_id": "uuid",
+    "payment_method": "direct_usdc",
+    "amount_paid_usd": 20,
+    "rozo_balance_change": 10000,
+    "new_rozo_balance": 15000,
+    "cashback_earned": 10000,
+    "tx_hash": "0xabc..."
+  }
+}
+```
+
+### POST `/payments/eligibility`
+Check payment eligibility and get recommendations
+
+**Request:**
+```json
+{
+  "amount_usd": 20,
+  "is_using_credit": false
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "eligible": true,
+    "payment_method": "direct_usdc",
+    "allowance_remaining": 980,
+    "recommendations": [
+      "Payment authorized via CDP Spend Permissions",
+      "You'll earn ROZO cashback from this purchase"
+    ]
+  }
+}
+```
+
+### GET/POST `/auth/spend-permission`
+Manage CDP Spend Permissions
+
+**GET Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "user_id": "uuid",
+    "authorized": true,
+    "allowance": 1000,
+    "expiry": "2025-01-10T00:00:00Z",
+    "status": "active",
+    "recommendations": [
+      "Your spend permission is active and ready for payments"
+    ]
+  }
+}
+```
+
+**POST Request (Update):**
+```json
+{
+  "authorized": true,
+  "allowance": 1000,
+  "expiry": "2025-01-10T00:00:00Z",
+  "signature": "0x..."
+}
+```
+
 ## Authentication
 
 ### POST `/auth/wallet-login`
