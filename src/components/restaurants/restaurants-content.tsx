@@ -1,9 +1,11 @@
 "use client";
 
 import { ListSearchInput } from "@/components/list-search-input";
+import { Button } from "@/components/ui/button";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { cn } from "@/lib/utils";
-import { Search } from "lucide-react";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { cn, calculateDistance } from "@/lib/utils";
+import { MapPin, Search, RefreshCw } from "lucide-react";
 import * as React from "react";
 import { LocationItem, RestaurantList } from "./restaurant-list";
 
@@ -17,6 +19,8 @@ export function RestaurantsContent({ className }: { className?: string }) {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 250);
+  
+  const { coordinates, loading: locationLoading, error: locationError, requestLocation } = useGeolocation();
 
   React.useEffect(() => {
     let isMounted = true;
@@ -44,19 +48,49 @@ export function RestaurantsContent({ className }: { className?: string }) {
     };
   }, []);
 
-  const filteredLocations = React.useMemo(() => {
-    if (!locations) return null;
+  const locationsWithDistance = React.useMemo(() => {
+    if (!locations || !coordinates) return locations;
+
+    return locations.map((location) => ({
+      ...location,
+      distance: calculateDistance(
+        coordinates.latitude,
+        coordinates.longitude,
+        location.lat,
+        location.lon
+      ),
+    }));
+  }, [locations, coordinates]);
+
+  const filteredAndSortedLocations = React.useMemo(() => {
+    if (!locationsWithDistance) return null;
+    
+    let filtered = locationsWithDistance;
+    
+    // Filter by search query
     const q = debouncedSearchQuery.trim().toLowerCase();
-    if (!q) return locations;
-    return locations.filter(
-      (location) =>
-        location.name.toLowerCase().includes(q) ||
-        location.formatted.toLowerCase().includes(q) ||
-        location.address_line1.toLowerCase().includes(q) ||
-        (location.address_line2 &&
-          location.address_line2.toLowerCase().includes(q))
-    );
-  }, [locations, debouncedSearchQuery]);
+    if (q) {
+      filtered = locationsWithDistance.filter(
+        (location) =>
+          location.name.toLowerCase().includes(q) ||
+          location.formatted.toLowerCase().includes(q) ||
+          location.address_line1.toLowerCase().includes(q) ||
+          (location.address_line2 &&
+            location.address_line2.toLowerCase().includes(q))
+      );
+    }
+    
+    // Sort by distance if location is available
+    if (coordinates) {
+      filtered = [...filtered].sort((a, b) => {
+        const distanceA = a.distance ?? Infinity;
+        const distanceB = b.distance ?? Infinity;
+        return distanceA - distanceB;
+      });
+    }
+    
+    return filtered;
+  }, [locationsWithDistance, debouncedSearchQuery, coordinates]);
 
   const clearSearch = React.useCallback(() => setSearchQuery(""), []);
 
@@ -93,20 +127,48 @@ export function RestaurantsContent({ className }: { className?: string }) {
     );
   }
 
-  const hasResults = filteredLocations && filteredLocations.length > 0;
+  const hasResults = filteredAndSortedLocations && filteredAndSortedLocations.length > 0;
   const showNoResults =
-    filteredLocations &&
-    filteredLocations.length === 0 &&
+    filteredAndSortedLocations &&
+    filteredAndSortedLocations.length === 0 &&
     debouncedSearchQuery.trim();
 
   return (
     <div className={className}>
+      {/* Location status */}
+      {locationError && (
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-2 text-yellow-800">
+            <MapPin className="h-4 w-4" />
+            <span className="text-sm">{locationError}</span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={requestLocation}
+            disabled={locationLoading}
+            className="text-yellow-800 border-yellow-300 hover:bg-yellow-100"
+          >
+            <RefreshCw className={cn("h-3 w-3 mr-1", locationLoading && "animate-spin")} />
+            Retry
+          </Button>
+        </div>
+      )}
+
+      {locationLoading && !coordinates && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2 text-blue-800">
+          <RefreshCw className="h-4 w-4 animate-spin" />
+          <span className="text-sm">Getting your location...</span>
+        </div>
+      )}
+
       <ListSearchInput
         value={searchQuery}
         onChange={setSearchQuery}
         onClear={clearSearch}
         placeholder="Search restaurants..."
       />
+      
       {showNoResults ? (
         <div className="text-center py-8 px-4">
           <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -125,7 +187,7 @@ export function RestaurantsContent({ className }: { className?: string }) {
           </button>
         </div>
       ) : (
-        hasResults && <RestaurantList locations={filteredLocations!} />
+        hasResults && <RestaurantList locations={filteredAndSortedLocations!} />
       )}
     </div>
   );

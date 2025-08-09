@@ -1,7 +1,8 @@
 "use client";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
+import { getFirstTwoWordInitialsFromName, formatDistance } from "@/lib/utils";
+import { MapPin } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
@@ -13,6 +14,7 @@ export type LocationItem = {
   address_line2?: string;
   lat: number;
   lon: number;
+  distance?: number; // Distance in miles
 };
 
 function ListRow({ location }: { location: LocationItem }) {
@@ -40,6 +42,12 @@ function ListRow({ location }: { location: LocationItem }) {
             >
               {location.name}
             </h3>
+            {location.distance !== undefined && (
+              <div className="flex items-center gap-1 text-sm text-muted-foreground ml-2 flex-shrink-0">
+                <MapPin className="h-3 w-3" />
+                {formatDistance(location.distance)}
+              </div>
+            )}
           </div>
           <p
             className="text-sm text-muted-foreground line-clamp-2 leading-relaxed"
