@@ -52,7 +52,7 @@ export default function ProfilePageContent() {
     <div className="container mx-auto px-4 py-6 max-w-2xl">
       {/* Profile Header */}
       <Card className="mb-4">
-        <CardHeader>
+        <CardHeader className="gap-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Avatar className="h-16 w-16">
@@ -82,16 +82,17 @@ export default function ProfilePageContent() {
                 </div>
               </div>
             </div>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDisconnect}
-              className="flex items-center gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              Disconnect
-            </Button>
           </div>
+
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleDisconnect}
+            className="flex items-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Disconnect
+          </Button>
         </CardHeader>
       </Card>
 
