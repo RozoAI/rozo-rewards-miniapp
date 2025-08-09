@@ -299,7 +299,7 @@ export default function RestaurantDetailPage() {
                   });
 
                   setTimeout(() => {
-                    window.location.href = `https://invoice.rozo.ai/receipt?id=${args.payment.id}`;
+                    window.location.href = `https://invoice.rozo.ai/receipt?id=${args.payment.id}&back_url=${window.location.href}`;
                   }, 2000);
                 }}
               >

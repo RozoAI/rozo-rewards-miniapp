@@ -237,6 +237,16 @@ export default function AIServiceDetailPage() {
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 pt-2">
+            <Button
+              onClick={visitWebsite}
+              variant="outline"
+              className="w-full h-11 sm:h-12 text-sm sm:text-base font-medium"
+              size="lg"
+            >
+              <ExternalLink className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+              Visit Website
+            </Button>
+
             {!payment && (
               <Button
                 onClick={handlePayment}
@@ -286,7 +296,7 @@ export default function AIServiceDetailPage() {
                   });
 
                   setTimeout(() => {
-                    window.location.href = `https://invoice.rozo.ai/receipt?id=${args.payment.id}`;
+                    window.location.href = `https://invoice.rozo.ai/receipt?id=${args.payment.id}&back_url=${window.location.href}`;
                   }, 2000);
                 }}
               >
@@ -308,16 +318,6 @@ export default function AIServiceDetailPage() {
                 )}
               </RozoPayButton.Custom>
             )}
-
-            <Button
-              onClick={visitWebsite}
-              variant="outline"
-              className="w-full h-11 sm:h-12 text-sm sm:text-base font-medium"
-              size="lg"
-            >
-              <ExternalLink className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-              Visit Website
-            </Button>
           </div>
         </CardContent>
       </Card>
