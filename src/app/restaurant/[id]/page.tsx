@@ -67,7 +67,7 @@ export default function RestaurantDetailPage() {
           (loc) => loc._id === restaurantId
         );
         if (!foundRestaurant) {
-          throw new Error("Restaurant not found");
+          throw new Error("Lifestyle not found");
         }
 
         setRestaurant(foundRestaurant);
@@ -144,7 +144,7 @@ export default function RestaurantDetailPage() {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-lg sm:text-2xl font-bold">Restaurant Details</h1>
+          <h1 className="text-lg sm:text-2xl font-bold">Lifestyle Details</h1>
         </div>
         <Card className="w-full">
           <CardContent className="flex flex-col items-center justify-center p-8 text-center">
@@ -156,7 +156,7 @@ export default function RestaurantDetailPage() {
               been removed.
             </p>
             <Button onClick={() => router.push("/")} variant="outline">
-              Back to Restaurants
+              Back to Lifestyle
             </Button>
           </CardContent>
         </Card>
@@ -170,7 +170,7 @@ export default function RestaurantDetailPage() {
     <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
       {/* Header */}
       <PageHeader
-        title="Back to Restaurants"
+        title="Back to Lifestyle"
         icon={<StoreIcon className="size-6" />}
         isBackButton
       />

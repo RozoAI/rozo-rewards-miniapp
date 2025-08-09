@@ -47,9 +47,9 @@ function ListRow({ item }: { item: CatalogItem }) {
             >
               {item.name}
             </h3>
-            <p className="text-xs text-muted-foreground" title={item.category}>
+            {/* <p className="text-xs text-muted-foreground" title={item.category}>
               {item.category} · {item.domain}
-            </p>
+            </p> */}
           </div>
 
           <Link
@@ -65,7 +65,7 @@ function ListRow({ item }: { item: CatalogItem }) {
         >
           {item.description}
         </p>
-        <Link
+        {/* <Link
           href={href}
           target="_blank"
           rel="noreferrer"
@@ -73,7 +73,7 @@ function ListRow({ item }: { item: CatalogItem }) {
         >
           <ExternalLink className="size-3" />
           Visit website
-        </Link>
+        </Link> */}
       </div>
     </li>
   );

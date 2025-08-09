@@ -67,12 +67,12 @@ export function createMiniAppMetadata(
 export const embedConfigs = {
   home: {
     imageUrl: process.env.NEXT_PUBLIC_APP_HERO_IMAGE || "/logo.png",
-    buttonTitle: "🚀 Explore Restaurants",
+    buttonTitle: "🚀 Explore Lifestyle",
     name: "Rozo Rewards",
   },
   restaurants: {
     imageUrl: process.env.NEXT_PUBLIC_APP_HERO_IMAGE || "/logo.png",
-    buttonTitle: "🍽️ Browse Restaurants",
+    buttonTitle: "🍽️ Browse Lifestyle",
     name: "Restaurant Directory",
   },
   aiServices: {

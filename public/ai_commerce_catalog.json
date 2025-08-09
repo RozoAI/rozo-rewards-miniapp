@@ -16,14 +16,6 @@
     "source": "https://civitai.com/"
   },
   {
-    "domain": "pykaso.ai",
-    "name": "Pykaso AI",
-    "category": "AI",
-    "description": "Toolset for AI influencers: text‑to‑image, AI video generation, 4K face swaps, image editing, and upscaling. Monetization and community features.",
-    "logo_url": "https://www.pykaso.ai/favicon.ico",
-    "source": "https://www.pykaso.ai/"
-  },
-  {
     "domain": "app.pykaso.ai",
     "name": "Pykaso App",
     "category": "AI",
@@ -40,36 +32,12 @@
     "source": "https://www.deepswap.ai/"
   },
   {
-    "domain": "deepswap.net",
-    "name": "DeepSwap (alt domain)",
-    "category": "AI",
-    "description": "Sister site/app for DeepSwap providing account login, pricing, and premium features for face swapping and related AI tools.",
-    "logo_url": "https://www.deepswap.net/favicon.ico",
-    "source": "https://www.deepswap.net/"
-  },
-  {
     "domain": "soulgen.net",
     "name": "SoulGen",
     "category": "AI",
     "description": "Web‑based AI art generator focused on creating customizable anime/real‑style characters from text prompts with account‑based services.",
     "logo_url": "https://www.soulgen.net/favicon.ico",
     "source": "https://www.soulgen.net/"
-  },
-  {
-    "domain": "soulgen.ai",
-    "name": "SoulGen AI (alt)",
-    "category": "AI",
-    "description": "Informational/alt domain related to SoulGen’s AI character image tools.",
-    "logo_url": "https://www.soulgen.ai/favicon.ico",
-    "source": "https://www.soulgen.ai/"
-  },
-  {
-    "domain": "joi.com",
-    "name": "Joi AI",
-    "category": "AI",
-    "description": "AI companion platform offering real‑time chat, photos, and videos with virtual characters and digital celebrities in a sex‑positive environment.",
-    "logo_url": "https://joi.com/favicon.ico",
-    "source": "https://joi.com/"
   },
   {
     "domain": "venice.ai",
@@ -119,14 +87,7 @@
     "logo_url": "https://app.koinly.io/favicon.ico",
     "source": "https://koinly.io/"
   },
-  {
-    "domain": "fameswap.com",
-    "name": "Fameswap",
-    "category": "COMMERCE",
-    "description": "Marketplace to buy and sell established Instagram, TikTok, and YouTube accounts with escrow and verification workflows.",
-    "logo_url": "https://fameswap.com/favicon.ico",
-    "source": "https://fameswap.com/"
-  },
+
   {
     "domain": "porkbun.com",
     "name": "Porkbun",
@@ -135,22 +96,7 @@
     "logo_url": "https://porkbun.com/favicon.ico",
     "source": "https://porkbun.com/"
   },
-  {
-    "domain": "buzzoid.com",
-    "name": "Buzzoid",
-    "category": "MARKETING",
-    "description": "Service selling Instagram followers, likes, and views with instant delivery packages and 24/7 support.",
-    "logo_url": "https://buzzoid.com/favicon.ico",
-    "source": "https://buzzoid.com/"
-  },
-  {
-    "domain": "playerauctions.com",
-    "name": "PlayerAuctions",
-    "category": "COMMERCE",
-    "description": "Player‑to‑player marketplace for in‑game currency, items/skins, accounts, and boosting across 300+ games.",
-    "logo_url": "https://www.playerauctions.com/favicon.ico",
-    "source": "https://www.playerauctions.com/"
-  },
+
   {
     "domain": "lootie.com",
     "name": "Lootie",
