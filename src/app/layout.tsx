@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "@coinbase/onchainkit/styles.css";
-import "./globals.css";
-import IntercomInitializer from "@/components/intercom";
-import { ThemeProvider } from "next-themes";
-import { FabActions } from "@/components/fab-actions";
-import { Toaster } from "sonner";
 import { BottomNavbar } from "@/components/bottom-navbar";
+import { FabActions } from "@/components/fab-actions";
+import IntercomInitializer from "@/components/intercom";
 import { MiniKitContextProvider } from "@/providers/MiniKitProvider";
 import { Web3Provider } from "@/providers/Web3Provider";
+import "@coinbase/onchainkit/styles.css";
+import type { Metadata } from "next";
+import { ThemeProvider } from "next-themes";
+import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "sonner";
+import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,6 +25,12 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME,
     description: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
+    viewport:
+      "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+    robots: {
+      index: false,
+      follow: false,
+    },
     other: {
       "fc:frame": JSON.stringify({
         version: "next",
