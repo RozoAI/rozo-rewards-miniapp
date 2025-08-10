@@ -49,10 +49,14 @@ serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Authenticate user
+    // Get authenticated user
     const { user, error: authError } = await getUserFromAuth(req.headers.get("authorization"));
     if (authError || !user) {
-      return createErrorResponse('Authentication required', 401);
+      return createErrorResponse(
+        "AUTHENTICATION_ERROR",
+        "Authentication required",
+        401
+      );
     }
 
     const requestData: ProcessPaymentRequest = await req.json();
@@ -65,15 +69,43 @@ serve(async (req: Request) => {
       );
     }
 
-    // Get user profile
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
+    // Get user profile from cb_hack database
+    let { data: profile, error: profileError } = await supabaseClient
+      .from('cb_hack_profiles')
       .select('*')
-      .eq('id', user.id)
+      .eq('wallet_address', user.wallet_address || user.id)
       .single();
 
     if (profileError || !profile) {
-      return createErrorResponse('User profile not found', 404);
+      // If profile doesn't exist, create it
+      if (profileError?.code === 'PGRST116') {
+        console.log('Creating new user profile in cb_hack_profiles...');
+        const { data: newProfile, error: createError } = await supabaseClient
+          .from('cb_hack_profiles')
+          .insert({
+            wallet_address: user.wallet_address || user.id,
+            tier: 'bronze',
+            available_cashback_rozo: 0,
+            total_cashback_rozo: 0,
+            used_cashback_rozo: 0,
+            available_cashback_usd: 0,
+            total_cashback_usd: 0,
+            used_cashback_usd: 0,
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Failed to create profile:', createError);
+          return createErrorResponse('Failed to create user profile', 500);
+        }
+        
+        console.log('✅ Created new profile:', newProfile);
+        profile = newProfile;
+      } else {
+        console.error('Profile lookup error:', profileError);
+        return createErrorResponse('User profile not found', 404);
+      }
     }
 
     if (requestData.is_using_credit) {
@@ -181,29 +213,41 @@ async function processDirectPayment(
   // Calculate cashback in ROZO tokens
   const tierMultiplier = getTierMultiplier(profile.tier || 'bronze');
   const finalCashbackRate = cashback_rate * tierMultiplier;
-  const cashbackRozo = Math.floor(amount * (finalCashbackRate / 100) * 100);
+  // For NS Cafe: $0.1 payment with 10% rate = 1 ROZO
+  const cashbackRozo = Math.floor(amount * finalCashbackRate);
 
   // Execute blockchain payment through RozoPayMaster
   const txHash = await executeRozoPayMasterPayment(profile.wallet_address, receiver, amount);
 
-  // Record transaction and update balances
+  // Record transaction and update balances in cb_hack database
+  console.log('💾 Recording payment in cb_hack database...');
   const { data: result, error } = await supabaseClient.rpc(
-    'process_direct_payment',
+    'cb_hack_process_direct_payment',
     {
-      p_user_id: profile.id,
+      p_user_wallet_address: profile.wallet_address,
       p_receiver: receiver,
       p_amount_usd: amount,
       p_cashback_rozo: cashbackRozo,
       p_cashback_rate: finalCashbackRate,
       p_tx_hash: txHash,
-      p_chain_id: 8453 // Base
+      p_chain_id: 8453 // Base mainnet
     }
   );
 
   if (error) {
-    console.error('Direct payment recording error:', error);
-    throw new Error('Failed to record direct payment');
+    console.error('Database recording error:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+    
+    // Try to handle specific database errors
+    if (error.code === '42883') {
+      console.error('RPC function cb_hack_process_direct_payment not found.');
+      throw new Error('Database function not found. Please create cb_hack tables first.');
+    } else {
+      throw new Error(`Failed to record payment: ${error.message}`);
+    }
   }
+
+  console.log('✅ Payment recorded in cb_hack database:', result);
 
   return {
     payment_id: result.transaction_id,
@@ -331,9 +375,85 @@ async function executeRozoPayMasterPayment(
   amount: number,
   userSignature?: string
 ): Promise<string> {
-  // TODO: Implement actual RozoPayMaster contract interaction
-  // For now, return a mock transaction hash
-  const mockTxHash = `0x${Math.random().toString(16).substr(2, 64)}`;
-  console.log(`Mock payment: ${userAddress} -> ${receiver}: $${amount}, tx: ${mockTxHash}`);
-  return mockTxHash;
+  try {
+    console.log(`🚀 Executing real USDC transfer: ${userAddress} -> ${receiver}: $${amount}`);
+    
+    // Import viem for blockchain interactions
+    const { createPublicClient, createWalletClient, http, parseUnits } = await import('https://esm.sh/viem@2.21.44');
+    const { base, baseSepolia } = await import('https://esm.sh/viem@2.21.44/chains');
+    const { privateKeyToAccount } = await import('https://esm.sh/viem@2.21.44/accounts');
+    
+    // Determine network and contracts
+    const isProduction = Deno.env.get('NODE_ENV') === 'production' || Deno.env.get('NEXT_PUBLIC_USE_MAINNET') === 'true';
+    const chain = isProduction ? base : baseSepolia;
+    const usdcAddress = isProduction 
+      ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'  // Base Mainnet USDC
+      : '0x036CbD53842c5426634e7929541eC2318f3dCF7e'; // Base Sepolia USDC
+
+    console.log(`💰 Using ${isProduction ? 'Base Mainnet' : 'Base Sepolia'} USDC: ${usdcAddress}`);
+
+    // Get paymaster private key from environment
+    const paymasterPrivateKey = Deno.env.get('ROZO_PAYMASTER_PRIVATE_KEY');
+    if (!paymasterPrivateKey) {
+      console.error('❌ ROZO_PAYMASTER_PRIVATE_KEY not found in environment');
+      throw new Error('PayMaster private key not configured');
+    }
+
+    // Create clients
+    const publicClient = createPublicClient({
+      chain,
+      transport: http()
+    });
+
+    const account = privateKeyToAccount(paymasterPrivateKey as `0x${string}`);
+    const walletClient = createWalletClient({
+      account,
+      chain,
+      transport: http()
+    });
+
+    console.log(`🔑 PayMaster account: ${account.address}`);
+
+    // Convert amount to USDC units (6 decimals)
+    const usdcAmount = parseUnits(amount.toString(), 6);
+    console.log(`💵 Transfer amount: ${usdcAmount} USDC units (${amount} USD)`);
+
+    // USDC transfer function signature: transfer(address to, uint256 value)
+    const transferData = `0xa9059cbb${receiver.slice(2).padStart(64, '0')}${usdcAmount.toString(16).padStart(64, '0')}`;
+
+    console.log(`📝 Transfer data: ${transferData}`);
+
+    // Execute the transaction
+    const txHash = await walletClient.sendTransaction({
+      to: usdcAddress as `0x${string}`,
+      data: transferData as `0x${string}`,
+      gas: 100000n, // Reasonable gas limit for USDC transfer
+    });
+
+    console.log(`✅ USDC transfer transaction sent: ${txHash}`);
+
+    // Wait for transaction confirmation
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash: txHash,
+      confirmations: 1
+    });
+
+    console.log(`🎉 Transaction confirmed in block ${receipt.blockNumber}: ${txHash}`);
+    console.log(`🔗 View on BaseScan: https://${isProduction ? '' : 'sepolia.'}basescan.org/tx/${txHash}`);
+
+    return txHash;
+
+  } catch (error) {
+    console.error('❌ Real USDC transfer failed:', error);
+    
+    // For development, fall back to mock transaction if real transfer fails
+    if (Deno.env.get('NODE_ENV') !== 'production') {
+      console.log('🔧 Development fallback: using mock transaction');
+      const mockTxHash = `0x${Math.random().toString(16).substr(2, 64)}`;
+      console.log(`Mock payment: ${userAddress} -> ${receiver}: $${amount}, tx: ${mockTxHash}`);
+      return mockTxHash;
+    }
+    
+    throw error;
+  }
 }

@@ -12,12 +12,30 @@ import { useRozoAPI } from "@/hooks/useRozoAPI";
 
 // Internal component that contains wagmi hooks - only rendered after hydration
 function WalletComponentsInternal() {
+  const [wagmiReady, setWagmiReady] = useState(false);
   const { address: accountAddress, status } = useAccount();
   const { connectors, connect, status: connectStatus } = useConnect();
   const { isAuthenticated } = useRozoAPI();
 
+  // Wait for wagmi to stabilize before showing full UI
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setWagmiReady(true);
+    }, 100); // Small delay to let wagmi settle
+    
+    return () => clearTimeout(timer);
+  }, []);
+
   // Ensure consistent rendering between server and client
   const displayAddress = accountAddress || "";
+
+  if (!wagmiReady) {
+    return (
+      <WalletProvider>
+        <Button disabled>Initializing...</Button>
+      </WalletProvider>
+    );
+  }
 
   return (
     <WalletProvider>

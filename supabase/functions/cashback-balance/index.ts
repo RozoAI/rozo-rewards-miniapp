@@ -39,29 +39,38 @@ serve(async (req: Request) => {
   }
 
   try {
-    // Return test data directly for development (bypass all auth)
-    console.log('🔧 Development mode: returning test cashback data');
-    
-    const testResponseData: CashbackBalanceData = {
-      available_cashback_rozo: 1500,
-      total_cashback_rozo: 2000,
-      used_cashback_rozo: 500,
-      available_cashback_usd: 15.0,
-      total_cashback_usd: 20.0,
-      used_cashback_usd: 5.0,
-      current_tier: "silver",
-      tier_multiplier: 1.2,
-      conversion_rate: "1 ROZO = $0.01 USD",
-      pending_cashback: {
-        rozo: 250,
-        usd: 2.5,
-        count: 3
-      }
-    };
+    // Initialize Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
-    console.log('📤 Returning test cashback response:', testResponseData);
+    // Get authenticated user
+    const { user, error: authError } = await getUserFromAuth(req.headers.get("authorization"));
+    if (authError || !user) {
+      return createErrorResponse(
+        "AUTHENTICATION_ERROR",
+        "Authentication required",
+        401
+      );
+    }
+
+    console.log(`🔍 Getting balance for wallet: ${user.wallet_address}`);
+    
+    // Use the new cb_hack function
+    const { data: balanceData, error } = await supabaseClient.rpc(
+      'cb_hack_get_user_balance',
+      { p_wallet_address: user.wallet_address || user.id }
+    );
+
+    if (error) {
+      console.error('Balance retrieval error:', error);
+      return createErrorResponse('Failed to get user balance', 500);
+    }
+
+    console.log('✅ Balance retrieved from cb_hack database:', balanceData);
     return createResponse({
-      balance_summary: testResponseData
+      balance_summary: balanceData
     });
   } catch (error) {
     console.error("Cashback balance error:", error);

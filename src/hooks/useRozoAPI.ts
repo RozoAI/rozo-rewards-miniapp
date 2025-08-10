@@ -162,16 +162,7 @@ export const useRozoAPI = () => {
     }
     
     // For development: auto-authenticate with mock token
-    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-      console.log('🔧 Development mode: auto-authenticating with mock token');
-      const mockToken = 'dev_mock_token_' + Date.now();
-      const mockExpiry = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
-      
-      localStorage.setItem('rozo_jwt_token', mockToken);
-      localStorage.setItem('rozo_jwt_expires', mockExpiry.toString());
-      setAuthToken(mockToken);
-      setIsAuthenticated(true);
-    }
+    // Ready for real authentication - no auto-authentication needed
   }, []);
 
   // Don't auto-authenticate - let user manually authenticate
@@ -387,19 +378,39 @@ export const useRozoAPI = () => {
   const MAX_RETRIES = 3;
   const RETRY_WINDOW = 30000; // 30 seconds
 
-  // Check current spend permission status
+  // Check current spend permission status using real API
   const checkSpendPermission = useCallback(async (): Promise<SpendPermission | null> => {
-    // For development: return mock data directly, no auth required
-    console.log('🔧 Development mode: returning mock spend permission');
-    return {
-      authorized: true,
-      allowance: 20.0,
-      remaining_today: 20.0,
-      daily_limit: 20.0,
-      expiry: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      status: "active"
-    };
-  }, []);
+    const token = getAuthToken();
+    if (!token || !isAuthenticated) {
+      console.log('⚠️ Cannot check spend permission: not authenticated');
+      return null;
+    }
+
+    try {
+      console.log('🔍 Checking spend permission with real API...');
+      const response = await apiCall('/auth-spend-permission', {
+        method: 'GET'
+      });
+
+      if (response.success && response.data) {
+        console.log('✅ Spend permission retrieved:', response.data);
+        return {
+          authorized: response.data.authorized || false,
+          allowance: response.data.allowance || 0,
+          remaining_today: response.data.allowance || 0,
+          daily_limit: response.data.allowance || 0,
+          expiry: response.data.expiry || new Date().toISOString(),
+          status: response.data.status || "inactive"
+        };
+      } else {
+        console.log('❌ No spend permission found or invalid response');
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Failed to check spend permission:', error);
+      return null;
+    }
+  }, [apiCall, getAuthToken, isAuthenticated]);
 
   // Set up spend permission authorization with real EIP-712 signature
   const authorizeSpending = useCallback(async (
@@ -451,97 +462,122 @@ export const useRozoAPI = () => {
 
   // Note: Credit deduction now handled by real on-chain transactions
 
-  // Get ROZO balance (with persistent state)
+  // Get ROZO balance from real database
   const getRozoBalance = useCallback(async (): Promise<RozoBalance | null> => {
-    // For development: use localStorage to persist ROZO balance changes
-    const storedBalance = localStorage.getItem('rozo_balance');
-    const currentBalance = storedBalance ? JSON.parse(storedBalance) : {
-      available_cashback_rozo: 0,
-      total_cashback_rozo: 0,
-      used_cashback_rozo: 0,
-      available_cashback_usd: 0.0,
-      total_cashback_usd: 0.0,
-      used_cashback_usd: 0.0,
-      current_tier: "bronze",
-      tier_multiplier: 1.0,
-      conversion_rate: "1 ROZO = $0.01 USD"
-    };
-    
-    console.log('🔧 Development mode: returning stored ROZO balance', currentBalance);
-    return currentBalance;
-  }, []);
+    const token = getAuthToken();
+    if (!token || !isAuthenticated) {
+      console.log('⚠️ Cannot get ROZO balance: not authenticated');
+      return null;
+    }
 
-  // Check payment eligibility
+    try {
+      setLoading(true);
+      setError(null);
+
+      console.log('🔍 Fetching ROZO balance from cb_hack database...');
+      const response = await apiCall('/cashback-balance');
+
+      if (response.success && response.data?.balance_summary) {
+        const balance = response.data.balance_summary;
+        console.log('✅ ROZO balance retrieved from database:', balance);
+        return balance;
+      } else {
+        console.error('❌ Invalid balance response:', response);
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Failed to get ROZO balance:', error);
+      handleError(error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [apiCall, getAuthToken, isAuthenticated, handleError]);
+
+  // Check payment eligibility using real API
   const checkPaymentEligibility = useCallback(async (
     amount: number, 
     isUsingCredit: boolean = false
   ) => {
-    // For development: return mock eligibility data (always eligible)
-    console.log('🔧 Development mode: returning mock payment eligibility');
-    const cashbackEarned = amount * 0.10; // 10% cashback rate
-    return {
-      eligible: true,
-      payment_method: "usdc",
-      allowance_remaining: 20.0,
-      spend_permission: {
-        authorized: true,
-        remaining_today: 20.0
-      },
-      cashback_preview: {
-        estimated_rozo: cashbackEarned,
-        estimated_usd: cashbackEarned * 0.01,
-        final_rate: 10.0
-      },
-      recommendations: []
-    };
-  }, []);
+    const token = getAuthToken();
+    if (!token || !isAuthenticated) {
+      console.log('⚠️ Cannot check payment eligibility: not authenticated');
+      return { eligible: false, payment_method: "none", recommendations: ["Please authenticate first"] };
+    }
 
-  // Process payment
+    try {
+      console.log('🔍 Checking payment eligibility with real API...');
+      const response = await apiCall('/payments-eligibility', {
+        method: 'POST',
+        body: JSON.stringify({
+          amount_usd: amount,
+          is_using_credit: isUsingCredit
+        })
+      });
+
+      if (response.success && response.data) {
+        console.log('✅ Payment eligibility checked:', response.data);
+        return response.data;
+      } else {
+        console.error('❌ Invalid eligibility response:', response);
+        return { eligible: false, payment_method: "none", recommendations: ["Payment eligibility check failed"] };
+      }
+    } catch (error) {
+      console.error('❌ Failed to check payment eligibility:', error);
+      return { eligible: false, payment_method: "none", recommendations: ["Error checking payment eligibility"] };
+    }
+  }, [apiCall, getAuthToken, isAuthenticated]);
+
+  // Process payment using real database
   const processPayment = useCallback(async (
     receiverAddress: string,
     amount: number,
     cashbackRate: number,
     isUsingCredit: boolean = false
   ): Promise<PaymentResult | null> => {
-    // For development: return mock payment result and update ROZO balance
-    console.log('🔧 Development mode: processing payment and updating ROZO balance');
-    const cashbackEarned = amount * cashbackRate;
-    
-    // Update ROZO balance in localStorage
-    const storedBalance = localStorage.getItem('rozo_balance');
-    const currentBalance = storedBalance ? JSON.parse(storedBalance) : {
-      available_cashback_rozo: 0,
-      total_cashback_rozo: 0,
-      used_cashback_rozo: 0,
-      available_cashback_usd: 0.0,
-      total_cashback_usd: 0.0,
-      used_cashback_usd: 0.0,
-      current_tier: "bronze",
-      tier_multiplier: 1.0,
-      conversion_rate: "1 ROZO = $0.01 USD"
-    };
-    
-    // Add earned ROZO to balance
-    const updatedBalance = {
-      ...currentBalance,
-      available_cashback_rozo: currentBalance.available_cashback_rozo + cashbackEarned,
-      total_cashback_rozo: currentBalance.total_cashback_rozo + cashbackEarned,
-      available_cashback_usd: (currentBalance.available_cashback_rozo + cashbackEarned) * 0.01,
-      total_cashback_usd: (currentBalance.total_cashback_rozo + cashbackEarned) * 0.01,
-    };
-    
-    // Save updated balance
-    localStorage.setItem('rozo_balance', JSON.stringify(updatedBalance));
-    console.log('💰 Updated ROZO balance:', updatedBalance);
-    
-    return {
-      success: true,
-      amount_paid_usd: amount,
-      cashback_earned: cashbackEarned,
-      transaction_hash: `0x${Math.random().toString(16).substr(2, 64)}`,
-      message: `Successfully paid $${amount.toFixed(2)} and earned ${cashbackEarned} ROZO!`
-    };
-  }, []);
+    const token = getAuthToken();
+    if (!token || !isAuthenticated) {
+      console.log('⚠️ Cannot process payment: not authenticated');
+      return null;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      console.log('💳 Processing payment with cb_hack database:', { receiverAddress, amount, cashbackRate, isUsingCredit });
+      
+      const response = await apiCall('/payments-process', {
+        method: 'POST',
+        body: JSON.stringify({
+          receiver: receiverAddress,
+          amount: amount,
+          cashback_rate: cashbackRate,
+          is_using_credit: isUsingCredit,
+          merchant_id: 'ns-cafe'
+        })
+      });
+
+      if (response.success) {
+        console.log('✅ Payment processed successfully with cb_hack database:', response.data);
+        return {
+          success: true,
+          amount_paid_usd: response.data.amount_paid_usd,
+          cashback_earned: response.data.cashback_earned_rozo || response.data.cashback_earned || 0,
+          transaction_hash: response.data.transaction_hash,
+          message: 'Payment completed successfully with cb_hack database'
+        };
+      } else {
+        throw new Error(response.error?.message || 'Payment processing failed');
+      }
+    } catch (error) {
+      console.error('❌ Payment processing failed:', error);
+      handleError(error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [apiCall, getAuthToken, isAuthenticated, handleError]);
 
   // Retry with exponential backoff
   const retryWithBackoff = useCallback(async (
