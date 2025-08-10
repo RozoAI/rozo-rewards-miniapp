@@ -2,7 +2,7 @@
 
 import { GoogleMap } from "@/components/home/google-map";
 import { PageHeader } from "@/components/page-header";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
@@ -182,12 +182,16 @@ export default function RestaurantDetailPage() {
         <CardHeader>
           <div className="flex items-start gap-3">
             <Avatar className="size-16 sm:size-20 rounded-lg ring-1 ring-border bg-muted flex-shrink-0">
-              <AvatarFallback
-                title={restaurant.name}
-                className="font-medium text-base sm:text-lg"
-              >
-                {initials}
-              </AvatarFallback>
+              {restaurant.logo_url ? (
+                <AvatarImage src={restaurant.logo_url} alt={restaurant.name} />
+              ) : (
+                <AvatarFallback
+                  title={restaurant.name}
+                  className="font-medium text-base sm:text-lg"
+                >
+                  {initials}
+                </AvatarFallback>
+              )}
             </Avatar>
             <div className="min-w-0 flex-1 space-y-2">
               <h2
