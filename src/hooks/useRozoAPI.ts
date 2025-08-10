@@ -108,6 +108,8 @@ export const useRozoAPI = () => {
           'Accept': 'application/json',
           'Origin': typeof window !== 'undefined' ? window.location.origin : 'https://rozo-rewards-miniapp.vercel.app'
         },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify({
           wallet_address: address,
           signature,
@@ -141,8 +143,13 @@ export const useRozoAPI = () => {
       if (error.name === 'UserRejectedRequestError' || error.message?.includes('User rejected')) {
         toast.error('Signature cancelled. Authentication is required for ROZO features.');
         return null;
+      } else if (error.message?.includes('Failed to fetch')) {
+        console.error('Network error details:', error);
+        toast.error('Network error: Unable to connect to authentication service. Please check your internet connection.');
+        return null;
       } else {
-        toast.error('Authentication failed. Please check your connection and try again.');
+        console.error('Authentication error details:', error);
+        toast.error(`Authentication failed: ${error.message}`);
         return null;
       }
     } finally {
