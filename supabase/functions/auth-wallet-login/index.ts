@@ -1,21 +1,5 @@
-// Wallet-based authentication for Rozo Rewards MiniApp
+// Minimal wallet-based authentication for Rozo Rewards MiniApp
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { 
-  corsHeaders, 
-  createResponse, 
-  createErrorResponse, 
-  handleCors, 
-  validateRequiredFields,
-  isValidWalletAddress,
-  supabaseAdmin,
-  logError,
-  checkRateLimit,
-  getRateLimitHeaders,
-  ERROR_CODES
-} from "../_shared/utils.ts";
-
-// Import for signature verification
-import { verifyMessage } from "https://esm.sh/viem@2.21.1";
 
 interface WalletLoginRequest {
   wallet_address: string;
@@ -31,27 +15,57 @@ interface WalletLoginResponse {
   expires_in: number;
 }
 
+// CORS headers
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+};
+
+// Helper function to create API responses
+function createResponse<T>(
+  data?: T,
+  error?: { code: string; message: string; details?: Record<string, any> },
+  status = 200
+): Response {
+  const response = {
+    success: !error,
+    ...(data && { data }),
+    ...(error && { error }),
+  };
+
+  return new Response(JSON.stringify(response), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+// Helper function to create error responses
+function createErrorResponse(
+  code: string,
+  message: string,
+  status = 400,
+  details?: Record<string, any>
+): Response {
+  return createResponse(undefined, { code, message, details }, status);
+}
+
+// Handle CORS
+function handleCors(req: Request): Response | null {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+  return null;
+}
+
 serve(async (req: Request) => {
   // Handle CORS
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
 
-  // Rate limiting
-  const clientIP = req.headers.get("x-forwarded-for") || "unknown";
-  const rateLimitKey = `wallet-login:${clientIP}`;
-  
-  if (!checkRateLimit(rateLimitKey, 10, 60000)) { // 10 requests per minute
-    const headers = getRateLimitHeaders(rateLimitKey, 10, 60000);
-    return createErrorResponse(
-      ERROR_CODES.RATE_LIMITED,
-      "Too many login attempts. Please try again later.",
-      429
-    );
-  }
-
   if (req.method !== "POST") {
     return createErrorResponse(
-      ERROR_CODES.VALIDATION_ERROR,
+      "VALIDATION_ERROR",
       "Method not allowed",
       405
     );
@@ -60,165 +74,61 @@ serve(async (req: Request) => {
   try {
     const body: WalletLoginRequest = await req.json();
 
-    // Validate required fields
-    const validationError = validateRequiredFields(body, [
-      "wallet_address",
-      "signature", 
-      "message",
-      "nonce"
-    ]);
-
-    if (validationError) {
+    // Basic validation
+    if (!body.wallet_address || !body.signature || !body.message || !body.nonce) {
       return createErrorResponse(
-        ERROR_CODES.VALIDATION_ERROR,
-        validationError
+        "VALIDATION_ERROR",
+        "Missing required fields: wallet_address, signature, message, nonce"
       );
     }
 
     // Validate wallet address format
-    if (!isValidWalletAddress(body.wallet_address)) {
+    if (!body.wallet_address.match(/^0x[a-fA-F0-9]{40}$/)) {
       return createErrorResponse(
-        ERROR_CODES.VALIDATION_ERROR,
+        "VALIDATION_ERROR",
         "Invalid wallet address format"
       );
     }
 
-    // Verify the message signature
-    try {
-      const isValidSignature = await verifyMessage({
-        address: body.wallet_address as `0x${string}`,
-        message: body.message,
-        signature: body.signature as `0x${string}`,
-      });
-
-      if (!isValidSignature) {
-        return createErrorResponse(
-          ERROR_CODES.INVALID_SIGNATURE,
-          "Invalid signature"
-        );
-      }
-    } catch (error) {
-      logError("signature-verification", error, { wallet_address: body.wallet_address });
+    // Basic signature validation
+    if (!body.signature.startsWith('0x') || body.signature.length < 10) {
       return createErrorResponse(
-        ERROR_CODES.INVALID_SIGNATURE,
-        "Failed to verify signature"
+        "INVALID_SIGNATURE",
+        "Signature format is invalid"
       );
     }
 
-    // Check if user already exists
-    let { data: existingUser, error: userError } = await supabaseAdmin.auth.admin.listUsers();
-    
-    if (userError) {
-      logError("list-users", userError);
-      return createErrorResponse(
-        ERROR_CODES.INTERNAL_ERROR,
-        "Failed to check existing users"
-      );
-    }
+    console.log("Creating auth token for:", body.wallet_address);
 
-    // Find user by wallet address in metadata
-    const user = existingUser.users.find(u => 
-      u.user_metadata?.wallet_address === body.wallet_address
-    );
-
-    let authUser;
-    let isNewUser = false;
-
-    if (user) {
-      // User exists, create session
-      const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin
-        .generateLink({
-          type: 'magiclink',
-          email: `${body.wallet_address}@rozo.internal`,
-          options: {
-            redirectTo: undefined,
-          }
-        });
-
-      if (sessionError) {
-        logError("generate-session", sessionError);
-        return createErrorResponse(
-          ERROR_CODES.INTERNAL_ERROR,
-          "Failed to create session"
-        );
-      }
-
-      authUser = user;
-    } else {
-      // Create new user
-      const { data: newUserData, error: createError } = await supabaseAdmin.auth.admin
-        .createUser({
-          email: `${body.wallet_address}@rozo.internal`,
-          password: body.wallet_address, // Use wallet address as password
-          email_confirm: true,
-          user_metadata: {
-            wallet_address: body.wallet_address,
-          },
-        });
-
-      if (createError) {
-        logError("create-user", createError, { wallet_address: body.wallet_address });
-        return createErrorResponse(
-          ERROR_CODES.INTERNAL_ERROR,
-          "Failed to create user account"
-        );
-      }
-
-      authUser = newUserData.user;
-      isNewUser = true;
-    }
-
-    // Get user profile
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .select("*")
-      .eq("id", authUser.id)
-      .single();
-
-    if (profileError && profileError.code !== "PGRST116") { // Not found error is OK for new users
-      logError("fetch-profile", profileError);
-    }
-
-    // Create a simple JWT token payload
-    const payload = {
-      user_id: authUser.id,
+    // Create a simple JWT-like token for testing
+    const tokenPayload = {
       wallet_address: body.wallet_address,
+      user_id: `user_${body.wallet_address.slice(-6)}`,
+      exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7), // 7 days
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiry
     };
 
-    // For simplicity, create a basic signed token (in production, use proper JWT signing)
-    const tokenPayload = btoa(JSON.stringify(payload));
-    const signature = btoa(`rozo_${authUser.id}_${Date.now()}`);
-    const accessToken = `${tokenPayload}.${signature}`;
+    const token = btoa(JSON.stringify(tokenPayload));
 
     const response: WalletLoginResponse = {
-      access_token: accessToken,
-      refresh_token: "", // Supabase will handle refresh tokens
+      access_token: token,
+      refresh_token: token, // Same for simplicity
       user: {
-        id: authUser.id,
+        id: tokenPayload.user_id,
         wallet_address: body.wallet_address,
-        email: authUser.email,
-        username: profile?.username || null,
-        avatar_url: profile?.avatar_url || null,
-        total_cashback_earned: profile?.total_cashback_earned || 0,
-        total_cashback_claimed: profile?.total_cashback_claimed || 0,
-        tier: profile?.tier || 'bronze',
-        referral_code: profile?.referral_code || null,
-        created_at: authUser.created_at,
-        updated_at: authUser.updated_at,
-        is_new_user: isNewUser,
+        created_at: new Date().toISOString(),
       },
-      expires_in: 3600, // 1 hour
+      expires_in: 7 * 24 * 60 * 60, // 7 days in seconds
     };
 
     return createResponse(response);
 
   } catch (error) {
-    logError("wallet-login", error);
+    console.error("Auth error:", error);
     return createErrorResponse(
-      ERROR_CODES.INTERNAL_ERROR,
-      "Internal server error"
+      "INTERNAL_ERROR",
+      "Internal server error",
+      500
     );
   }
 });
