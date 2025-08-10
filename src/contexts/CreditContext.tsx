@@ -21,7 +21,13 @@ interface CreditProviderProps {
 export const CreditProvider: React.FC<CreditProviderProps> = ({ children }) => {
   const [availableCredit, setAvailableCreditState] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { checkSpendPermission, isAuthenticated } = useRozoAPI();
+
+  // Prevent hydration issues
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Load initial credit from spend permission
   const refreshCredit = useCallback(async () => {
@@ -46,14 +52,16 @@ export const CreditProvider: React.FC<CreditProviderProps> = ({ children }) => {
     }
   }, [checkSpendPermission, isAuthenticated]);
 
-  // Initialize credit when authenticated
+  // Initialize credit when authenticated (only after mounting)
   useEffect(() => {
+    if (!mounted) return;
+    
     if (isAuthenticated) {
       refreshCredit();
     } else {
       setAvailableCreditState(0);
     }
-  }, [isAuthenticated, refreshCredit]);
+  }, [mounted, isAuthenticated, refreshCredit]);
 
   const setAvailableCredit = (amount: number) => {
     setAvailableCreditState(Math.max(0, amount));

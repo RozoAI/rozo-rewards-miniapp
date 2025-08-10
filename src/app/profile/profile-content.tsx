@@ -30,12 +30,14 @@ export default function ProfilePageContent() {
     setMounted(true);
   }, []);
 
-  // Redirect to home if not connected
+  // Redirect to home if not connected (only after mounting)
   useEffect(() => {
+    if (!mounted) return;
+    
     if (status === "disconnected") {
       router.push("/");
     }
-  }, [isConnected, status, router]);
+  }, [mounted, isConnected, status, router]);
 
   const handleDisconnect = () => {
     connectors.map((connector) => disconnect({ connector }));
