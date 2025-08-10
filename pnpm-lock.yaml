@@ -28,7 +28,13 @@ importers:
         version: 0.0.17(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)
       '@rozoai/intent-pay':
         specifier: ^0.0.17
-        version: 0.0.17(747c41287613207db4c12d99ef46563f)
+        version: 0.0.17(b9d3ed6d51048f1bb2fa87ee325be47c)
+      '@supabase/ssr':
+        specifier: ^0.6.1
+        version: 0.6.1(@supabase/supabase-js@2.54.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      '@supabase/supabase-js':
+        specifier: ^2.54.0
+        version: 2.54.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@tanstack/react-query':
         specifier: ^5.84.2
         version: 5.84.2(react@19.0.0-rc.1)
