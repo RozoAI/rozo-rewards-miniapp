@@ -30,7 +30,7 @@ export function SimpleMap({ center, locations }: SimpleMapProps) {
 
     let map: any = null;
     let userMarker: any = null;
-    let merchantMarkers: any[] = [];
+    const merchantMarkers: any[] = [];
 
     async function initializeMap() {
       try {
