@@ -6,10 +6,12 @@ import Link from "next/link";
 import { useAccount, useConnect } from "wagmi";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
+import { useRozoAPI } from "@/hooks/useRozoAPI";
 
 export function WalletComponents() {
   const { address: accountAddress, status } = useAccount();
   const { connectors, connect, status: connectStatus } = useConnect();
+  const { isAuthenticated } = useRozoAPI();
 
   return (
     <WalletProvider>
@@ -30,6 +32,9 @@ export function WalletComponents() {
             </Avatar>
 
             <span className="text-sm">{formatAddress(accountAddress)}</span>
+            {isAuthenticated && (
+              <div className="w-2 h-2 bg-green-500 rounded-full ml-1" title="Rozo Authenticated" />
+            )}
           </Link>
         </Button>
       )}
