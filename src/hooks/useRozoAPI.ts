@@ -57,6 +57,82 @@ interface PaymentResult {
 // API configuration
 const BASE_URL = 'https://usgsoilitadwutfvxfzq.supabase.co/functions/v1';
 
+// Development mode mock responses
+const getMockApiResponse = (endpoint: string, options: RequestInit = {}) => {
+  console.log('🔧 Development mode: Returning mock data for', endpoint);
+  
+  if (endpoint.includes('/auth-spend-permission')) {
+    if (options.method === 'POST') {
+      return {
+        success: true,
+        data: {
+          authorized: true,
+          allowance: 20.00,
+          daily_limit: 20.00,
+          remaining_today: 20.00,
+          expiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'active'
+        }
+      };
+    } else {
+      return {
+        success: true,
+        data: {
+          authorized: false,
+          allowance: 0,
+          remaining_today: 0,
+          status: 'not_authorized'
+        }
+      };
+    }
+  } else if (endpoint.includes('/cashback-balance')) {
+    return {
+      success: true,
+      data: {
+        balance_summary: {
+          available_cashback_rozo: 0,
+          total_earned_rozo: 0,
+          used_cashback_rozo: 0,
+          total_cashback_rozo: 0,
+          current_tier: 'bronze',
+          tier_multiplier: 1.0
+        }
+      }
+    };
+  } else if (endpoint.includes('/payments-eligibility')) {
+    return {
+      success: true,
+      data: {
+        eligible: true,
+        reason: 'Development mode - payment eligible',
+        cashback_preview: {
+          rozo_earned: 1,
+          cashback_rate: 10.0
+        }
+      }
+    };
+  } else if (endpoint.includes('/payments-process')) {
+    return {
+      success: true,
+      data: {
+        payment_id: `dev_payment_${Date.now()}`,
+        amount_paid_usd: 0.1,
+        cashback_earned: 1,
+        new_rozo_balance: 1,
+        rozo_balance_change: 1,
+        transaction_hash: `0xdev${Date.now()}`,
+        status: 'completed'
+      }
+    };
+  }
+  
+  // Default mock response
+  return {
+    success: false,
+    error: { message: 'Development mode: Mock endpoint not implemented' }
+  };
+};
+
 export const useRozoAPI = () => {
   const { address, isConnected } = useAccount();
   const { signMessageAsync } = useSignMessage();
@@ -145,6 +221,28 @@ export const useRozoAPI = () => {
         return null;
       } else if (error.message?.includes('Failed to fetch')) {
         console.error('Network error details:', error);
+        
+        // Development fallback for testing when API is unreachable
+        if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          console.warn('API unreachable, using development fallback authentication');
+          
+          // Create a simple development token for testing
+          const devToken = btoa(JSON.stringify({
+            wallet_address: address,
+            user_id: `dev_user_${address.slice(-6)}`,
+            exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24), // 24 hours
+            dev_mode: true
+          }));
+          
+          setAuthToken(devToken);
+          setIsAuthenticated(true);
+          localStorage.setItem('rozo_jwt_token', devToken);
+          localStorage.setItem('rozo_jwt_expires', String(Date.now() + (24 * 60 * 60 * 1000))); // 24 hours
+          
+          toast.success('🔧 Development mode: Authentication simulated successfully!');
+          return devToken;
+        }
+        
         toast.error('Network error: Unable to connect to authentication service. Please check your internet connection.');
         return null;
       } else {
@@ -214,6 +312,21 @@ export const useRozoAPI = () => {
       return response.json();
     } catch (error: any) {
       console.error(`API call to ${endpoint} failed:`, error);
+      
+      // Development mode fallbacks
+      if (typeof window !== 'undefined' && window.location.hostname === 'localhost' && 
+          token && typeof token === 'string' && token.startsWith('eyJ')) {
+        try {
+          const decoded = JSON.parse(atob(token));
+          if (decoded.dev_mode) {
+            console.warn(`API call to ${endpoint} failed, returning development mock data`);
+            return getMockApiResponse(endpoint, options);
+          }
+        } catch (e) {
+          // Not a development token, continue with error
+        }
+      }
+      
       throw error;
     }
   }, [getAuthToken, isConnected, address, authenticateWallet]);
