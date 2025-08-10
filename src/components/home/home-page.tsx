@@ -4,7 +4,6 @@ import coffeeData from "@/../public/coffee_mapdata.json";
 import { GoogleMap } from "@/components/home/google-map";
 import { MapPin } from "@/components/map-pin";
 import { RestaurantsContent } from "@/components/restaurants/restaurants-content";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -15,7 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { type Restaurant } from "@/types/restaurant";
-import { ChevronUp, Loader2, MapPin as MapPinIcon } from "lucide-react";
+import { ChevronUp, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FabActions } from "../fab-actions";
 import { WalletComponents } from "../wallet-connect-button";
@@ -118,8 +117,9 @@ export default function HomePage() {
     if ("permissions" in navigator) {
       navigator.permissions.query({ name: "geolocation" }).then((result) => {
         setLocationPermission(result.state);
-        if (result.state === "granted") {
-          requestLocationAccess();
+        if (result.state === "granted" || result.state === "prompt") {
+          // Permission already granted; force GPS and skip fallbacks
+          requestLocationAccess(true);
         } else {
           // Use fallback location if permission not granted
           setUserLocation({ lat: 37.7749, lng: -122.4194 });
@@ -144,8 +144,9 @@ export default function HomePage() {
 
   return (
     <div className="relative h-screen w-full">
+      {locationPermission}
       {/* Location permission banner */}
-      {locationPermission !== "granted" && (
+      {/* {locationPermission !== "granted" && (
         <div className="absolute top-0 left-0 right-0 z-50 bg-blue-600 text-white p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -160,7 +161,7 @@ export default function HomePage() {
               <Button
                 size="sm"
                 variant="secondary"
-                onClick={() => requestLocationAccess()}
+                onClick={() => requestLocationAccess(true)}
                 className="bg-white text-blue-600 hover:bg-gray-100"
               >
                 Allow Location
@@ -179,7 +180,7 @@ export default function HomePage() {
             )}
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Full screen map */}
       {locationPermission === "granted" && (
