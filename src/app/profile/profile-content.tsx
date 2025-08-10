@@ -21,16 +21,20 @@ export default function ProfilePageContent() {
   // Prevent hydration issues - mount first, then load wagmi hooks
   useEffect(() => {
     setMounted(true);
-    // Add delay to ensure wagmi hydration is complete
+    // Add longer delay to ensure wagmi hydration is complete
     const timer = setTimeout(() => {
       setHydrationComplete(true);
-    }, 100);
+    }, 500); // Increased from 100ms to 500ms
     
     return () => clearTimeout(timer);
   }, []);
 
   // Show loading state until hydration is complete
-  if (!mounted || !hydrationComplete) {
+  if (!mounted) {
+    return null; // Return null during SSR
+  }
+
+  if (!hydrationComplete) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -45,6 +49,23 @@ export default function ProfilePageContent() {
 }
 
 function ProfilePageContentInternal() {
+  const [renderError, setRenderError] = useState(false);
+  
+  // Use error boundary pattern
+  useEffect(() => {
+    const handleError = (error: ErrorEvent) => {
+      if (error.message?.includes('setState') || error.message?.includes('Hydrate')) {
+        console.warn('Hydration error caught and handled:', error.message);
+        setRenderError(true);
+        // Reset after a short delay
+        setTimeout(() => setRenderError(false), 1000);
+      }
+    };
+    
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+  
   const { address, isConnected, status } = useAccount();
   const { disconnect } = useDisconnect();
   const { connectors } = useConnect();
@@ -59,6 +80,17 @@ function ProfilePageContentInternal() {
       router.push("/");
     }
   }, [isConnected, status, router]);
+  
+  // Handle render errors gracefully
+  if (renderError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-muted-foreground">Refreshing profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleDisconnect = () => {
     connectors.map((connector) => disconnect({ connector }));

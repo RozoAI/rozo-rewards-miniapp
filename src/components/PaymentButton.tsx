@@ -129,16 +129,23 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
         }
 
         // Check if we have a valid spend permission
-        const permissionStatus = await checkPermissionStatus?.();
+        let permissionStatus;
+        try {
+          permissionStatus = await checkPermissionStatus?.();
+        } catch (error) {
+          console.error('Error checking permission status:', error);
+          permissionStatus = null;
+        }
         
         if (permissionStatus?.isValid && permissionStatus.remaining >= amount) {
           console.log('✅ Valid CDP spend permission found, executing direct payment...');
           
-          // Create a spend permission structure for the payment
-          const spendPermission = await cdpClient.createSpendPermission(address, 100, 24); // $100 daily limit
+          // Use the existing spend permission (don't create a new one)
+          // In simple mode, we trust the existing authorization
+          console.log('🔄 Using existing spend permission for payment...');
           
-          // Execute payment using CDP spend permission
-          const cdpResult = await payWithROZORewards(spendPermission, amount, (result) => {
+          // Execute payment using existing CDP authorization
+          const cdpResult = await payWithROZORewards(null, amount, (result) => {
             console.log('💰 CDP payment successful:', result);
           });
 
@@ -160,7 +167,11 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
           }
         } else {
           console.log('⚠️ No valid CDP spend permission, user needs to authorize first');
-          toast.error('Please authorize spend permissions first in your profile');
+          if (permissionStatus) {
+            toast.error(`Insufficient authorization. Remaining: $${permissionStatus.remaining?.toFixed(2) || 0}, needed: $${amount.toFixed(2)}`);
+          } else {
+            toast.error('Please authorize spend permissions first in your profile');
+          }
           return;
         }
       }

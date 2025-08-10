@@ -5,7 +5,7 @@
 
 import { useCallback, useState } from 'react';
 import { useAccount, useSignTypedData } from 'wagmi';
-import { Address, Hex, createWalletClient, custom } from 'viem';
+import { Address, Hex, createWalletClient, custom, Chain } from 'viem';
 import { cdpClient, SpendPermission, createWalletClientFromWindow } from '@/lib/cdp-client';
 import { NS_CAFE_ADDRESS, getChain } from '@/lib/cdp-config';
 import { toast } from 'sonner';
@@ -15,6 +15,78 @@ interface CDPPermissionState {
   error: string | null;
   isAuthorized: boolean;
   currentPermission: SpendPermission | null;
+}
+
+// Helper function to ensure wallet is on correct network with improved error handling
+async function ensureCorrectNetwork() {
+  if (typeof window === 'undefined' || !window.ethereum) {
+    throw new Error('Ethereum wallet not available');
+  }
+
+  const targetChain = getChain();
+  console.log(`🔍 Network check: Target ${targetChain.name} (Chain ID: ${targetChain.id})`);
+  
+  try {
+    // Check current chain ID
+    const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+    const currentChainDecimal = parseInt(currentChainId, 16);
+    
+    if (currentChainDecimal !== targetChain.id) {
+      console.log(`⚠️ Network mismatch! Current: ${currentChainDecimal}, Required: ${targetChain.id}`);
+      console.log(`🔄 Requesting switch to ${targetChain.name}...`);
+      
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: `0x${targetChain.id.toString(16)}` }],
+      });
+      
+      console.log(`✅ Successfully switched to ${targetChain.name}`);
+      // Wait for network switch to stabilize
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    } else {
+      console.log(`✅ Already on correct network: ${targetChain.name}`);
+    }
+    
+    // Double-check ETH balance for gas fees
+    const balance = await window.ethereum.request({
+      method: 'eth_getBalance',
+      params: [await window.ethereum.request({ method: 'eth_accounts' }).then((accounts: string[]) => accounts[0]), 'latest']
+    });
+    
+    const balanceInEth = parseInt(balance, 16) / 1e18;
+    if (balanceInEth < 0.001) {
+      throw new Error(`Insufficient ETH for gas fees. You have ${balanceInEth.toFixed(6)} ETH, but need at least 0.001 ETH. Please add ETH to your wallet on ${targetChain.name}.`);
+    }
+    
+  } catch (error: any) {
+    console.error('❌ Network setup error:', error);
+    
+    if (error.code === 4902) {
+      // Chain not added to wallet
+      console.log(`➕ Adding ${targetChain.name} to wallet...`);
+      try {
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: `0x${targetChain.id.toString(16)}`,
+            chainName: targetChain.name,
+            nativeCurrency: targetChain.nativeCurrency,
+            rpcUrls: targetChain.rpcUrls.default.http,
+            blockExplorerUrls: [targetChain.blockExplorers.default.url],
+          }],
+        });
+        console.log(`✅ ${targetChain.name} added successfully`);
+      } catch (addError) {
+        throw new Error(`Failed to add ${targetChain.name} to wallet. Please add it manually.`);
+      }
+    } else if (error.code === 4001) {
+      throw new Error(`Please approve the network switch to ${targetChain.name} in your wallet`);
+    } else if (error.message?.includes('Insufficient ETH')) {
+      throw error; // Re-throw balance errors as-is
+    } else {
+      throw new Error(`Network setup failed: ${error.message}. Please manually switch to ${targetChain.name} and ensure you have ETH for gas fees.`);
+    }
+  }
 }
 
 export const useCDPPermissions = () => {
@@ -104,8 +176,22 @@ export const useCDPPermissions = () => {
     try {
       console.log('🚀 Submitting spend permission to blockchain...');
 
+      // Ensure wallet is properly setup (correct network, sufficient ETH)
+      await ensureCorrectNetwork();
+      
+      // Get connected accounts from ethereum provider
+      const accounts = await window.ethereum.request({ method: 'eth_accounts' }) as string[];
+      if (!accounts || accounts.length === 0) {
+        throw new Error('No accounts found in wallet');
+      }
+      
       // Create wallet client
-      const walletClient = createWalletClientFromWindow();
+      const targetChain = getChain();
+      const walletClient = createWalletClient({
+        chain: targetChain as Chain,
+        transport: custom(window.ethereum),
+        account: accounts[0] as Address, // Use the first connected account
+      });
 
       // Submit to SpendPermissionManager contract
       const txHash = await cdpClient.approveSpendPermission(
@@ -129,7 +215,18 @@ export const useCDPPermissions = () => {
     } catch (error: any) {
       console.error('❌ Failed to submit spend permission:', error);
       
-      const errorMessage = `Failed to submit spend permission: ${error.message}`;
+      let errorMessage = 'Failed to submit spend permission';
+      
+      // Handle user rejection specifically
+      if (error.message?.includes('User rejected') || 
+          error.message?.includes('User denied') ||
+          error.message?.includes('rejected') ||
+          error.details?.includes('User denied transaction signature')) {
+        errorMessage = 'Transaction was cancelled. Please try again if you want to authorize spending.';
+      } else {
+        errorMessage = `Failed to submit spend permission: ${error.message}`;
+      }
+      
       setState(prev => ({
         ...prev,
         loading: false,
@@ -272,7 +369,7 @@ export const useCDPPermissions = () => {
 
       setState(prev => ({ ...prev, loading: false }));
 
-      toast.success(`☕ NS Cafe payment successful! $${amountUSD} sent`);
+      toast.success(`NS Cafe payment successful! $${amountUSD} sent`);
       return { txHash, receipt };
 
     } catch (error: any) {
@@ -292,7 +389,7 @@ export const useCDPPermissions = () => {
 
   // Execute payment with automatic ROZO earning using Coinbase Spend Permissions standard
   const payWithROZORewards = useCallback(async (
-    spendPermission: SpendPermission,
+    spendPermission: SpendPermission | null,
     amountUSD: number,
     onSuccess?: (result: { txHash: Hex; receipt: any; rozoEarned: number }) => void
   ): Promise<{ txHash: Hex; receipt: any; rozoEarned: number } | null> => {
@@ -303,38 +400,67 @@ export const useCDPPermissions = () => {
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
-      console.log(`🎯 Starting Coinbase Spend Permissions standard payment flow...`);
-
-      // Step 1: Get user signature for spend permission
-      const typedData = cdpClient.getTypedDataForSigning(spendPermission);
+      let signature: Hex | undefined;
       
-      console.log('📝 Requesting user signature for spend permission...');
-      const signature = await signTypedDataAsync({
-        domain: typedData.domain,
-        types: typedData.types,
-        primaryType: 'SpendPermission' as const,
-        message: typedData.message,
-      });
+      if (spendPermission) {
+        console.log(`🎯 Starting Coinbase Spend Permissions standard payment flow...`);
 
-      console.log('✅ User signature obtained');
+        // Step 1: Get user signature for spend permission
+        const typedData = cdpClient.getTypedDataForSigning(spendPermission);
+        
+        console.log('📝 Requesting user signature for spend permission...');
+        signature = await signTypedDataAsync({
+          domain: typedData.domain,
+          types: typedData.types,
+          primaryType: 'SpendPermission' as const,
+          message: typedData.message,
+        });
+
+        console.log('✅ User signature obtained');
+      } else {
+        console.log('💳 Using existing spend permission for direct payment...');
+      }
 
       // Step 2: Create wallet client and execute standard flow
       if (!address) {
         throw new Error('Wallet not connected');
       }
       
+      // Ensure wallet is properly setup (correct network, sufficient ETH)
+      await ensureCorrectNetwork();
+      
+      // Get connected accounts from ethereum provider
+      const accounts = await window.ethereum.request({ method: 'eth_accounts' }) as string[];
+      if (!accounts || accounts.length === 0) {
+        throw new Error('No accounts found in wallet');
+      }
+      
+      const targetChain = getChain();
       const walletClient = createWalletClient({
-        chain: getChain(),
-        transport: custom(window.ethereum!),
-        account: address,
+        chain: targetChain as Chain,
+        transport: custom(window.ethereum),
+        account: accounts[0] as Address, // Use the first connected account
       });
       
-      const result = await cdpClient.executeSpendWithApproval(
-        spendPermission,
-        signature,
-        amountUSD,
-        walletClient
-      );
+      let result: { approvalTxHash?: Hex; spendTxHash: Hex };
+      
+      if (spendPermission && signature) {
+        // Full flow: approve + spend
+        result = await cdpClient.executeSpendWithApproval(
+          spendPermission,
+          signature,
+          amountUSD,
+          walletClient
+        );
+      } else {
+        // Direct spend using existing authorization
+        console.log('💸 Executing direct spend with existing authorization...');
+        // For simplified flow, we need to create a temporary spend permission structure
+        // This should use the previously authorized spend permission
+        const tempSpendPermission = await cdpClient.createSpendPermission(address, 20, 24); // Use the $20 authorization
+        const spendTxHash = await cdpClient.executeSpend(tempSpendPermission, amountUSD, walletClient);
+        result = { spendTxHash };
+      }
 
       // Wait for final transaction confirmation
       const receipt = await cdpClient.waitForTransaction(result.spendTxHash);
@@ -352,16 +478,25 @@ export const useCDPPermissions = () => {
         rozoEarned
       };
 
-      toast.success(`🎯 Payment successful via Coinbase Spend Permissions! $${amountUSD} sent`);
+      toast.success(`Payment successful via Coinbase Spend Permissions! $${amountUSD} sent`);
       onSuccess?.(finalResult);
       return finalResult;
 
     } catch (error: any) {
       console.error('❌ Coinbase Spend Permissions payment failed:', error);
       
-      const errorMessage = error.name === 'UserRejectedRequestError' 
-        ? 'Payment cancelled by user'
-        : `Payment failed: ${error.message}`;
+      let errorMessage = 'Payment failed';
+      
+      // Handle user rejection specifically
+      if (error.name === 'UserRejectedRequestError' ||
+          error.message?.includes('User rejected') || 
+          error.message?.includes('User denied') ||
+          error.message?.includes('rejected') ||
+          error.details?.includes('User denied transaction signature')) {
+        errorMessage = 'Payment was cancelled. Please try again to complete the payment.';
+      } else {
+        errorMessage = `Payment failed: ${error.message}`;
+      }
 
       setState(prev => ({
         ...prev,

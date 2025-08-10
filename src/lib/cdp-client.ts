@@ -242,7 +242,8 @@ export class CDPClient {
     } catch (error) {
       console.error('Error checking current spending:', error);
       // For testing purposes, if the contract call fails, assume no current spending
-      // This commonly happens when no spend permission has been created yet
+      // This commonly happens when no spend permission has been created yet for this user
+      console.log('💡 No existing spend permission found for this user - returning 0 spent');
       return 0;
     }
   }
