@@ -37,7 +37,7 @@
     "name": "Cambrian API",
     "category": "API",
     "description": "The Cambrian API provides access to highly actionable Solana DeFi data",
-    "logo_url": "https://www.cambrian.org/cambrian-logo-text.svg",
+    "logo_url": "https://www.cambrian.org/favicon.ico",
     "source": "https://www.cambrian.org/",
     "payTo": "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
     "maxAmountRequired": "1000000",
