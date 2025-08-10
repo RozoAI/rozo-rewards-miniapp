@@ -1,5 +1,5 @@
 function withValidProperties(
-  properties: Record<string, undefined | string | string[]>,
+  properties: Record<string, undefined | string | string[]>
 ) {
   return Object.fromEntries(
     Object.entries(properties).filter(([key, value]) => {
@@ -7,7 +7,7 @@ function withValidProperties(
         return value.length > 0;
       }
       return !!value;
-    }),
+    })
   );
 }
 
@@ -30,9 +30,20 @@ export async function GET() {
       splashImageUrl: process.env.NEXT_PUBLIC_APP_SPLASH_IMAGE,
       splashBackgroundColor: process.env.NEXT_PUBLIC_SPLASH_BACKGROUND_COLOR,
       homeUrl: URL,
-      webhookUrl: `${URL}/api/webhook`,
+      webhookUrl: `${URL}api/webhook`,
       primaryCategory: process.env.NEXT_PUBLIC_APP_PRIMARY_CATEGORY,
-      tags: [],
+      tags: [
+        "rozo",
+        "rewards",
+        "cashback",
+        "rozo rewards",
+        "rozo cashback",
+        "ai",
+        "lifestyle",
+        "ai services",
+        "base",
+        "usdc",
+      ],
       heroImageUrl: process.env.NEXT_PUBLIC_APP_HERO_IMAGE,
       tagline: process.env.NEXT_PUBLIC_APP_TAGLINE,
       ogTitle: process.env.NEXT_PUBLIC_APP_OG_TITLE,
