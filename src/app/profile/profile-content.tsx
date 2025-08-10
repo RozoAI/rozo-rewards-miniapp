@@ -16,28 +16,50 @@ import { NSCafePayment } from "@/components/NSCafePayment";
 import { useCredit } from "@/contexts/CreditContext";
 
 export default function ProfilePageContent() {
+  const [mounted, setMounted] = useState(false);
+  const [hydrationComplete, setHydrationComplete] = useState(false);
+
+  // Prevent hydration issues - mount first, then load wagmi hooks
+  useEffect(() => {
+    setMounted(true);
+    // Add delay to ensure wagmi hydration is complete
+    const timer = setTimeout(() => {
+      setHydrationComplete(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Show loading state until hydration is complete
+  if (!mounted || !hydrationComplete) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <ProfilePageContentInternal />;
+}
+
+function ProfilePageContentInternal() {
   const { address, isConnected, status } = useAccount();
   const { disconnect } = useDisconnect();
   const { connectors } = useConnect();
   const router = useRouter();
   const [rozoBalance, setRozoBalance] = useState<number>(0);
   const [showNSCafe, setShowNSCafe] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const { availableCredit, setAvailableCredit, deductCredit } = useCredit();
 
-  // Prevent hydration issues
+  // Redirect to home if not connected
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Redirect to home if not connected (only after mounting)
-  useEffect(() => {
-    if (!mounted) return;
-    
     if (status === "disconnected") {
       router.push("/");
     }
-  }, [mounted, isConnected, status, router]);
+  }, [isConnected, status, router]);
 
   const handleDisconnect = () => {
     connectors.map((connector) => disconnect({ connector }));
@@ -79,8 +101,8 @@ export default function ProfilePageContent() {
     }, 2000);
   };
 
-  // Show loading state while checking connection or mounting
-  if (!mounted || status === "reconnecting" || !isConnected) {
+  // Show loading state while checking connection
+  if (status === "reconnecting" || !isConnected) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
