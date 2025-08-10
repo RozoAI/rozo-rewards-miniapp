@@ -31,6 +31,8 @@ type LocationItem = {
   lon: number;
   createdAt?: string;
   updatedAt?: string;
+  logo_url: string;
+  cashback_rate: number;
 };
 
 type CoffeeMapResponse = {

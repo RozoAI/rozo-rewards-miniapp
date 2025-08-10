@@ -85,10 +85,10 @@ export default function ProfilePageContent() {
           </div>
 
           <Button
-            variant="destructive"
+            variant="outline"
             size="sm"
             onClick={handleDisconnect}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
           >
             <LogOut className="h-4 w-4" />
             Disconnect

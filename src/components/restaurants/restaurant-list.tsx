@@ -15,6 +15,8 @@ export type LocationItem = {
   lat: number;
   lon: number;
   distance?: number; // Distance in miles
+  logo_url: string;
+  cashback_rate: number;
 };
 
 function ListRow({ location }: { location: LocationItem }) {
