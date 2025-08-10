@@ -136,6 +136,19 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
           console.error('Error checking permission status:', error);
           permissionStatus = null;
         }
+
+        // Check if SpendPermissionManager is approved (critical for transaction preview)
+        if (permissionStatus?.isManagerApproved === false) {
+          toast.error(
+            'Transaction preview unavailable: SpendPermissionManager needs approval. ' +
+            'Please authorize spend permissions first.',
+            { duration: 6000 }
+          );
+          console.error('❌ SpendPermissionManager not approved - this causes "Transaction preview unavailable" errors');
+          console.log('📝 Solution: User needs to authorize spend permissions to add SpendPermissionManager as wallet owner');
+          console.log('🔗 Reference: https://github.com/coinbase/spend-permissions/tree/main');
+          return;
+        }
         
         if (permissionStatus?.isValid && permissionStatus.remaining >= amount) {
           console.log('✅ Valid CDP spend permission found, executing direct payment...');

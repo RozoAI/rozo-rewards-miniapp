@@ -290,14 +290,29 @@ export const useCDPPermissions = () => {
     currentSpending: number;
     remaining: number;
     usdcBalance: number;
+    isManagerApproved?: boolean;
   } | null> => {
     if (!isConnected || !address) {
       return null;
     }
 
     try {
+      // Step 1: Check if SpendPermissionManager is approved as owner (critical requirement)
+      const isManagerApproved = await cdpClient.checkSpendPermissionManagerApproval(address);
+      
+      if (!isManagerApproved) {
+        console.warn('⚠️ SpendPermissionManager is not approved as owner of the smart wallet');
+        console.log('💡 This is likely the cause of "Transaction preview unavailable" errors');
+        console.log('📝 Reference: https://github.com/coinbase/spend-permissions/tree/main');
+      }
+
+      // Step 2: Validate spend permission normally
       const status = await cdpClient.validateSpendPermission(address, 20); // Check for $20 allowance
-      return status;
+      
+      return {
+        ...status,
+        isManagerApproved, // Add this critical flag
+      };
     } catch (error) {
       console.error('Failed to check permission status:', error);
       // In simplified mode, return a default state indicating no permissions set up yet
@@ -308,6 +323,7 @@ export const useCDPPermissions = () => {
           currentSpending: 0,
           remaining: 0,
           usdcBalance,
+          isManagerApproved: false,
         };
       } catch (balanceError) {
         console.error('Error getting USDC balance:', balanceError);
@@ -316,6 +332,7 @@ export const useCDPPermissions = () => {
           currentSpending: 0,
           remaining: 0,
           usdcBalance: 0,
+          isManagerApproved: false,
         };
       }
     }

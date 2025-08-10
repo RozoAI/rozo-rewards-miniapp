@@ -98,6 +98,39 @@ const SPEND_PERMISSION_MANAGER_ABI = [
     stateMutability: 'view',
     type: 'function',
   },
+  {
+    inputs: [
+      {
+        components: [
+          { name: 'account', type: 'address' },
+          { name: 'spender', type: 'address' },
+          { name: 'token', type: 'address' },
+          { name: 'allowance', type: 'uint256' },
+          { name: 'period', type: 'uint48' },
+          { name: 'start', type: 'uint48' },
+          { name: 'end', type: 'uint48' },
+          { name: 'salt', type: 'uint256' },
+          { name: 'extraData', type: 'bytes' },
+        ],
+        name: 'spendPermission',
+        type: 'tuple',
+      },
+    ],
+    name: 'getHash',
+    outputs: [{ type: 'bytes32' }],
+    stateMutability: 'pure',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'account', type: 'address' },
+      { name: 'hash', type: 'bytes32' },
+    ],
+    name: 'isApproved',
+    outputs: [{ type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
 ] as const;
 
 // USDC Contract ABI (minimal)
@@ -448,6 +481,73 @@ export class CDPClient {
       remaining,
       usdcBalance,
     };
+  }
+
+  /**
+   * Check if SpendPermissionManager is approved as an owner of the user's smart wallet
+   * This is required according to Coinbase Spend Permissions documentation
+   * Reference: https://github.com/coinbase/spend-permissions/tree/main
+   */
+  async checkSpendPermissionManagerApproval(userAddress: string): Promise<boolean> {
+    try {
+      // Check if SpendPermissionManager is an owner of the user's wallet
+      // This uses the Coinbase Smart Wallet interface
+      const isOwner = await publicClient.readContract({
+        address: userAddress as Address,
+        abi: [
+          {
+            inputs: [{ name: 'owner', type: 'address' }],
+            name: 'isOwnerAddress',
+            outputs: [{ name: '', type: 'bool' }],
+            stateMutability: 'view',
+            type: 'function',
+          },
+        ],
+        functionName: 'isOwnerAddress',
+        args: [this.contracts.SpendPermissionManager],
+      }) as boolean;
+
+      console.log(`🔍 SpendPermissionManager approval status for ${userAddress}: ${isOwner}`);
+      
+      if (!isOwner) {
+        console.warn(`⚠️ SpendPermissionManager is not approved as owner for wallet ${userAddress}`);
+        console.log('💡 User needs to add SpendPermissionManager as an owner to their smart wallet');
+      }
+      
+      return isOwner;
+    } catch (error) {
+      console.error('Error checking SpendPermissionManager approval:', error);
+      // If we can't check, assume it's not approved to be safe
+      return false;
+    }
+  }
+
+  /**
+   * Check if a spend permission is already approved on-chain
+   * Reference: https://github.com/coinbase/spend-permissions/tree/main
+   */
+  async isSpendPermissionApproved(spendPermission: SpendPermission): Promise<boolean> {
+    try {
+      const hash = await publicClient.readContract({
+        address: this.contracts.SpendPermissionManager,
+        abi: SPEND_PERMISSION_MANAGER_ABI,
+        functionName: 'getHash',
+        args: [spendPermission as any],
+      }) as Hex;
+
+      const isApproved = await publicClient.readContract({
+        address: this.contracts.SpendPermissionManager,
+        abi: SPEND_PERMISSION_MANAGER_ABI,
+        functionName: 'isApproved',
+        args: [spendPermission.account, hash],
+      }) as boolean;
+
+      console.log(`🔍 Spend permission approval status: ${isApproved}`);
+      return isApproved;
+    } catch (error) {
+      console.error('Error checking spend permission approval:', error);
+      return false;
+    }
   }
 }
 
