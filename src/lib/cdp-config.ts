@@ -70,10 +70,34 @@ export const NS_CAFE_ADDRESS = process.env.NEXT_PUBLIC_NS_CAFE_ADDRESS as Addres
   '0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897' as Address; // Real NS Cafe address
 
 // Default spend permission parameters
+// Based on official Coinbase documentation patterns
 export const DEFAULT_SPEND_PERMISSION = {
   period: 86400, // 24 hours in seconds
+  periodInDays: 1, // Alternative: daily periods using official pattern
   maxAllowance: 1000, // $1000 USD maximum
   defaultAllowance: 20, // $20 USD default
+  // Time boundaries for enhanced security
+  validityDuration: 365 * 24 * 60 * 60, // 1 year validity (official pattern)
+} as const;
+
+// Official token shortcuts (Base/Sepolia only)
+export const OFFICIAL_TOKEN_SHORTCUTS = {
+  eth: 'eth',
+  usdc: 'usdc',
+} as const;
+
+// Best practices from official documentation
+export const SPEND_PERMISSION_BEST_PRACTICES = {
+  // Set reasonable limits - use minimum allowance necessary
+  minAllowance: 0.01, // $0.01 minimum
+  maxDailyAllowance: 100, // $100 daily maximum recommended
+  
+  // Define time boundaries appropriately
+  minValidityHours: 1, // 1 hour minimum
+  maxValidityDays: 365, // 1 year maximum
+  
+  // Monitor usage patterns
+  warningThreshold: 0.8, // Warn at 80% of allowance
 } as const;
 
 export type NetworkId = keyof typeof CDP_CONTRACTS;

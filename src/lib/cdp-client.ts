@@ -20,7 +20,8 @@ import {
   SPEND_PERMISSION_DOMAIN, 
   SPEND_PERMISSION_TYPES,
   ROZO_PAYMASTER_ADDRESS,
-  DEFAULT_SPEND_PERMISSION
+  DEFAULT_SPEND_PERMISSION,
+  SPEND_PERMISSION_BEST_PRACTICES
 } from './cdp-config';
 
 // ABI for SpendPermissionManager contract
@@ -524,7 +525,7 @@ export class CDPClient {
 
   /**
    * Check if a spend permission is already approved on-chain
-   * Reference: https://github.com/coinbase/spend-permissions/tree/main
+   * Reference: https://docs.cdp.coinbase.com/wallet-api/v2/evm-features/spend-permissions
    */
   async isSpendPermissionApproved(spendPermission: SpendPermission): Promise<boolean> {
     try {
@@ -548,6 +549,73 @@ export class CDPClient {
       console.error('Error checking spend permission approval:', error);
       return false;
     }
+  }
+
+  /**
+   * Create a spend permission following official Coinbase patterns
+   * Reference: https://docs.cdp.coinbase.com/wallet-api/v2/evm-features/spend-permissions
+   */
+  createOptimalSpendPermission(
+    userAddress: Address,
+    spenderAddress: Address = ROZO_PAYMASTER_ADDRESS,
+    allowanceUSD: number = DEFAULT_SPEND_PERMISSION.defaultAllowance,
+    periodInDays: number = DEFAULT_SPEND_PERMISSION.periodInDays
+  ): SpendPermission {
+    const now = Math.floor(Date.now() / 1000);
+    
+    // Follow official documentation patterns for time periods
+    const period = periodInDays * 24 * 60 * 60; // Convert days to seconds
+    const start = now - 300; // Start 5 minutes ago to account for clock drift
+    const end = now + DEFAULT_SPEND_PERMISSION.validityDuration;
+    
+    // Apply best practices from official documentation
+    const clampedAllowance = Math.max(
+      SPEND_PERMISSION_BEST_PRACTICES.minAllowance,
+      Math.min(allowanceUSD, SPEND_PERMISSION_BEST_PRACTICES.maxDailyAllowance)
+    );
+    
+    return {
+      account: userAddress,
+      spender: spenderAddress,
+      token: this.contracts.USDC, // Use USDC as recommended
+      allowance: parseUnits(clampedAllowance.toString(), 6), // USDC has 6 decimals
+      period,
+      start,
+      end,
+      salt: BigInt(Math.floor(Math.random() * 1000000)), // Random salt as per docs
+      extraData: '0x' as Hex, // Empty extra data
+    };
+  }
+
+  /**
+   * Monitor spend permission usage and provide warnings
+   * Following official best practices for monitoring usage
+   */
+  async getSpendPermissionUsageStatus(
+    userAddress: Address,
+    allowanceUSD: number
+  ): Promise<{
+    currentSpending: number;
+    remaining: number;
+    percentageUsed: number;
+    shouldWarn: boolean;
+    isNearLimit: boolean;
+  }> {
+    const currentSpending = await this.getCurrentSpending(userAddress);
+    const remaining = Math.max(0, allowanceUSD - currentSpending);
+    const percentageUsed = allowanceUSD > 0 ? currentSpending / allowanceUSD : 0;
+    
+    // Apply official best practices for monitoring
+    const shouldWarn = percentageUsed >= SPEND_PERMISSION_BEST_PRACTICES.warningThreshold;
+    const isNearLimit = percentageUsed >= 0.95; // 95% threshold
+    
+    return {
+      currentSpending,
+      remaining,
+      percentageUsed,
+      shouldWarn,
+      isNearLimit,
+    };
   }
 }
 

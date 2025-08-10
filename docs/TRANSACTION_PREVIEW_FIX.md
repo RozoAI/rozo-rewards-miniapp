@@ -94,16 +94,64 @@ const isApproved = await publicClient.readContract({
 
 When users encounter "Transaction preview unavailable", they need to:
 
-1. **Authorize Spend Permissions**: Complete the authorization flow to add SpendPermissionManager as a wallet owner
+### **🚨 Critical Issue: Authorization Shows "Active" But Still Fails**
+
+**Problem**: Authorization appears successful but SpendPermissionManager wasn't added as wallet owner.
+
+**Root Cause**: Early authorization only called `approveWithSignature` without adding SpendPermissionManager as a wallet owner.
+
+**Solution Steps**:
+
+1. **Re-Authorize Spend Permissions**: Even if it shows "active", re-run the authorization process
+   - Our updated implementation now automatically adds SpendPermissionManager as wallet owner
+   - This requires two transactions: `addOwnerAddress` + `approveWithSignature`
+
 2. **Verify Network**: Ensure wallet is connected to Base mainnet (Chain ID: 8453)
+
 3. **Check USDC Balance**: Ensure sufficient USDC for the transaction
-4. **Retry Transaction**: After authorization, the transaction preview should work
+
+4. **Check Console**: Look for diagnostic messages:
+   - `🔍 SpendPermissionManager approval status: false` (indicates the issue)
+   - `🔧 SpendPermissionManager not yet approved as wallet owner, adding now...`
+   - `✅ SpendPermissionManager successfully added as wallet owner`
+
+5. **Retry Transaction**: After proper authorization, transaction preview should work
+
+### **📱 User Experience**
+- Users will see: "Please re-authorize spend permissions to add wallet owner permissions"
+- The authorization process may take slightly longer (2 transactions instead of 1)
+- Console provides detailed diagnostic information
 
 ## 🔗 Official Documentation References
 
+- [Coinbase CDP Spend Permissions Documentation](https://docs.cdp.coinbase.com/wallet-api/v2/evm-features/spend-permissions)
+- [Base Account Spend Permissions Guide](https://docs.base.org/base-account/improve-ux/spend-permissions)
 - [Coinbase Spend Permissions Repository](https://github.com/coinbase/spend-permissions/tree/main)
 - [Design Overview](https://github.com/coinbase/spend-permissions/tree/main#design-overview)
 - [End-to-end Journey](https://github.com/coinbase/spend-permissions/tree/main#end-to-end-journey)
+
+## 📋 Official Best Practices Implementation
+
+Based on the [official Coinbase documentation](https://docs.cdp.coinbase.com/wallet-api/v2/evm-features/spend-permissions), our implementation now includes:
+
+### **1. Smart Account Requirements**
+✅ **Verified**: Smart Accounts must have spend permissions enabled at creation time
+✅ **Our Implementation**: Uses proper CDP Smart Account integration
+
+### **2. Time Period Management** 
+✅ **Official Pattern**: Uses `periodInDays` for simple daily/weekly limits
+✅ **Enhanced Security**: `start` and `end` times with appropriate boundaries
+✅ **Clock Drift Protection**: Start time set 5 minutes in the past
+
+### **3. Token Support**
+✅ **Official Shortcuts**: Support for `"usdc"` token shortcut on Base
+✅ **Contract Addresses**: Full ERC-20 contract address support
+✅ **Proper Decimals**: Correct handling of 6-decimal USDC
+
+### **4. Monitoring and Limits**
+✅ **Reasonable Limits**: Minimum $0.01, maximum $100 daily recommended
+✅ **Usage Monitoring**: 80% warning threshold, 95% near-limit detection
+✅ **Best Practices**: Following all official security recommendations
 
 ## ⚙️ Environment Configuration
 

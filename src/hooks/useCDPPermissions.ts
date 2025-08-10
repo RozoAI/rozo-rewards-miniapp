@@ -5,9 +5,9 @@
 
 import { useCallback, useState } from 'react';
 import { useAccount, useSignTypedData } from 'wagmi';
-import { Address, Hex, createWalletClient, custom, Chain } from 'viem';
+import { Address, Hex, createWalletClient, custom, Chain, createPublicClient, http } from 'viem';
 import { cdpClient, SpendPermission, createWalletClientFromWindow } from '@/lib/cdp-client';
-import { NS_CAFE_ADDRESS, getChain } from '@/lib/cdp-config';
+import { NS_CAFE_ADDRESS, getChain, getCurrentContracts } from '@/lib/cdp-config';
 import { toast } from 'sonner';
 
 interface CDPPermissionState {
@@ -193,6 +193,56 @@ export const useCDPPermissions = () => {
         account: accounts[0] as Address, // Use the first connected account
       });
 
+      // CRITICAL: First check if SpendPermissionManager is approved as wallet owner
+      const isManagerApproved = await cdpClient.checkSpendPermissionManagerApproval(address);
+      
+      if (!isManagerApproved) {
+        console.log('🔧 SpendPermissionManager not yet approved as wallet owner, adding now...');
+        
+        // Add SpendPermissionManager as wallet owner first
+        try {
+          const addOwnerTxHash = await walletClient.writeContract({
+            address: address as Address,
+            abi: [
+              {
+                inputs: [{ name: 'owner', type: 'address' }],
+                name: 'addOwnerAddress',
+                outputs: [],
+                stateMutability: 'nonpayable',
+                type: 'function',
+              },
+            ],
+            functionName: 'addOwnerAddress',
+            args: [getCurrentContracts().SpendPermissionManager],
+          });
+          
+          console.log('✅ Adding SpendPermissionManager as wallet owner:', addOwnerTxHash);
+          
+          // Wait for the addOwner transaction to be confirmed
+          const publicClient = createPublicClient({
+            chain: getChain() as Chain,
+            transport: http()
+          });
+          
+          await publicClient.waitForTransactionReceipt({
+            hash: addOwnerTxHash,
+            timeout: 60_000,
+          });
+          
+          console.log('✅ SpendPermissionManager successfully added as wallet owner');
+          
+          // Verify the change
+          const isNowApproved = await cdpClient.checkSpendPermissionManagerApproval(address);
+          if (!isNowApproved) {
+            throw new Error('Failed to add SpendPermissionManager as wallet owner');
+          }
+          
+        } catch (addOwnerError) {
+          console.error('❌ Failed to add SpendPermissionManager as wallet owner:', addOwnerError);
+          throw new Error('SpendPermissionManager must be added as wallet owner for spend permissions to work');
+        }
+      }
+
       // Submit to SpendPermissionManager contract
       const txHash = await cdpClient.approveSpendPermission(
         spendPermission,
@@ -209,7 +259,7 @@ export const useCDPPermissions = () => {
         currentPermission: spendPermission,
       }));
 
-      toast.success('Spend permission authorized on-chain!');
+      toast.success('Spend permission authorized on-chain with proper wallet owner setup!');
       return txHash;
 
     } catch (error: any) {
