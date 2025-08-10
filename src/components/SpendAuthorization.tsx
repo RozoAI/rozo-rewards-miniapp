@@ -40,6 +40,7 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
     loading, 
     error, 
     isAuthenticated,
+    authenticateWallet,
     checkSpendPermission, 
     authorizeSpending, 
     getRozoBalance,
