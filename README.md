@@ -157,13 +157,19 @@ rozo-rewards-miniapp/
 
 ## 📚 API Documentation
 
-Comprehensive API documentation is available in the `/docs` directory:
+### 🚀 **Getting Started - New Developers Start Here!**
+- **[Complete API Lifecycle Guide](./docs/COMPLETE_API_LIFECYCLE.md)** - Step-by-step tutorial with curl examples
+- **[Quick Reference](./docs/API_QUICK_REFERENCE.md)** - Essential commands and patterns (TL;DR version)
 
-- **[API.md](./docs/API.md)** - Main API reference
-- **[ROZO_CASHBACK_API.md](./docs/ROZO_CASHBACK_API.md)** - ROZO token system
-- **[ORDER_MANAGEMENT_API.md](./docs/ORDER_MANAGEMENT_API.md)** - Shopping and orders
-- **[TECHNICAL_SPEC.md](./docs/TECHNICAL_SPEC.md)** - Implementation details
+### 📖 **Comprehensive Documentation**
+- **[API.md](./docs/API.md)** - Complete API reference (all 18 endpoints)
+- **[ROZO_CASHBACK_API.md](./docs/ROZO_CASHBACK_API.md)** - ROZO token system details
+- **[ORDER_MANAGEMENT_API.md](./docs/ORDER_MANAGEMENT_API.md)** - Shopping cart and orders
+- **[TECHNICAL_SPEC.md](./docs/TECHNICAL_SPEC.md)** - Technical implementation details
 - **[openapi.yaml](./docs/openapi.yaml)** - OpenAPI 3.0 specification
+
+### 🧪 **Testing & Development**
+- **[Live API Tests](./supabase/tests/README.md)** - Comprehensive test suite for production APIs
 
 ### Key API Endpoints
 
