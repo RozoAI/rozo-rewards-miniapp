@@ -3,6 +3,7 @@ import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { FooterMap } from "./footer-map";
 
 const DiscordDark = () => (
   <svg
@@ -37,38 +38,49 @@ export default function Footer({ className }: { className?: string }) {
   return (
     <footer
       className={cn(
-        "flex w-full flex-col items-center gap-4 text-center text-sm mb-4",
+        "flex w-full flex-col items-center gap-6 text-center text-sm mb-4 px-4",
         className
       )}
     >
-      <div className="flex items-center gap-2">
-        <Avatar className="size-6 rounded-none">
-          <AvatarImage
-            src={resolvedTheme === "dark" ? "/logo-white.png" : "/logo.png"}
-            alt="Rozo Pay"
-          />
-        </Avatar>
-        <span className="font-bold text-foreground text-lg tracking-tight">
-          ROZO
-        </span>
+      {/* Map Section */}
+      <div className="w-full max-w-2xl">
+        <h3 className="text-lg font-semibold text-foreground mb-3">
+          Nearby Lifestyle Shops
+        </h3>
+        <FooterMap />
       </div>
-      <div className="flex items-center justify-center gap-4">
-        <Link
-          href="https://x.com/ROZOai"
-          className="text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <TwitterDark />
-        </Link>
-        <Link
-          href="https://discord.com/invite/EfWejgTbuU"
-          className="text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <DiscordDark />
-        </Link>
+
+      {/* Brand and Social */}
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Avatar className="size-6 rounded-none">
+            <AvatarImage
+              src={resolvedTheme === "dark" ? "/logo-white.png" : "/logo.png"}
+              alt="Rozo Pay"
+            />
+          </Avatar>
+          <span className="font-bold text-foreground text-lg tracking-tight">
+            ROZO
+          </span>
+        </div>
+        <div className="flex items-center justify-center gap-4">
+          <Link
+            href="https://x.com/ROZOai"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <TwitterDark />
+          </Link>
+          <Link
+            href="https://discord.com/invite/EfWejgTbuU"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <DiscordDark />
+          </Link>
+        </div>
+        <p className="text-muted-foreground text-sm">
+          &copy; {currentYear} ROZO, All rights reserved
+        </p>
       </div>
-      <p className="text-muted-foreground text-sm">
-        &copy; {currentYear} ROZO, All rights reserved
-      </p>
     </footer>
   );
 }

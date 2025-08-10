@@ -1,6 +1,20 @@
 {
   "locations": [
     {
+      "_id": "88c62be12697d882a8b03e60",
+      "name": "NS Cafe",
+      "formatted": "Lobby, Forest City Marina Hotel, Jalan Forest City - Lebuhraya Tanjung Pelepas, 1, Pulau Satu, 81550 Gelang Patah, Johor, Malaysia",
+      "address_line1": "Forest City Marina Hotel",
+      "address_line2": " Jalan Forest City",
+      "lat": 1.3353,
+      "lon": 103.5939,
+      "createdAt": "2025-08-09T12:21:20.572Z",
+      "updatedAt": "2025-08-09T12:21:20.572Z",
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
+      "cashback_rate": 10
+    },
+    {
       "_id": "66c62be12697d882a8b03e60",
       "name": "Prevail Union | BHM",
       "formatted": "420 20th Street North, Birmingham, AL 35203, United States of America",
@@ -10,7 +24,9 @@
       "lon": -86.80769080498851,
       "createdAt": "2024-08-21T18:03:13.673Z",
       "updatedAt": "2025-04-21T12:21:20.572Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
+      "cashback_rate": 0
     },
     {
       "_id": "66c62c0b2697d882a8b03e64",
@@ -22,7 +38,9 @@
       "lon": -73.95581773695505,
       "createdAt": "2024-08-21T18:03:55.497Z",
       "updatedAt": "2024-08-21T18:03:55.497Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
+      "cashback_rate": 0
     },
     {
       "_id": "66c62c242697d882a8b03e67",
@@ -34,7 +52,9 @@
       "lon": -79.51384299111506,
       "createdAt": "2024-08-21T18:04:20.239Z",
       "updatedAt": "2024-08-21T18:04:20.239Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
+      "cashback_rate": 0
     },
     {
       "_id": "66c62fc1bc8e305a7e0e2c6f",
@@ -46,7 +66,9 @@
       "lon": -118.428921,
       "createdAt": "2024-08-21T18:19:45.173Z",
       "updatedAt": "2024-08-21T18:19:45.173Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=BAR",
+      "cashback_rate": 0
     },
     {
       "_id": "66c62fd3bc8e305a7e0e2c73",
@@ -58,7 +80,9 @@
       "lon": -118.35685339299906,
       "createdAt": "2024-08-21T18:20:03.226Z",
       "updatedAt": "2024-08-21T18:20:03.226Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
+      "cashback_rate": 0
     },
     {
       "_id": "66c62ff2bc8e305a7e0e2c79",
@@ -70,7 +94,9 @@
       "lon": 13.4234875,
       "createdAt": "2024-08-21T18:20:34.339Z",
       "updatedAt": "2024-08-21T18:20:34.339Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
+      "cashback_rate": 0
     },
     {
       "_id": "66c6300dbc8e305a7e0e2c7c",
@@ -82,7 +108,9 @@
       "lon": -123.109459,
       "createdAt": "2024-08-21T18:21:01.379Z",
       "updatedAt": "2024-08-21T18:21:01.379Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
+      "cashback_rate": 0
     },
     {
       "_id": "66c6301dbc8e305a7e0e2c7f",
@@ -94,7 +122,9 @@
       "lon": -76.9842036,
       "createdAt": "2024-08-21T18:21:17.481Z",
       "updatedAt": "2024-08-21T18:21:17.481Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
+      "cashback_rate": 10
     },
     {
       "_id": "66c6302bbc8e305a7e0e2c82",
@@ -106,7 +136,9 @@
       "lon": -74.99270348903508,
       "createdAt": "2024-08-21T18:21:31.663Z",
       "updatedAt": "2024-08-21T18:21:31.663Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=BAR",
+      "cashback_rate": 0
     },
     {
       "_id": "66c6303abc8e305a7e0e2c85",
@@ -118,7 +150,9 @@
       "lon": -79.39822894926218,
       "createdAt": "2024-08-21T18:21:46.430Z",
       "updatedAt": "2024-08-21T18:21:46.430Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
+      "cashback_rate": 0
     },
     {
       "_id": "66c6308fbc8e305a7e0e2c88",
@@ -130,7 +164,9 @@
       "lon": 103.6144729,
       "createdAt": "2024-08-21T18:23:11.386Z",
       "updatedAt": "2024-08-21T18:23:11.386Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
+      "cashback_rate": 0
     },
     {
       "_id": "66c6309fbc8e305a7e0e2c8b",
@@ -142,7 +178,9 @@
       "lon": -80.18142578861317,
       "createdAt": "2024-08-21T18:23:27.564Z",
       "updatedAt": "2025-03-20T22:03:32.468Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
+      "cashback_rate": 0
     },
     {
       "_id": "66c630b0bc8e305a7e0e2c8e",
@@ -154,7 +192,9 @@
       "lon": -80.09208,
       "createdAt": "2024-08-21T18:23:44.771Z",
       "updatedAt": "2024-08-21T18:23:44.771Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
+      "cashback_rate": 0
     },
     {
       "_id": "66dbd8ed894222f744ee08bb",
@@ -166,7 +206,9 @@
       "lon": -121.984122,
       "createdAt": "2024-09-07T04:39:09.494Z",
       "updatedAt": "2024-09-07T04:39:09.494Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=BAR",
+      "cashback_rate": 0
     },
     {
       "_id": "66dbd908894222f744ee08be",
@@ -178,7 +220,9 @@
       "lon": -121.984122,
       "createdAt": "2024-09-07T04:39:36.702Z",
       "updatedAt": "2024-09-07T04:39:36.702Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
+      "cashback_rate": 0
     },
     {
       "_id": "66dbdeae894222f744ee08cb",
@@ -190,7 +234,9 @@
       "lon": -122.06057656525643,
       "createdAt": "2024-09-07T05:03:42.806Z",
       "updatedAt": "2025-03-17T21:55:46.057Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
+      "cashback_rate": 0
     },
     {
       "_id": "66dbdf71894222f744ee090d",
@@ -202,7 +248,9 @@
       "lon": -122.2552304,
       "createdAt": "2024-09-07T05:06:57.365Z",
       "updatedAt": "2024-09-07T05:06:57.365Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
+      "cashback_rate": 10
     },
     {
       "_id": "670f3f896859381a7b1aa9d1",
@@ -214,7 +262,9 @@
       "lon": -78.92867271253047,
       "createdAt": "2024-10-16T04:22:33.833Z",
       "updatedAt": "2024-10-16T04:22:33.833Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
+      "cashback_rate": 0
     },
     {
       "_id": "670f3fd66859381a7b1aa9d4",
@@ -226,7 +276,9 @@
       "lon": -94.449401,
       "createdAt": "2024-10-16T04:23:50.842Z",
       "updatedAt": "2024-10-16T04:23:50.842Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=BAR",
+      "cashback_rate": 0
     },
     {
       "_id": "670f3feb6859381a7b1aa9d7",
@@ -238,7 +290,9 @@
       "lon": -83.61248,
       "createdAt": "2024-10-16T04:24:11.209Z",
       "updatedAt": "2024-10-16T04:24:11.209Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
+      "cashback_rate": 0
     },
     {
       "_id": "670f40326859381a7b1aa9da",
@@ -250,7 +304,9 @@
       "lon": 103.8595448,
       "createdAt": "2024-10-16T04:25:22.670Z",
       "updatedAt": "2024-10-16T04:25:22.670Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
+      "cashback_rate": 0
     },
     {
       "_id": "670f40406859381a7b1aa9dd",
@@ -262,7 +318,9 @@
       "lon": -3.703875,
       "createdAt": "2024-10-16T04:25:36.944Z",
       "updatedAt": "2024-10-16T04:25:36.944Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
+      "cashback_rate": 0
     },
     {
       "_id": "670f40576859381a7b1aa9e0",
@@ -274,7 +332,9 @@
       "lon": -79.3890844,
       "createdAt": "2024-10-16T04:25:59.285Z",
       "updatedAt": "2024-10-16T04:25:59.285Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
+      "cashback_rate": 10
     },
     {
       "_id": "670f406e6859381a7b1aa9e3",
@@ -286,7 +346,9 @@
       "lon": -106.85285467568008,
       "createdAt": "2024-10-16T04:26:22.524Z",
       "updatedAt": "2024-10-16T04:26:22.524Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=BAR",
+      "cashback_rate": 10
     },
     {
       "_id": "670f40db6859381a7b1aa9e6",
@@ -298,7 +360,9 @@
       "lon": -82.54201538461538,
       "createdAt": "2024-10-16T04:28:11.278Z",
       "updatedAt": "2024-10-16T04:28:11.278Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
+      "cashback_rate": 0
     },
     {
       "_id": "670f42586859381a7b1aa9e9",
@@ -310,7 +374,9 @@
       "lon": -4.3240307,
       "createdAt": "2024-10-16T04:34:32.316Z",
       "updatedAt": "2024-10-16T04:34:32.316Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
+      "cashback_rate": 0
     },
     {
       "_id": "670f42ac6859381a7b1aa9ed",
@@ -322,7 +388,9 @@
       "lon": -98.39570292857142,
       "createdAt": "2024-10-16T04:35:56.549Z",
       "updatedAt": "2024-10-16T04:35:56.549Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
+      "cashback_rate": 0
     },
     {
       "_id": "670f42e86859381a7b1aa9f0",
@@ -334,7 +402,9 @@
       "lon": -81.3237177535191,
       "createdAt": "2024-10-16T04:36:56.311Z",
       "updatedAt": "2024-10-16T04:36:56.311Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
+      "cashback_rate": 0
     },
     {
       "_id": "670f43066859381a7b1aa9f3",
@@ -346,7 +416,9 @@
       "lon": -46.62353313173002,
       "createdAt": "2024-10-16T04:37:26.811Z",
       "updatedAt": "2024-10-16T04:37:26.811Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=BAR",
+      "cashback_rate": 0
     },
     {
       "_id": "670f431f6859381a7b1aa9f6",
@@ -358,7 +430,9 @@
       "lon": -122.41349244897958,
       "createdAt": "2024-10-16T04:37:51.979Z",
       "updatedAt": "2024-10-16T04:37:51.979Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
+      "cashback_rate": 10
     },
     {
       "_id": "670f43686859381a7b1aa9fa",
@@ -370,7 +444,9 @@
       "lon": -157.9662729745862,
       "createdAt": "2024-10-16T04:39:04.508Z",
       "updatedAt": "2024-10-16T04:39:04.508Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
+      "cashback_rate": 0
     },
     {
       "_id": "670f43b76859381a7b1aa9fd",
@@ -382,7 +458,9 @@
       "lon": 4.525810495608645,
       "createdAt": "2024-10-16T04:40:23.955Z",
       "updatedAt": "2024-10-16T04:41:14.516Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
+      "cashback_rate": 0
     },
     {
       "_id": "670f43ff6859381a7b1aaa02",
@@ -394,7 +472,9 @@
       "lon": -97.425169,
       "createdAt": "2024-10-16T04:41:35.228Z",
       "updatedAt": "2024-10-16T04:41:35.228Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
+      "cashback_rate": 0
     },
     {
       "_id": "670f44166859381a7b1aaa05",
@@ -406,7 +486,9 @@
       "lon": -72.55710833325274,
       "createdAt": "2024-10-16T04:41:58.903Z",
       "updatedAt": "2024-10-16T04:41:58.903Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=BAR",
+      "cashback_rate": 0
     },
     {
       "_id": "670f44226859381a7b1aaa08",
@@ -418,7 +500,9 @@
       "lon": -71.31169294980117,
       "createdAt": "2024-10-16T04:42:10.233Z",
       "updatedAt": "2024-10-16T04:42:10.233Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
+      "cashback_rate": 0
     },
     {
       "_id": "670f48856859381a7b1aaa0b",
@@ -430,7 +514,9 @@
       "lon": -122.535017,
       "createdAt": "2024-10-16T05:00:53.847Z",
       "updatedAt": "2024-10-16T05:00:53.847Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
+      "cashback_rate": 10
     },
     {
       "_id": "670f48f76859381a7b1aaa0e",
@@ -442,7 +528,9 @@
       "lon": -68.8528243,
       "createdAt": "2024-10-16T05:02:47.590Z",
       "updatedAt": "2024-10-16T05:02:47.590Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
+      "cashback_rate": 0
     },
     {
       "_id": "670f494a6859381a7b1aaa11",
@@ -454,7 +542,9 @@
       "lon": -95.508422,
       "createdAt": "2024-10-16T05:04:10.606Z",
       "updatedAt": "2024-10-16T05:04:10.606Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
+      "cashback_rate": 0
     },
     {
       "_id": "670f49936859381a7b1aaa14",
@@ -466,7 +556,9 @@
       "lon": -85.22455819790814,
       "createdAt": "2024-10-16T05:05:23.715Z",
       "updatedAt": "2024-10-16T05:05:23.715Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=BAR",
+      "cashback_rate": 0
     },
     {
       "_id": "670f49a56859381a7b1aaa17",
@@ -478,7 +570,9 @@
       "lon": -74.05406486956521,
       "createdAt": "2024-10-16T05:05:41.206Z",
       "updatedAt": "2024-10-16T05:05:41.206Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
+      "cashback_rate": 0
     },
     {
       "_id": "670f49b66859381a7b1aaa1a",
@@ -490,7 +584,9 @@
       "lon": 115.179013,
       "createdAt": "2024-10-16T05:05:58.750Z",
       "updatedAt": "2024-10-16T05:05:58.750Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
+      "cashback_rate": 0
     },
     {
       "_id": "670f49c46859381a7b1aaa1d",
@@ -502,7 +598,9 @@
       "lon": 100.410336,
       "createdAt": "2024-10-16T05:06:12.599Z",
       "updatedAt": "2024-10-16T05:06:12.599Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
+      "cashback_rate": 10
     },
     {
       "_id": "670f49cf6859381a7b1aaa20",
@@ -514,7 +612,9 @@
       "lon": -117.25627960222027,
       "createdAt": "2024-10-16T05:06:23.845Z",
       "updatedAt": "2024-10-16T05:06:23.845Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
+      "cashback_rate": 0
     },
     {
       "_id": "670f4a276859381a7b1aaa26",
@@ -526,7 +626,9 @@
       "lon": 77.11499332611811,
       "createdAt": "2024-10-16T05:07:51.236Z",
       "updatedAt": "2024-10-16T05:07:51.236Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=BAR",
+      "cashback_rate": 0
     },
     {
       "_id": "670f4a856859381a7b1aaa29",
@@ -538,7 +640,9 @@
       "lon": 121.06739083069017,
       "createdAt": "2024-10-16T05:09:25.390Z",
       "updatedAt": "2024-10-16T05:09:25.390Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
+      "cashback_rate": 0
     },
     {
       "_id": "670f4a966859381a7b1aaa2c",
@@ -550,7 +654,9 @@
       "lon": -94.5838973125,
       "createdAt": "2024-10-16T05:09:42.410Z",
       "updatedAt": "2024-10-16T05:09:42.410Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
+      "cashback_rate": 0
     },
     {
       "_id": "670f4aa26859381a7b1aaa2f",
@@ -562,7 +668,9 @@
       "lon": -122.45858024296243,
       "createdAt": "2024-10-16T05:09:54.325Z",
       "updatedAt": "2024-10-16T05:09:54.325Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
+      "cashback_rate": 10
     },
     {
       "_id": "670f4b266859381a7b1aaa32",
@@ -574,7 +682,9 @@
       "lon": -90.31806,
       "createdAt": "2024-10-16T05:12:06.286Z",
       "updatedAt": "2025-03-17T21:57:56.992Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
+      "cashback_rate": 0
     },
     {
       "_id": "67d89640597cc5483ec592c3",
@@ -586,7 +696,9 @@
       "lon": -121.2812798958783,
       "createdAt": "2025-03-17T21:38:08.977Z",
       "updatedAt": "2025-03-17T21:38:08.977Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=BAR",
+      "cashback_rate": 0
     },
     {
       "_id": "67d89b9a597cc5483ec592e6",
@@ -598,7 +710,9 @@
       "lon": -74.077212,
       "createdAt": "2025-03-17T22:00:58.881Z",
       "updatedAt": "2025-03-17T22:00:58.881Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
+      "cashback_rate": 0
     },
     {
       "_id": "67d9bec5597cc5483ec595d7",
@@ -610,7 +724,9 @@
       "lon": -82.50328469387755,
       "createdAt": "2025-03-18T18:43:17.535Z",
       "updatedAt": "2025-03-18T18:43:17.535Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
+      "cashback_rate": 0
     },
     {
       "_id": "67da002a597cc5483ec5968b",
@@ -622,7 +738,9 @@
       "lon": -74.104435,
       "createdAt": "2025-03-18T23:22:18.844Z",
       "updatedAt": "2025-03-18T23:22:18.844Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
+      "cashback_rate": 0
     },
     {
       "_id": "67da031d597cc5483ec5968e",
@@ -634,7 +752,9 @@
       "lon": -74.072296,
       "createdAt": "2025-03-18T23:34:53.912Z",
       "updatedAt": "2025-03-18T23:34:53.912Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
+      "cashback_rate": 0
     },
     {
       "_id": "67da04db597cc5483ec59692",
@@ -646,7 +766,9 @@
       "lon": -75.581363,
       "createdAt": "2025-03-18T23:42:19.774Z",
       "updatedAt": "2025-03-18T23:42:19.774Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=BAR",
+      "cashback_rate": 0
     },
     {
       "_id": "67da069a597cc5483ec59695",
@@ -658,7 +780,9 @@
       "lon": -75.587473783,
       "createdAt": "2025-03-18T23:49:46.420Z",
       "updatedAt": "2025-03-18T23:49:46.420Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
+      "cashback_rate": 0
     },
     {
       "_id": "67da070e597cc5483ec59698",
@@ -670,7 +794,9 @@
       "lon": -74.095641,
       "createdAt": "2025-03-18T23:51:42.874Z",
       "updatedAt": "2025-03-18T23:52:02.640Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
+      "cashback_rate": 0
     },
     {
       "_id": "67da0782597cc5483ec5969d",
@@ -682,7 +808,9 @@
       "lon": -74.133334,
       "createdAt": "2025-03-18T23:53:38.926Z",
       "updatedAt": "2025-03-18T23:53:38.926Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
+      "cashback_rate": 0
     },
     {
       "_id": "67da12ff597cc5483ec596a1",
@@ -694,7 +822,9 @@
       "lon": -74.029643,
       "createdAt": "2025-03-19T00:42:39.517Z",
       "updatedAt": "2025-03-19T00:42:39.517Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
+      "cashback_rate": 0
     },
     {
       "_id": "67db4b06597cc5483ec59844",
@@ -706,7 +836,9 @@
       "lon": -74.149357,
       "createdAt": "2025-03-19T22:53:58.879Z",
       "updatedAt": "2025-03-19T22:53:58.879Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=BAR",
+      "cashback_rate": 0
     },
     {
       "_id": "67db4d30597cc5483ec5984b",
@@ -718,7 +850,9 @@
       "lon": -75.555641,
       "createdAt": "2025-03-19T23:03:12.307Z",
       "updatedAt": "2025-03-19T23:03:12.307Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
+      "cashback_rate": 0
     },
     {
       "_id": "67dc5df3597cc5483ec59935",
@@ -730,7 +864,9 @@
       "lon": -76.534757,
       "createdAt": "2025-03-20T18:26:59.609Z",
       "updatedAt": "2025-03-20T18:26:59.609Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
+      "cashback_rate": 0
     },
     {
       "_id": "67dcafcd597cc5483ec599c8",
@@ -742,7 +878,9 @@
       "lon": -83.561835,
       "createdAt": "2025-03-21T00:16:13.290Z",
       "updatedAt": "2025-03-21T00:16:13.290Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
+      "cashback_rate": 0
     },
     {
       "_id": "67e30008597cc5483ec5a1e2",
@@ -754,7 +892,9 @@
       "lon": -71.4539683,
       "createdAt": "2025-03-25T19:12:08.294Z",
       "updatedAt": "2025-03-25T19:12:08.294Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
+      "cashback_rate": 0
     },
     {
       "_id": "67e33870597cc5483ec5a2d0",
@@ -766,7 +906,9 @@
       "lon": -122.2548094675221,
       "createdAt": "2025-03-25T23:12:48.212Z",
       "updatedAt": "2025-03-25T23:12:48.212Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=BAR",
+      "cashback_rate": 0
     },
     {
       "_id": "67e420aa597cc5483ec5a386",
@@ -778,7 +920,9 @@
       "lon": -112.074141,
       "createdAt": "2025-03-26T15:43:38.229Z",
       "updatedAt": "2025-03-26T15:43:38.229Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
+      "cashback_rate": 0
     },
     {
       "_id": "67e48799597cc5483ec5a43a",
@@ -790,7 +934,9 @@
       "lon": -74.098856,
       "createdAt": "2025-03-26T23:02:49.327Z",
       "updatedAt": "2025-03-26T23:02:49.327Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
+      "cashback_rate": 10
     },
     {
       "_id": "67e49646597cc5483ec5a452",
@@ -802,7 +948,9 @@
       "lon": -74.035903,
       "createdAt": "2025-03-27T00:05:26.538Z",
       "updatedAt": "2025-03-27T00:05:26.538Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
+      "cashback_rate": 0
     },
     {
       "_id": "67e5dcc9597cc5483ec5a683",
@@ -814,7 +962,9 @@
       "lon": -74.116709,
       "createdAt": "2025-03-27T23:18:33.879Z",
       "updatedAt": "2025-03-27T23:18:33.879Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
+      "cashback_rate": 0
     },
     {
       "_id": "67e5dcf8597cc5483ec5a686",
@@ -826,7 +976,9 @@
       "lon": -74.095641,
       "createdAt": "2025-03-27T23:19:20.362Z",
       "updatedAt": "2025-03-27T23:19:20.362Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=BAR",
+      "cashback_rate": 0
     },
     {
       "_id": "67e5f48e597cc5483ec5a6c5",
@@ -838,7 +990,9 @@
       "lon": -122.2719623,
       "createdAt": "2025-03-28T00:59:58.836Z",
       "updatedAt": "2025-03-28T00:59:58.836Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
+      "cashback_rate": 0
     },
     {
       "_id": "67e5f4d9597cc5483ec5a6ca",
@@ -850,7 +1004,9 @@
       "lon": -122.4139639,
       "createdAt": "2025-03-28T01:01:13.155Z",
       "updatedAt": "2025-03-28T01:01:13.155Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
+      "cashback_rate": 0
     },
     {
       "_id": "67f9387f4d45994ec539aa30",
@@ -862,7 +1018,9 @@
       "lon": -74.1270976,
       "createdAt": "2025-04-11T15:42:57.423Z",
       "updatedAt": "2025-04-11T15:42:57.423Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
+      "cashback_rate": 0
     },
     {
       "_id": "67f939364d45994ec539aa33",
@@ -874,7 +1032,9 @@
       "lon": -122.4172932,
       "createdAt": "2025-04-11T15:45:59.065Z",
       "updatedAt": "2025-04-11T15:45:59.065Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
+      "cashback_rate": 0
     },
     {
       "_id": "67f977604d45994ec539aa3b",
@@ -886,7 +1046,9 @@
       "lon": -122.4116485,
       "createdAt": "2025-04-11T20:11:26.648Z",
       "updatedAt": "2025-04-11T20:11:26.648Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=BAR",
+      "cashback_rate": 0
     },
     {
       "_id": "68012a6e4d45994ec539ac9e",
@@ -898,7 +1060,9 @@
       "lon": -122.43602510204082,
       "createdAt": "2025-04-17T16:21:03.285Z",
       "updatedAt": "2025-04-17T16:21:03.285Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
+      "cashback_rate": 0
     },
     {
       "_id": "68012a934d45994ec539aca1",
@@ -910,7 +1074,9 @@
       "lon": -122.404391,
       "createdAt": "2025-04-17T16:21:39.873Z",
       "updatedAt": "2025-04-17T16:21:39.873Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
+      "cashback_rate": 0
     },
     {
       "_id": "68069e79f309a5cd4218a617",
@@ -922,7 +1088,9 @@
       "lon": -74.239213,
       "createdAt": "2025-04-21T19:37:29.931Z",
       "updatedAt": "2025-04-21T19:37:29.931Z",
-      "__v": 0
+      "__v": 0,
+      "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
+      "cashback_rate": 0
     }
   ],
   "status": "SUCCESS"
