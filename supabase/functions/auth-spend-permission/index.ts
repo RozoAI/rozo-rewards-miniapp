@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders, createErrorResponse, createResponse, getUserFromAuth } from "../_shared/utils.ts";
+import { corsHeaders, createErrorResponse, createResponse, getUserFromAuth, handleCors } from "../_shared/utils.ts";
 
 interface UpdateSpendPermissionRequest {
   authorized: boolean;
@@ -20,9 +20,9 @@ interface SpendPermissionResponse {
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+  // Handle CORS
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
 
   try {
     // Initialize Supabase client

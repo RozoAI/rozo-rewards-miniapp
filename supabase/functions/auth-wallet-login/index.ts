@@ -1,5 +1,11 @@
 // Minimal wallet-based authentication for Rozo Rewards MiniApp
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { 
+  corsHeaders, 
+  createResponse, 
+  createErrorResponse, 
+  handleCors 
+} from "../_shared/utils.ts";
 
 interface WalletLoginRequest {
   wallet_address: string;
@@ -13,49 +19,6 @@ interface WalletLoginResponse {
   refresh_token: string;
   user: any;
   expires_in: number;
-}
-
-// CORS headers
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-};
-
-// Helper function to create API responses
-function createResponse<T>(
-  data?: T,
-  error?: { code: string; message: string; details?: Record<string, any> },
-  status = 200
-): Response {
-  const response = {
-    success: !error,
-    ...(data && { data }),
-    ...(error && { error }),
-  };
-
-  return new Response(JSON.stringify(response), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
-
-// Helper function to create error responses
-function createErrorResponse(
-  code: string,
-  message: string,
-  status = 400,
-  details?: Record<string, any>
-): Response {
-  return createResponse(undefined, { code, message, details }, status);
-}
-
-// Handle CORS
-function handleCors(req: Request): Response | null {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-  return null;
 }
 
 serve(async (req: Request) => {
