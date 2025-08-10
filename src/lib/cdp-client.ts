@@ -485,12 +485,24 @@ export class CDPClient {
   }
 
   /**
-   * Check if SpendPermissionManager is approved as an owner of the user's smart wallet
-   * This is required according to Coinbase Spend Permissions documentation
+   * Check wallet type and SpendPermissionManager approval status
+   * Returns both wallet type and approval status for proper handling
    * Reference: https://github.com/coinbase/spend-permissions/tree/main
    */
   async checkSpendPermissionManagerApproval(userAddress: string): Promise<boolean> {
     try {
+      // First, check if this is a smart contract (has code)
+      const code = await publicClient.getBytecode({ address: userAddress as Address });
+      
+      if (!code || code === '0x') {
+        console.log(`🔍 Address ${userAddress} is an EOA (Externally Owned Account), not a smart contract`);
+        console.log('💡 Spend Permissions require Coinbase Smart Wallets, not EOAs');
+        console.log('📝 User needs to create a Coinbase Smart Wallet for spend permissions');
+        return false;
+      }
+
+      console.log(`🔍 Address ${userAddress} is a smart contract, checking for Coinbase Smart Wallet interface...`);
+
       // Check if SpendPermissionManager is an owner of the user's wallet
       // This uses the Coinbase Smart Wallet interface
       const isOwner = await publicClient.readContract({
@@ -508,18 +520,61 @@ export class CDPClient {
         args: [this.contracts.SpendPermissionManager],
       }) as boolean;
 
-      console.log(`🔍 SpendPermissionManager approval status for ${userAddress}: ${isOwner}`);
+      console.log(`✅ Confirmed Coinbase Smart Wallet - SpendPermissionManager approval status: ${isOwner}`);
       
       if (!isOwner) {
-        console.warn(`⚠️ SpendPermissionManager is not approved as owner for wallet ${userAddress}`);
-        console.log('💡 User needs to add SpendPermissionManager as an owner to their smart wallet');
+        console.warn(`⚠️ SpendPermissionManager is not approved as owner for Smart Wallet ${userAddress}`);
+        console.log('💡 User needs to add SpendPermissionManager as an owner to their Coinbase Smart Wallet');
       }
       
       return isOwner;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error checking SpendPermissionManager approval:', error);
-      // If we can't check, assume it's not approved to be safe
+      
+      // Check if the error is due to missing function (not a Coinbase Smart Wallet)
+      if (error.message?.includes('returned no data') || error.message?.includes('isOwnerAddress')) {
+        console.log(`❌ Address ${userAddress} is not a Coinbase Smart Wallet (missing isOwnerAddress function)`);
+        console.log('💡 Spend Permissions require Coinbase Smart Wallets');
+        console.log('📝 User needs to create a Coinbase Smart Wallet for spend permissions');
+        return false;
+      }
+      
+      // For other errors, assume it's not approved to be safe
       return false;
+    }
+  }
+
+  /**
+   * Check if an address is a Coinbase Smart Wallet
+   */
+  async isCoinbaseSmartWallet(userAddress: string): Promise<boolean> {
+    try {
+      // Check if this is a smart contract
+      const code = await publicClient.getBytecode({ address: userAddress as Address });
+      
+      if (!code || code === '0x') {
+        return false; // EOA, not a smart contract
+      }
+
+      // Try to call isOwnerAddress function to verify it's a Coinbase Smart Wallet
+      await publicClient.readContract({
+        address: userAddress as Address,
+        abi: [
+          {
+            inputs: [{ name: 'owner', type: 'address' }],
+            name: 'isOwnerAddress',
+            outputs: [{ name: '', type: 'bool' }],
+            stateMutability: 'view',
+            type: 'function',
+          },
+        ],
+        functionName: 'isOwnerAddress',
+        args: ['0x0000000000000000000000000000000000000000'], // Test with zero address
+      });
+      
+      return true; // Function exists, likely a Coinbase Smart Wallet
+    } catch (error) {
+      return false; // Function doesn't exist or other error
     }
   }
 

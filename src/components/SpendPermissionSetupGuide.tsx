@@ -8,11 +8,13 @@ import React from 'react';
 interface SpendPermissionSetupGuideProps {
   spendPermissionManagerAddress: string;
   onDismiss?: () => void;
+  walletType?: 'eoa' | 'smart-wallet';
 }
 
 export const SpendPermissionSetupGuide: React.FC<SpendPermissionSetupGuideProps> = ({
   spendPermissionManagerAddress,
-  onDismiss
+  onDismiss,
+  walletType = 'smart-wallet'
 }) => {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -41,34 +43,57 @@ export const SpendPermissionSetupGuide: React.FC<SpendPermissionSetupGuideProps>
               <h3 className="font-medium text-yellow-800 mb-2">
                 🚨 Why This Is Required
               </h3>
-              <p className="text-yellow-700 text-sm">
-                For Coinbase Spend Permissions to work, the SpendPermissionManager must be added 
-                as an authorized owner of your Coinbase Smart Wallet. This enables secure, 
-                one-tap payments without repeated signatures.
-              </p>
+              {walletType === 'eoa' ? (
+                <p className="text-yellow-700 text-sm">
+                  You are currently using a regular wallet (EOA). Coinbase Spend Permissions only work with 
+                  Coinbase Smart Wallets, which have enhanced functionality for pre-authorized payments.
+                </p>
+              ) : (
+                <p className="text-yellow-700 text-sm">
+                  For Coinbase Spend Permissions to work, the SpendPermissionManager must be added 
+                  as an authorized owner of your Coinbase Smart Wallet. This enables secure, 
+                  one-tap payments without repeated signatures.
+                </p>
+              )}
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-medium text-blue-800 mb-3">
-                📱 Option 1: Manual Setup (Recommended)
-              </h3>
-              <ol className="list-decimal list-inside space-y-2 text-blue-700 text-sm">
-                <li>Open your Coinbase Wallet app</li>
-                <li>Go to Settings → Smart Account or Advanced Settings</li>
-                <li>Look for &quot;Authorized Owners&quot; or &quot;Account Permissions&quot;</li>
-                <li>Add the following address as an owner:</li>
-              </ol>
-              
-              <div className="mt-3 p-3 bg-gray-100 rounded border font-mono text-sm flex items-center justify-between">
-                <span className="break-all">{spendPermissionManagerAddress}</span>
-                <button
-                  onClick={() => copyToClipboard(spendPermissionManagerAddress)}
-                  className="ml-2 px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
-                >
-                  Copy
-                </button>
+            {walletType === 'eoa' ? (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h3 className="font-medium text-red-800 mb-3">
+                  🔄 Create Coinbase Smart Wallet (Required)
+                </h3>
+                <ol className="list-decimal list-inside space-y-2 text-red-700 text-sm">
+                  <li>Open your Coinbase Wallet app</li>
+                  <li>Create a new wallet → Select &quot;Smart Wallet&quot;</li>
+                  <li>During setup, enable &quot;Spend Permissions&quot; feature</li>
+                  <li>Complete the wallet creation process</li>
+                  <li>Transfer your funds from current wallet to Smart Wallet</li>
+                  <li>Connect this dApp with your new Smart Wallet address</li>
+                </ol>
               </div>
-            </div>
+            ) : (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="font-medium text-blue-800 mb-3">
+                  📱 Option 1: Manual Setup (Recommended)
+                </h3>
+                <ol className="list-decimal list-inside space-y-2 text-blue-700 text-sm">
+                  <li>Open your Coinbase Wallet app</li>
+                  <li>Go to Settings → Smart Account or Advanced Settings</li>
+                  <li>Look for &quot;Authorized Owners&quot; or &quot;Account Permissions&quot;</li>
+                  <li>Add the following address as an owner:</li>
+                </ol>
+                
+                <div className="mt-3 p-3 bg-gray-100 rounded border font-mono text-sm flex items-center justify-between">
+                  <span className="break-all">{spendPermissionManagerAddress}</span>
+                  <button
+                    onClick={() => copyToClipboard(spendPermissionManagerAddress)}
+                    className="ml-2 px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <h3 className="font-medium text-green-800 mb-3">

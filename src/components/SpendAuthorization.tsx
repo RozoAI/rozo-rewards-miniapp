@@ -70,6 +70,7 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
   const [availableCredit, setAvailableCredit] = useState<number>(0);
   const [mounted, setMounted] = useState(false);
   const [showSetupGuide, setShowSetupGuide] = useState(false);
+  const [walletType, setWalletType] = useState<'eoa' | 'smart-wallet'>('smart-wallet');
 
   // Prevent hydration issues
   useEffect(() => {
@@ -261,6 +262,11 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
         // Show the setup guide for wallet owner issues
         setShowSetupGuide(true);
         toast.error('Wallet setup required. Please follow the setup guide that just appeared.');
+      } else if (error.message.includes('Coinbase Spend Permissions require a Coinbase Smart Wallet')) {
+        // Handle EOA wallet case - different error message and guide
+        setWalletType('eoa');
+        setShowSetupGuide(true);
+        toast.error('You need a Coinbase Smart Wallet for spend permissions. Please check the setup guide.');
       } else {
         // Fallback to traditional authorization for development
         console.log('🔧 Falling back to traditional authorization...');
@@ -511,6 +517,7 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
       {showSetupGuide && (
         <SpendPermissionSetupGuide
           spendPermissionManagerAddress={getCurrentContracts().SpendPermissionManager}
+          walletType={walletType}
           onDismiss={() => setShowSetupGuide(false)}
         />
       )}

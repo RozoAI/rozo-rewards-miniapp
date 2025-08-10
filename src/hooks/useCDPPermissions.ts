@@ -16,7 +16,30 @@ async function attemptWalletOwnerSetup(
   address: string,
   fallbackErrorMessage: string
 ): Promise<void> {
-  console.log('🔄 Attempting alternative wallet owner setup methods...');
+  console.log('🔄 Checking wallet type and attempting setup...');
+  
+  // First, check if this is a Coinbase Smart Wallet
+  const isCoinbaseSmartWallet = await cdpClient.isCoinbaseSmartWallet(address);
+  
+  if (!isCoinbaseSmartWallet) {
+    console.log('❌ This wallet is not a Coinbase Smart Wallet');
+    console.log('💡 Spend Permissions only work with Coinbase Smart Wallets');
+    
+    const eoaErrorMessage = 
+      'Coinbase Spend Permissions require a Coinbase Smart Wallet, not a regular wallet.\n\n' +
+      '🔧 To use Spend Permissions:\n' +
+      '1. Create a new Coinbase Smart Wallet in your Coinbase Wallet app\n' +
+      '2. Enable "Spend Permissions" during setup\n' +
+      '3. Transfer your funds to the new Smart Wallet\n' +
+      '4. Connect with the Smart Wallet address\n\n' +
+      '📝 Current wallet type: Regular wallet (EOA)\n' +
+      '✅ Required wallet type: Coinbase Smart Wallet\n\n' +
+      '🔗 Learn more: https://docs.cdp.coinbase.com/wallet-api/v2/evm-features/spend-permissions';
+    
+    throw new Error(eoaErrorMessage);
+  }
+
+  console.log('✅ Confirmed Coinbase Smart Wallet, attempting owner setup...');
   
   try {
     // Method 1: Try the standard addOwnerAddress for ERC-4337 accounts
