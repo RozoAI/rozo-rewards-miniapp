@@ -223,7 +223,7 @@ export const useRozoAPI = () => {
         console.error('Network error details:', error);
         
         // Development fallback for testing when API is unreachable
-        if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname.includes('vercel.app'))) {
           console.warn('API unreachable, using development fallback authentication');
           
           // Create a simple development token for testing
@@ -281,12 +281,7 @@ export const useRozoAPI = () => {
 
   // Helper function to make authenticated API calls
   const apiCall = useCallback(async (endpoint: string, options: RequestInit = {}) => {
-    let token = getAuthToken();
-    
-    // If no token, try to authenticate first
-    if (!token && isConnected && address) {
-      token = await authenticateWallet();
-    }
+    const token = getAuthToken();
     
     if (!token) {
       throw new Error(ERROR_MESSAGES[ErrorType.AUTHENTICATION_ERROR]);
@@ -314,7 +309,7 @@ export const useRozoAPI = () => {
       console.error(`API call to ${endpoint} failed:`, error);
       
       // Development mode fallbacks
-      if (typeof window !== 'undefined' && window.location.hostname === 'localhost' && 
+      if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname.includes('vercel.app')) && 
           token && typeof token === 'string') {
         try {
           const decoded = JSON.parse(atob(token));
@@ -329,7 +324,7 @@ export const useRozoAPI = () => {
       
       throw error;
     }
-  }, [getAuthToken, isConnected, address, authenticateWallet]);
+  }, [getAuthToken]);
 
   // Handle errors with appropriate user feedback
   const handleError = useCallback((error: any) => {
