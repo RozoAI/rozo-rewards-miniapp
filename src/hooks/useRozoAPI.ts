@@ -151,11 +151,24 @@ export const useRozoAPI = () => {
       if (Date.now() < expiryTime) {
         setAuthToken(storedToken);
         setIsAuthenticated(true);
+        return;
       } else {
         // Token expired
         localStorage.removeItem('rozo_jwt_token');
         localStorage.removeItem('rozo_jwt_expires');
       }
+    }
+    
+    // For development: auto-authenticate with mock token
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      console.log('🔧 Development mode: auto-authenticating with mock token');
+      const mockToken = 'dev_mock_token_' + Date.now();
+      const mockExpiry = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+      
+      localStorage.setItem('rozo_jwt_token', mockToken);
+      localStorage.setItem('rozo_jwt_expires', mockExpiry.toString());
+      setAuthToken(mockToken);
+      setIsAuthenticated(true);
     }
   }, []);
 
@@ -418,11 +431,11 @@ export const useRozoAPI = () => {
 
   // Note: Credit deduction now handled by real on-chain transactions
 
-  // Get ROZO balance
+  // Get ROZO balance (with persistent state)
   const getRozoBalance = useCallback(async (): Promise<RozoBalance | null> => {
-    // For development: return mock data for new user (0 ROZO initially)
-    console.log('🔧 Development mode: returning new user balance (0 ROZO)');
-    return {
+    // For development: use localStorage to persist ROZO balance changes
+    const storedBalance = localStorage.getItem('rozo_balance');
+    const currentBalance = storedBalance ? JSON.parse(storedBalance) : {
       available_cashback_rozo: 0,
       total_cashback_rozo: 0,
       used_cashback_rozo: 0,
@@ -433,6 +446,9 @@ export const useRozoAPI = () => {
       tier_multiplier: 1.0,
       conversion_rate: "1 ROZO = $0.01 USD"
     };
+    
+    console.log('🔧 Development mode: returning stored ROZO balance', currentBalance);
+    return currentBalance;
   }, []);
 
   // Check payment eligibility
@@ -440,20 +456,25 @@ export const useRozoAPI = () => {
     amount: number, 
     isUsingCredit: boolean = false
   ) => {
-    try {
-      const response = await apiCall('/payments-eligibility', {
-        method: 'POST',
-        body: JSON.stringify({
-          amount_usd: amount,
-          is_using_credit: isUsingCredit
-        })
-      });
-      return response.data;
-    } catch (error) {
-      handleError(error);
-      return null;
-    }
-  }, [apiCall, handleError]);
+    // For development: return mock eligibility data (always eligible)
+    console.log('🔧 Development mode: returning mock payment eligibility');
+    const cashbackEarned = amount * 0.10; // 10% cashback rate
+    return {
+      eligible: true,
+      payment_method: "usdc",
+      allowance_remaining: 20.0,
+      spend_permission: {
+        authorized: true,
+        remaining_today: 20.0
+      },
+      cashback_preview: {
+        estimated_rozo: cashbackEarned,
+        estimated_usd: cashbackEarned * 0.01,
+        final_rate: 10.0
+      },
+      recommendations: []
+    };
+  }, []);
 
   // Process payment
   const processPayment = useCallback(async (
@@ -462,9 +483,37 @@ export const useRozoAPI = () => {
     cashbackRate: number,
     isUsingCredit: boolean = false
   ): Promise<PaymentResult | null> => {
-    // For development: return mock payment result
-    console.log('🔧 Development mode: returning mock payment result');
+    // For development: return mock payment result and update ROZO balance
+    console.log('🔧 Development mode: processing payment and updating ROZO balance');
     const cashbackEarned = amount * cashbackRate;
+    
+    // Update ROZO balance in localStorage
+    const storedBalance = localStorage.getItem('rozo_balance');
+    const currentBalance = storedBalance ? JSON.parse(storedBalance) : {
+      available_cashback_rozo: 0,
+      total_cashback_rozo: 0,
+      used_cashback_rozo: 0,
+      available_cashback_usd: 0.0,
+      total_cashback_usd: 0.0,
+      used_cashback_usd: 0.0,
+      current_tier: "bronze",
+      tier_multiplier: 1.0,
+      conversion_rate: "1 ROZO = $0.01 USD"
+    };
+    
+    // Add earned ROZO to balance
+    const updatedBalance = {
+      ...currentBalance,
+      available_cashback_rozo: currentBalance.available_cashback_rozo + cashbackEarned,
+      total_cashback_rozo: currentBalance.total_cashback_rozo + cashbackEarned,
+      available_cashback_usd: (currentBalance.available_cashback_rozo + cashbackEarned) * 0.01,
+      total_cashback_usd: (currentBalance.total_cashback_rozo + cashbackEarned) * 0.01,
+    };
+    
+    // Save updated balance
+    localStorage.setItem('rozo_balance', JSON.stringify(updatedBalance));
+    console.log('💰 Updated ROZO balance:', updatedBalance);
+    
     return {
       success: true,
       amount_paid_usd: amount,
