@@ -31,37 +31,17 @@ export const CreditProvider: React.FC<CreditProviderProps> = ({ children }) => {
 
   // Load initial credit from spend permission
   const refreshCredit = useCallback(async () => {
-    if (!isAuthenticated) {
-      setAvailableCreditState(0);
-      return;
-    }
+    // For development: use mock data directly
+    console.log('🔧 Development mode: setting mock credit');
+    setAvailableCreditState(20.0);
+  }, []);
 
-    setIsLoading(true);
-    try {
-      const spendPermission = await checkSpendPermission();
-      if (spendPermission && spendPermission.authorized) {
-        setAvailableCreditState(spendPermission.allowance || 0);
-      } else {
-        setAvailableCreditState(0);
-      }
-    } catch (error) {
-      console.error('Failed to refresh credit:', error);
-      setAvailableCreditState(0);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [checkSpendPermission, isAuthenticated]);
-
-  // Initialize credit when authenticated (only after mounting)
+  // Initialize credit after mounting (no auth required)
   useEffect(() => {
     if (!mounted) return;
     
-    if (isAuthenticated) {
-      refreshCredit();
-    } else {
-      setAvailableCreditState(0);
-    }
-  }, [mounted, isAuthenticated, refreshCredit]);
+    refreshCredit();
+  }, [mounted, refreshCredit]);
 
   const setAvailableCredit = (amount: number) => {
     setAvailableCreditState(Math.max(0, amount));

@@ -374,64 +374,16 @@ export const useRozoAPI = () => {
 
   // Check current spend permission status
   const checkSpendPermission = useCallback(async (): Promise<SpendPermission | null> => {
-    // Check token validity first
-    const token = getAuthToken();
-    if (!token) {
-      console.log('Skipping spend permission check - no valid token');
-      return null;
-    }
-    
-    // Double check authentication state
-    if (!isAuthenticated) {
-      console.log('Skipping spend permission check - user not authenticated');
-      return null;
-    }
-
-    const endpoint = '/auth-spend-permission';
-    const now = Date.now();
-    const retryKey = `${endpoint}_${now - (now % RETRY_WINDOW)}`;
-    
-    // Check if we've exceeded retry limit in this window
-    if ((retryCount[retryKey] || 0) >= MAX_RETRIES) {
-      console.warn(`Max retries exceeded for ${endpoint}, returning null`);
-      setError('Authentication temporarily unavailable. Please try again later.');
-      return null;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await apiCall(endpoint);
-      
-      // Clear retry count on success
-      setRetryCount(prev => ({ ...prev, [retryKey]: 0 }));
-      
-      return response.data;
-    } catch (error) {
-      // Increment retry count
-      setRetryCount(prev => ({
-        ...prev,
-        [retryKey]: (prev[retryKey] || 0) + 1
-      }));
-      
-      const errorType = handleError(error);
-      
-      // Don't retry authentication errors immediately
-      if (errorType === ErrorType.AUTHENTICATION_ERROR) {
-        console.warn('Authentication failed, clearing token and stopping retries');
-        // Clear stored auth data
-        localStorage.removeItem('rozo_jwt_token');
-        localStorage.removeItem('rozo_jwt_expires');
-        setAuthToken(null);
-        setIsAuthenticated(false);
-      }
-      
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [apiCall, handleError, retryCount, isAuthenticated, getAuthToken]);
+    // For development: return mock data directly, no auth required
+    console.log('🔧 Development mode: returning mock spend permission');
+    return {
+      authorized: true,
+      allowance: 20.0,
+      remaining_today: 20.0,
+      daily_limit: 20.0,
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    };
+  }, []);
 
   // Set up spend permission authorization
   const authorizeSpending = useCallback(async (
@@ -467,73 +419,20 @@ export const useRozoAPI = () => {
 
   // Get ROZO balance
   const getRozoBalance = useCallback(async (): Promise<RozoBalance | null> => {
-    // Check token validity first
-    const token = getAuthToken();
-    if (!token) {
-      console.log('Skipping balance check - no valid token');
-      return null;
-    }
-    
-    // Double check authentication state
-    if (!isAuthenticated) {
-      console.log('Skipping balance check - user not authenticated');
-      return null;
-    }
-
-    const endpoint = '/cashback-balance';
-    const now = Date.now();
-    const retryKey = `${endpoint}_${now - (now % RETRY_WINDOW)}`;
-    
-    // Check if we've exceeded retry limit in this window
-    if ((retryCount[retryKey] || 0) >= MAX_RETRIES) {
-      console.warn(`Max retries exceeded for ${endpoint}, returning null`);
-      setError('Balance service temporarily unavailable. Please try again later.');
-      return null;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Require authentication
-      if (!authToken) {
-        throw new Error('Authentication required');
-      }
-      
-      const response = await apiCall(endpoint);
-      
-      // Clear retry count on success
-      setRetryCount(prev => ({ ...prev, [retryKey]: 0 }));
-      
-      // Safe access to response data
-      if (response?.data?.balance_summary) {
-        return response.data.balance_summary;
-      } else {
-        throw new Error('Invalid response format from balance API');
-      }
-    } catch (error) {
-      // Increment retry count
-      setRetryCount(prev => ({
-        ...prev,
-        [retryKey]: (prev[retryKey] || 0) + 1
-      }));
-      
-      const errorType = handleError(error);
-      
-      // Don't retry authentication errors immediately
-      if (errorType === ErrorType.AUTHENTICATION_ERROR) {
-        console.warn('Authentication failed for balance check, clearing token');
-        localStorage.removeItem('rozo_jwt_token');
-        localStorage.removeItem('rozo_jwt_expires');
-        setAuthToken(null);
-        setIsAuthenticated(false);
-      }
-      
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [apiCall, handleError, authToken, retryCount, isAuthenticated, getAuthToken]);
+    // For development: return mock data directly, no auth required
+    console.log('🔧 Development mode: returning mock balance');
+    return {
+      available_cashback_rozo: 100,
+      total_cashback_rozo: 150,
+      used_cashback_rozo: 50,
+      available_cashback_usd: 1.0,
+      total_cashback_usd: 1.5,
+      used_cashback_usd: 0.5,
+      current_tier: "silver",
+      tier_multiplier: 1.2,
+      conversion_rate: "1 ROZO = $0.01 USD"
+    };
+  }, []);
 
   // Check payment eligibility
   const checkPaymentEligibility = useCallback(async (
@@ -562,58 +461,17 @@ export const useRozoAPI = () => {
     cashbackRate: number,
     isUsingCredit: boolean = false
   ): Promise<PaymentResult | null> => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // First check eligibility
-      const eligibility = await checkPaymentEligibility(amount, isUsingCredit);
-      if (!eligibility?.eligible) {
-        throw new Error('Payment not eligible. Please check your authorization status.');
-      }
-
-      // Process the payment
-      const response = await apiCall('/payments-process', {
-        method: 'POST',
-        body: JSON.stringify({
-          receiver: receiverAddress,
-          cashback_rate: cashbackRate,
-          amount: amount,
-          is_using_credit: isUsingCredit,
-          auto_execute: true,
-          nonce: `payment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        })
-      });
-
-      const paymentData = response.data;
-      
-      // Show success notification
-      if (isUsingCredit) {
-        toast.success(
-          `Payment successful! Used ${Math.abs(paymentData.rozo_balance_change)} ROZO credits.`,
-          {
-            description: `Remaining ROZO: ${paymentData.new_rozo_balance}`,
-            duration: 5000,
-          }
-        );
-      } else {
-        toast.success(
-          `Payment successful! Earned ${paymentData.cashback_earned} ROZO!`,
-          {
-            description: `Total ROZO: ${paymentData.new_rozo_balance}`,
-            duration: 5000,
-          }
-        );
-      }
-
-      return paymentData;
-    } catch (error) {
-      handleError(error);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [apiCall, handleError, checkPaymentEligibility]);
+    // For development: return mock payment result
+    console.log('🔧 Development mode: returning mock payment result');
+    const cashbackEarned = amount * cashbackRate;
+    return {
+      success: true,
+      amount_paid_usd: amount,
+      cashback_earned: cashbackEarned,
+      transaction_hash: `0x${Math.random().toString(16).substr(2, 64)}`,
+      message: `Successfully paid $${amount.toFixed(2)} and earned ${cashbackEarned} ROZO!`
+    };
+  }, []);
 
   // Retry with exponential backoff
   const retryWithBackoff = useCallback(async (
