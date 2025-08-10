@@ -5,9 +5,9 @@
 
 import { useCallback, useState } from 'react';
 import { useAccount, useSignTypedData } from 'wagmi';
-import { Address, Hex } from 'viem';
+import { Address, Hex, createWalletClient, custom } from 'viem';
 import { cdpClient, SpendPermission, createWalletClientFromWindow } from '@/lib/cdp-client';
-import { NS_CAFE_ADDRESS } from '@/lib/cdp-config';
+import { NS_CAFE_ADDRESS, getChain } from '@/lib/cdp-config';
 import { toast } from 'sonner';
 
 interface CDPPermissionState {
@@ -203,7 +203,24 @@ export const useCDPPermissions = () => {
       return status;
     } catch (error) {
       console.error('Failed to check permission status:', error);
-      return null;
+      // In simplified mode, return a default state indicating no permissions set up yet
+      try {
+        const usdcBalance = await cdpClient.getUSDCBalance(address);
+        return {
+          isValid: false,
+          currentSpending: 0,
+          remaining: 0,
+          usdcBalance,
+        };
+      } catch (balanceError) {
+        console.error('Error getting USDC balance:', balanceError);
+        return {
+          isValid: false,
+          currentSpending: 0,
+          remaining: 0,
+          usdcBalance: 0,
+        };
+      }
     }
   }, [isConnected, address]);
 
@@ -302,7 +319,15 @@ export const useCDPPermissions = () => {
       console.log('✅ User signature obtained');
 
       // Step 2: Create wallet client and execute standard flow
-      const walletClient = createWalletClientFromWindow();
+      if (!address) {
+        throw new Error('Wallet not connected');
+      }
+      
+      const walletClient = createWalletClient({
+        chain: getChain(),
+        transport: custom(window.ethereum!),
+        account: address,
+      });
       
       const result = await cdpClient.executeSpendWithApproval(
         spendPermission,

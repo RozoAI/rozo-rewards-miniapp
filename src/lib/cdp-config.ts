@@ -61,8 +61,9 @@ export const SPEND_PERMISSION_TYPES = {
 } as const;
 
 // Our Rozo PayMaster address (to be deployed)
+// For testing, use NS Cafe address as the spender
 export const ROZO_PAYMASTER_ADDRESS = process.env.NEXT_PUBLIC_ROZO_PAYMASTER_ADDRESS as Address || 
-  '0x0000000000000000000000000000000000000000' as Address;
+  '0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897' as Address; // Use NS Cafe address for testing
 
 // NS Cafe merchant address (Base mainnet)
 export const NS_CAFE_ADDRESS = process.env.NEXT_PUBLIC_NS_CAFE_ADDRESS as Address || 
@@ -77,3 +78,12 @@ export const DEFAULT_SPEND_PERMISSION = {
 
 export type NetworkId = keyof typeof CDP_CONTRACTS;
 export type ContractAddresses = typeof CDP_CONTRACTS[NetworkId];
+
+// Export chain configuration
+export const getChain = () => {
+  if (CURRENT_NETWORK === SUPPORTED_NETWORKS.MAINNET) {
+    return { id: 8453, name: 'Base', network: 'base' } as const;
+  } else {
+    return { id: 84532, name: 'Base Sepolia', network: 'base-sepolia' } as const;
+  }
+};

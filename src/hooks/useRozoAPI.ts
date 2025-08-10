@@ -140,198 +140,74 @@ export const useRozoAPI = () => {
   const { signMessageAsync } = useSignMessage();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Simplified: no authentication required for public APIs
   const [authToken, setAuthToken] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true); // Always authenticated in simple mode
 
-  // Initialize token from localStorage on mount
+  // Auto-set authenticated status when wallet is connected
   useEffect(() => {
-    const storedToken = localStorage.getItem('rozo_jwt_token');
-    const storedExpiry = localStorage.getItem('rozo_jwt_expires');
-    
-    if (storedToken && storedExpiry) {
-      const expiryTime = parseInt(storedExpiry);
-      if (Date.now() < expiryTime) {
-        setAuthToken(storedToken);
-        setIsAuthenticated(true);
-        return;
-      } else {
-        // Token expired
-        localStorage.removeItem('rozo_jwt_token');
-        localStorage.removeItem('rozo_jwt_expires');
-      }
+    if (isConnected && address) {
+      setIsAuthenticated(true);
+      console.log('✅ Public API mode: Auto-authenticated when wallet connected');
+    } else {
+      setIsAuthenticated(false);
     }
-    
-    // For development: auto-authenticate with mock token
-    // Ready for real authentication - no auto-authentication needed
-  }, []);
+  }, [isConnected, address]);
 
   // Don't auto-authenticate - let user manually authenticate
   // This prevents double popups
 
-  // Authenticate with wallet signature and get JWT token
+  // Simplified authentication - no signature required for public APIs
   const authenticateWallet = useCallback(async () => {
-    if (!address || !signMessageAsync) return null;
+    if (!address) return null;
 
     try {
       setLoading(true);
       
-      // Create authentication message
-      const message = `Sign this message to authenticate with Rozo Rewards\n\nWallet: ${address}\nTimestamp: ${Date.now()}`;
-      const nonce = `auth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      console.log('🔐 Public API mode: Simple authentication for', address);
       
-      // Sign message
-      const signature = await signMessageAsync({ message });
+      // In public API mode, just simulate authentication
+      const payload = {
+        wallet_address: address,
+        user_id: `public_user_${address.slice(-6)}`,
+        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24), // 24 hours
+        iat: Math.floor(Date.now() / 1000), // issued at
+        public_mode: true
+      };
       
-      // Send to backend for JWT token
-      const response = await fetch(`${BASE_URL}/auth-wallet-login`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Origin': typeof window !== 'undefined' ? window.location.origin : 'https://rozo-rewards-miniapp.vercel.app'
-        },
-        mode: 'cors',
-        credentials: 'omit',
-        body: JSON.stringify({
-          wallet_address: address,
-          signature,
-          message,
-          nonce
-        })
-      });
-
-      if (!response.ok) {
-        // Check if we're in development and the auth endpoint is not set up
-        if ((response.status === 401 || response.status === 404) && 
-            typeof window !== 'undefined' && 
-            (window.location.hostname === 'localhost' || window.location.hostname.includes('vercel.app'))) {
-          
-          console.warn('🔧 Auth endpoint not available, using development fallback');
-          
-          // Create a development token that matches backend expectations
-          const payload = {
-            wallet_address: address,
-            user_id: `dev_user_${address.slice(-6)}`,
-            exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24), // 24 hours
-            iat: Math.floor(Date.now() / 1000), // issued at
-            dev_mode: true
-          };
-          
-          // Encode as base64 and add a dummy signature
-          const payloadBase64 = btoa(JSON.stringify(payload));
-          const devToken = `${payloadBase64}.dev_signature`;
-          
-          setAuthToken(devToken);
-          setIsAuthenticated(true);
-          localStorage.setItem('rozo_jwt_token', devToken);
-          localStorage.setItem('rozo_jwt_expires', String(Date.now() + (24 * 60 * 60 * 1000))); // 24 hours
-          
-          toast.success('🔧 Development mode: Authentication simulated successfully!');
-          return devToken;
-        }
-        
-        throw new Error(`Authentication failed: ${response.status}`);
-      }
-
-      const data = await response.json();
+      // Encode as base64 for consistency (not used in API calls)
+      const payloadBase64 = btoa(JSON.stringify(payload));
+      const publicToken = `${payloadBase64}.public_signature`;
       
-      if (data.success && data.data.access_token) {
-        const token = data.data.access_token;
-        setAuthToken(token);
-        setIsAuthenticated(true);
-        localStorage.setItem('rozo_jwt_token', token);
-        localStorage.setItem('rozo_jwt_expires', String(Date.now() + (7 * 24 * 60 * 60 * 1000))); // 7 days
-        
-        toast.success('Successfully authenticated with Rozo Rewards!');
-        return token;
-      } else {
-        throw new Error('Authentication response invalid');
-      }
+      setAuthToken(publicToken);
+      setIsAuthenticated(true);
+      
+      console.log('✅ Public API mode: Authentication completed');
+      toast.success('✅ Ready for payments! No signature required.');
+      return publicToken;
     } catch (error: any) {
-      console.error('Wallet authentication error:', error);
-      
-      // Handle different types of errors
-      if (error.name === 'UserRejectedRequestError' || error.message?.includes('User rejected')) {
-        toast.error('Signature cancelled. Authentication is required for ROZO features.');
-        return null;
-      } else if (error.message?.includes('Failed to fetch')) {
-        console.error('Network error details:', error);
-        
-        // Development fallback for testing when API is unreachable
-        if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname.includes('vercel.app'))) {
-          console.warn('API unreachable, using development fallback authentication');
-          
-          // Create a development token that matches backend expectations
-          const payload = {
-            wallet_address: address,
-            user_id: `dev_user_${address.slice(-6)}`,
-            exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24), // 24 hours
-            iat: Math.floor(Date.now() / 1000), // issued at
-            dev_mode: true
-          };
-          
-          // Encode as base64 and add a dummy signature
-          const payloadBase64 = btoa(JSON.stringify(payload));
-          const devToken = `${payloadBase64}.dev_signature`;
-          
-          setAuthToken(devToken);
-          setIsAuthenticated(true);
-          localStorage.setItem('rozo_jwt_token', devToken);
-          localStorage.setItem('rozo_jwt_expires', String(Date.now() + (24 * 60 * 60 * 1000))); // 24 hours
-          
-          toast.success('🔧 Development mode: Authentication simulated successfully!');
-          return devToken;
-        }
-        
-        toast.error('Network error: Unable to connect to authentication service. Please check your internet connection.');
-        return null;
-      } else {
-        console.error('Authentication error details:', error);
-        toast.error(`Authentication failed: ${error.message}`);
-        return null;
-      }
+      console.error('Simple authentication error:', error);
+      setError('Authentication failed');
+      return null;
     } finally {
       setLoading(false);
     }
-  }, [address, signMessageAsync]);
+  }, [address]);
 
-  // Get current JWT token (from state or localStorage)
+  // Get current token (not needed for public APIs, but kept for compatibility)
   const getAuthToken = useCallback(() => {
-    if (authToken && isAuthenticated) return authToken;
-    
-    const storedToken = localStorage.getItem('rozo_jwt_token');
-    const storedExpiry = localStorage.getItem('rozo_jwt_expires');
-    
-    if (storedToken && storedExpiry) {
-      const expiryTime = parseInt(storedExpiry);
-      if (Date.now() < expiryTime) {
-        setAuthToken(storedToken);
-        setIsAuthenticated(true);
-        return storedToken;
-      } else {
-        // Token expired
-        localStorage.removeItem('rozo_jwt_token');
-        localStorage.removeItem('rozo_jwt_expires');
-        setIsAuthenticated(false);
-      }
-    }
-    
-    return null;
-  }, [authToken, isAuthenticated]);
+    return null; // Always return null since we don't use auth tokens anymore
+  }, []);
 
-  // Helper function to make authenticated API calls
+  // Helper function to make public API calls (no authentication required)
   const apiCall = useCallback(async (endpoint: string, options: RequestInit = {}) => {
-    const token = getAuthToken();
-    
-    if (!token) {
-      throw new Error(ERROR_MESSAGES[ErrorType.AUTHENTICATION_ERROR]);
-    }
+    console.log(`🌐 Making public API call to: ${endpoint}`);
 
     try {
       const response = await fetch(`${BASE_URL}${endpoint}`, {
         ...options,
         headers: {
-          'Authorization': `Bearer ${token}`,
+          // Removed Authorization header - APIs are now public
           'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzZ3NvaWxpdGFkd3V0ZnZ4ZnpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI0NjM2ODMsImV4cCI6MjA1ODAzOTY4M30.bq18ZyzdwRXi0AFLip_37urLoAI1wk6giYjQAho-Q5E',
           'Content-Type': 'application/json',
           'Accept': 'application/json',

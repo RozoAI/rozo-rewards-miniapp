@@ -221,7 +221,7 @@ export class CDPClient {
           userAddress,
           spenderAddress,
           this.contracts.USDC,
-          Math.floor(Date.now() / 1000),
+          Math.floor(Date.now() / 1000) - DEFAULT_SPEND_PERMISSION.period, // start time (24h ago)
           DEFAULT_SPEND_PERMISSION.period,
         ],
       });
@@ -241,6 +241,8 @@ export class CDPClient {
       return parseFloat(formatUnits(spent, 6));
     } catch (error) {
       console.error('Error checking current spending:', error);
+      // For testing purposes, if the contract call fails, assume no current spending
+      // This commonly happens when no spend permission has been created yet
       return 0;
     }
   }
@@ -458,5 +460,6 @@ export const createWalletClientFromWindow = () => {
   return createWalletClient({
     chain: getChain(),
     transport: custom(window.ethereum),
+    account: undefined, // Will be automatically detected from connected wallet
   });
 };
