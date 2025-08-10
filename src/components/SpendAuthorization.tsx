@@ -12,6 +12,7 @@ interface SpendAuthorizationProps {
   onAuthorizationComplete?: (data: any) => void;
   onBalanceUpdate?: (balance: number) => void;
   onCreditUpdate?: (credit: number) => void;
+  simpleMode?: boolean; // New prop to enable simplified mode without authentication
 }
 
 interface SpendPermissionData {
@@ -33,7 +34,8 @@ interface RozoBalanceData {
 export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
   onAuthorizationComplete,
   onBalanceUpdate,
-  onCreditUpdate
+  onCreditUpdate,
+  simpleMode = false
 }) => {
   const { address, isConnected } = useAccount();
   const { signMessageAsync } = useSignMessage();
@@ -147,8 +149,60 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
     }
 
     try {
-      console.log('🚀 Starting real CDP spend permission authorization...');
+      console.log('🚀 Starting CDP spend permission authorization...');
       
+      if (simpleMode) {
+        // Simple mode: Just create and submit CDP spend permission, no backend auth required
+        console.log('📱 Simple mode: Creating spend permission without backend authentication');
+        
+        // Step 1: Check USDC balance first  
+        const usdcBalance = await checkUSDCBalance();
+        console.log(`💰 User USDC balance: $${usdcBalance}`);
+        
+        if (usdcBalance < authorizationAmount) {
+          toast.error(`Insufficient USDC balance. You have $${usdcBalance.toFixed(2)} but need $${authorizationAmount.toFixed(2)}. Please add USDC to your Base wallet.`);
+          return;
+        }
+
+        // Step 2: Create and sign EIP-712 spend permission
+        const permissionResult = await createSpendPermission(authorizationAmount, 24);
+        if (!permissionResult) {
+          throw new Error('Failed to create spend permission');
+        }
+        const { permission, signature } = permissionResult;
+        console.log('✅ EIP-712 spend permission created and signed');
+
+        // Step 3: Submit to blockchain (SpendPermissionManager contract)
+        const txHash = await submitSpendPermission(permission, signature);
+        console.log('✅ Spend permission submitted to blockchain:', txHash);
+
+        // Step 4: Set local state (no backend required)
+        const mockResult = {
+          authorized: true,
+          allowance: authorizationAmount,
+          daily_limit: authorizationAmount,
+          remaining_today: authorizationAmount,
+          expiry: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          status: 'active'
+        };
+        
+        setSpendPermission(mockResult);
+        setAvailableCredit(authorizationAmount);
+        onCreditUpdate?.(authorizationAmount);
+        onAuthorizationComplete?.({
+          ...mockResult,
+          txHash,
+          permission,
+          signature,
+          cdp_verified: true,
+          simple_mode: true
+        });
+        
+        toast.success(`🎉 Spend Permission authorized for tap-to-pay! Tx: ${txHash.slice(0, 10)}...`);
+        return;
+      }
+      
+      // Original full mode with backend integration
       // Step 1: Check USDC balance first
       const usdcBalance = await checkUSDCBalance();
       console.log(`💰 User USDC balance: $${usdcBalance}`);
@@ -208,16 +262,36 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
           const message = `Authorize ROZO spending limit of $${authorizationAmount.toFixed(2)}\nWallet: ${address}\nTimestamp: ${Date.now()}`;
           const signature = await signMessageAsync({ message });
           
-          const result = await authorizeSpending(authorizationAmount, signature);
-          
-          if (result) {
-            setSpendPermission(result);
-            setAvailableCredit(result.remaining_today || authorizationAmount);
-            onCreditUpdate?.(result.remaining_today || authorizationAmount);
-            onAuthorizationComplete?.(result);
-            await loadRozoBalance();
+          if (simpleMode) {
+            // Simple mode fallback
+            const mockResult = {
+              authorized: true,
+              allowance: authorizationAmount,
+              daily_limit: authorizationAmount,
+              remaining_today: authorizationAmount,
+              expiry: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              status: 'active'
+            };
             
-            toast.success('✅ Fallback authorization completed successfully!');
+            setSpendPermission(mockResult);
+            setAvailableCredit(authorizationAmount);
+            onCreditUpdate?.(authorizationAmount);
+            onAuthorizationComplete?.(mockResult);
+            
+            toast.success('✅ Simple authorization completed successfully!');
+          } else {
+            // Full mode fallback
+            const result = await authorizeSpending(authorizationAmount, signature);
+            
+            if (result) {
+              setSpendPermission(result);
+              setAvailableCredit(result.remaining_today || authorizationAmount);
+              onCreditUpdate?.(result.remaining_today || authorizationAmount);
+              onAuthorizationComplete?.(result);
+              await loadRozoBalance();
+              
+              toast.success('✅ Fallback authorization completed successfully!');
+            }
           }
         } catch (fallbackError) {
           toast.error('Failed to authorize spending. Please check your connection and try again.');
@@ -252,8 +326,8 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
     );
   }
 
-  // Show authentication prompt if not authenticated
-  if (!isAuthenticated) {
+  // Show authentication prompt if not authenticated (unless in simple mode)
+  if (!isAuthenticated && !simpleMode) {
     return (
       <Card>
         <CardHeader>

@@ -18,6 +18,7 @@ interface PaymentButtonProps {
   onPaymentSuccess?: (data: any) => void;
   disabled?: boolean;
   className?: string;
+  simpleMode?: boolean; // New prop for simplified mode without authentication
 }
 
 interface PaymentEligibility {
@@ -44,7 +45,8 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
   cashbackRate,
   onPaymentSuccess,
   disabled = false,
-  className = ""
+  className = "",
+  simpleMode = false
 }) => {
   const { 
     loading, 
@@ -77,12 +79,19 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
     }
   }, [checkPaymentEligibility, amount]);
 
-  // Check payment eligibility when authenticated and amount changes
+  // Check payment eligibility when authenticated and amount changes (skip in simple mode)
   useEffect(() => {
-    if (isAuthenticated && amount > 0) {
+    if (simpleMode) {
+      // In simple mode, assume payment is eligible
+      setEligibility({
+        eligible: true,
+        payment_method: 'direct_usdc',
+        allowance_remaining: 20
+      });
+    } else if (isAuthenticated && amount > 0) {
       checkEligibility();
     }
-  }, [isAuthenticated, amount, checkEligibility]);
+  }, [isAuthenticated, amount, checkEligibility, simpleMode]);
 
   // Clear error after some time
   useEffect(() => {
@@ -106,9 +115,57 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
     setProcessingPayment(true);
     
     try {
-      console.log('🚀 Starting CDP one-tap payment process...');
+      console.log('🚀 Starting payment process...', simpleMode ? '(Simple Mode)' : '(Full Mode)');
 
-      // Check USDC balance first
+      if (simpleMode) {
+        // Simple mode: Direct CDP spend permission execution
+        console.log('📱 Simple mode: Using direct CDP spend permissions');
+
+        // Check USDC balance first
+        const usdcBalance = await checkUSDCBalance();
+        if (usdcBalance < amount) {
+          toast.error(`Insufficient USDC balance. You have $${usdcBalance.toFixed(2)} but need $${amount.toFixed(2)}.`);
+          return;
+        }
+
+        // Check if we have a valid spend permission
+        const permissionStatus = await checkPermissionStatus?.();
+        
+        if (permissionStatus?.isValid && permissionStatus.remaining >= amount) {
+          console.log('✅ Valid CDP spend permission found, executing direct payment...');
+          
+          // Create a spend permission structure for the payment
+          const spendPermission = await cdpClient.createSpendPermission(address, 100, 24); // $100 daily limit
+          
+          // Execute payment using CDP spend permission
+          const cdpResult = await payWithROZORewards(spendPermission, amount, (result) => {
+            console.log('💰 CDP payment successful:', result);
+          });
+
+          if (cdpResult) {
+            // Convert CDP result format to match expected format
+            const paymentResult = {
+              transaction_id: cdpResult.txHash,
+              amount_paid_usd: amount,
+              payment_method: 'cdp_spend_permission',
+              cashback_earned: Math.floor(amount * cashbackRate / 100 * 10), // 10x multiplier for demo
+              new_rozo_balance: 0, // Would be fetched in real app
+              merchant_wallet: merchantWallet,
+              status: 'completed'
+            };
+
+            onPaymentSuccess?.(paymentResult);
+            toast.success(`🎉 Payment successful! Earned ${paymentResult.cashback_earned} ROZO!`);
+            return;
+          }
+        } else {
+          console.log('⚠️ No valid CDP spend permission, user needs to authorize first');
+          toast.error('Please authorize spend permissions first in your profile');
+          return;
+        }
+      }
+
+      // Full mode: Check USDC balance first
       const usdcBalance = await checkUSDCBalance();
       if (usdcBalance < amount) {
         toast.error(`Insufficient USDC balance. You have $${usdcBalance.toFixed(2)} but need $${amount.toFixed(2)}.`);

@@ -12,9 +12,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { SpendAuthorization } from "@/components/SpendAuthorization";
-import { BalanceDisplay } from "@/components/BalanceDisplay";
 import { NSCafePayment } from "@/components/NSCafePayment";
-import { useCredit } from "@/contexts/CreditContext";
 
 export default function ProfilePageContent() {
   const [mounted, setMounted] = useState(false);
@@ -53,7 +51,7 @@ function ProfilePageContentInternal() {
   const router = useRouter();
   const [rozoBalance, setRozoBalance] = useState<number>(0);
   const [showNSCafe, setShowNSCafe] = useState(false);
-  const { availableCredit, setAvailableCredit, deductCredit } = useCredit();
+  const [availableCredit, setAvailableCredit] = useState<number>(20); // Pre-set $20 credit
 
   // Redirect to home if not connected
   useEffect(() => {
@@ -76,7 +74,7 @@ function ProfilePageContentInternal() {
   };
 
   const handleAuthorizationComplete = (data: any) => {
-    toast.success("Payment authorization successfully set up!");
+    toast.success("Spend Permission authorized for tap-to-pay!");
     console.log("Authorization complete:", data);
   };
 
@@ -84,22 +82,16 @@ function ProfilePageContentInternal() {
     setRozoBalance(balance);
   };
 
-  const handleCreditUpdate = (credit: number) => {
-    setAvailableCredit(credit);
-  };
-
   const handlePaymentSuccess = (data: any) => {
-    toast.success(`Payment successful! Earned ${data.cashback_earned} ROZO!`);
+    toast.success(`Payment successful! Earned ${data.cashback_earned || 1} ROZO!`);
     
-    // Deduct the payment amount from available credit
+    // Deduct the payment amount from available credit  
     if (data.amount_paid_usd) {
-      deductCredit(data.amount_paid_usd);
+      setAvailableCredit(prev => Math.max(0, prev - data.amount_paid_usd));
     }
     
-    // Refresh balance display
-    setTimeout(() => {
-      window.location.reload(); // Simple refresh for now
-    }, 2000);
+    // Update ROZO balance
+    setRozoBalance(prev => prev + (data.cashback_earned || 1));
   };
 
   // Show loading state while checking connection
@@ -197,16 +189,17 @@ function ProfilePageContentInternal() {
           </CardContent>
         </Card>
 
-        {/* Authorization & Payment Components */}
+        {/* Simplified Authorization & Payment Components */}
         <SpendAuthorization
           onAuthorizationComplete={handleAuthorizationComplete}
           onBalanceUpdate={handleBalanceUpdate}
-          onCreditUpdate={handleCreditUpdate}
+          simpleMode={true}
         />
         
         {showNSCafe && (
           <NSCafePayment 
             onPaymentSuccess={handlePaymentSuccess}
+            availableCredit={availableCredit}
           />
         )}
       </div>

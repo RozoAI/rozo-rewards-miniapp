@@ -9,11 +9,13 @@ import { TEST_CONFIG } from '@/hooks/useRozoAPI';
 interface NSCafePaymentProps {
   onPaymentSuccess?: (data: any) => void;
   className?: string;
+  availableCredit?: number; // Show available credit amount
 }
 
 export const NSCafePayment: React.FC<NSCafePaymentProps> = ({
   onPaymentSuccess,
-  className = ""
+  className = "",
+  availableCredit = 20
 }) => {
   const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
 
@@ -86,6 +88,16 @@ export const NSCafePayment: React.FC<NSCafePaymentProps> = ({
         </CardContent>
       </Card>
 
+      {/* Available Credit Display */}
+      <Card className="bg-green-50 border-green-200">
+        <CardContent className="pt-4 pb-4">
+          <div className="text-center">
+            <p className="text-sm text-green-600">💳 Available Credit</p>
+            <p className="text-2xl font-bold text-green-800">${availableCredit.toFixed(2)}</p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Payment Section */}
       <PaymentButton
         merchant="ns-cafe"
@@ -94,6 +106,7 @@ export const NSCafePayment: React.FC<NSCafePaymentProps> = ({
         amount={TEST_CONFIG.nsCafePayment}
         cashbackRate={TEST_CONFIG.cashbackRate}
         onPaymentSuccess={handlePaymentSuccess}
+        simpleMode={true}
       />
 
 
