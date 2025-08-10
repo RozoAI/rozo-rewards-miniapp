@@ -27,15 +27,45 @@ export default function HomePage() {
     lng: number;
   } | null>(null);
   const [locationPermission, setLocationPermission] = useState<
-    "granted" | "denied" | "prompt" | "unknown"
+    "granted" | "denied" | "prompt" | "unknown" | "approximate" | "timeout"
   >("unknown");
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  // Function to request location access
-  const requestLocationAccess = () => {
+  // Detect Chrome on macOS
+  const isChromeOnMacOS = () => {
+    const ua = navigator.userAgent;
+    return /Macintosh/.test(ua) && /Chrome\//.test(ua) && !/Edg\//.test(ua);
+  };
+
+  // IP-based fallback
+  const fallbackToIPLocation = async () => {
+    try {
+      const res = await fetch("https://ipapi.co/json/");
+      if (!res.ok) throw new Error("IP location request failed");
+      const data = await res.json();
+      return { lat: data.latitude, lng: data.longitude };
+    } catch (err) {
+      console.error("IP-based fallback failed:", err);
+      return { lat: 37.7749, lng: -122.4194 }; // San Francisco fallback
+    }
+  };
+
+  const requestLocationAccess = async (forceGPS = false) => {
+    // If Chrome on macOS and not forcing GPS, skip geolocation
+    if (isChromeOnMacOS() && !forceGPS) {
+      console.warn(
+        "Detected Chrome on macOS — using IP fallback due to Core Location bug"
+      );
+      const ipLocation = await fallbackToIPLocation();
+      setUserLocation(ipLocation);
+      setLocationPermission("approximate");
+      setLocationError("Using approximate location due to browser limitation.");
+      return;
+    }
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           setUserLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude,
@@ -43,36 +73,42 @@ export default function HomePage() {
           setLocationPermission("granted");
           setLocationError(null);
         },
-        (error) => {
+        async (error) => {
           console.error("Error getting user location:", error);
-          setLocationPermission("denied");
 
           switch (error.code) {
             case error.PERMISSION_DENIED:
+              setLocationPermission("denied");
               setLocationError(
                 "Location access denied. Please enable location permissions in your browser settings."
               );
               break;
             case error.POSITION_UNAVAILABLE:
-              setLocationError("Location information is unavailable.");
-              break;
+              setLocationPermission("approximate");
+              setLocationError(
+                "Location information is unavailable. Using approximate location."
+              );
+              const ipLocation = await fallbackToIPLocation();
+              setUserLocation(ipLocation);
+              return;
             case error.TIMEOUT:
+              setLocationPermission("timeout");
               setLocationError("Location request timed out.");
               break;
             default:
+              setLocationPermission("unknown");
               setLocationError(
                 "An unknown error occurred while retrieving location."
               );
               break;
           }
 
-          // Fallback to San Francisco if geolocation fails
+          // Final fallback: San Francisco
           setUserLocation({ lat: 37.7749, lng: -122.4194 });
         }
       );
     } else {
       setLocationError("Geolocation is not supported by this browser.");
-      // Fallback if geolocation is not supported
       setUserLocation({ lat: 37.7749, lng: -122.4194 });
     }
   };
@@ -124,10 +160,21 @@ export default function HomePage() {
               <Button
                 size="sm"
                 variant="secondary"
-                onClick={requestLocationAccess}
+                onClick={() => requestLocationAccess()}
                 className="bg-white text-blue-600 hover:bg-gray-100"
               >
                 Allow Location
+              </Button>
+            )}
+
+            {locationPermission === "approximate" && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => requestLocationAccess(true)}
+                className="bg-white text-blue-600 hover:bg-gray-100"
+              >
+                Retry
               </Button>
             )}
           </div>
@@ -181,7 +228,7 @@ export default function HomePage() {
 
               <SheetHeader className="px-4 pb-2">
                 <SheetTitle className="flex items-center justify-between gap-2">
-                  <h1 className="text-xl">Restaurants Near You</h1>
+                  <span className="text-xl">Restaurants Near You</span>
                   <WalletComponents />
                 </SheetTitle>
                 <p className="text-sm text-gray-500 text-left">

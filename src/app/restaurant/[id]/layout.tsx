@@ -1,22 +1,13 @@
 import { createMiniAppMetadata } from "@/lib/miniapp-embed";
+import { Restaurant } from "@/types/restaurant";
 import type { Metadata } from "next";
 
-type LocationItem = {
-  _id: string;
-  name: string;
-  formatted: string;
-  address_line1: string;
-  address_line2?: string;
-  lat: number;
-  lon: number;
-};
-
 type CoffeeMapResponse = {
-  locations: LocationItem[];
+  locations: Restaurant[];
   status?: string;
 };
 
-async function getRestaurant(id: string): Promise<LocationItem | null> {
+async function getRestaurant(id: string): Promise<Restaurant | null> {
   const base = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
   try {
     const res = await fetch(`${base}/coffee_mapdata.json`, {
@@ -43,10 +34,19 @@ export async function generateMetadata({
   const title = restaurant
     ? `${restaurant.name} — Restaurant`
     : "Restaurant Details";
+
+  const addressParts = [restaurant?.address_line1, restaurant?.address_line2]
+    .filter(Boolean)
+    .join(", ");
+
+  const priceInfo = restaurant?.price ? ` • ${restaurant.price}` : "";
+  const cashbackInfo =
+    restaurant?.cashback_rate && restaurant.cashback_rate > 0
+      ? ` • ${restaurant.cashback_rate}% cashback`
+      : "";
+
   const description = restaurant
-    ? `${restaurant.address_line1}${
-        restaurant.address_line2 ? `, ${restaurant.address_line2}` : ""
-      }`
+    ? `${addressParts}${priceInfo}${cashbackInfo}`
     : "View restaurant details, address and pay with crypto.";
 
   const urlPath = `/restaurant/${id}`;
@@ -54,7 +54,10 @@ export async function generateMetadata({
 
   return createMiniAppMetadata(
     {
-      imageUrl: process.env.NEXT_PUBLIC_APP_HERO_IMAGE || "/logo.png",
+      imageUrl:
+        restaurant?.logo_url ||
+        process.env.NEXT_PUBLIC_APP_HERO_IMAGE ||
+        "/logo.png",
       buttonTitle: restaurant
         ? `🍽️ Visit ${restaurant.name}`
         : "🍽️ View Restaurant",
@@ -69,15 +72,37 @@ export async function generateMetadata({
         description,
         url: urlPath,
         type: "website",
+        images: restaurant?.logo_url
+          ? [
+              {
+                url: restaurant.logo_url,
+                width: 800,
+                height: 600,
+                alt: restaurant.name,
+              },
+            ]
+          : undefined,
+        siteName: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME,
       },
       twitter: {
         card: "summary_large_image",
         title,
         description,
+        images: restaurant?.logo_url ? [restaurant.logo_url] : undefined,
       },
       alternates: {
         canonical: urlPath,
       },
+      other: restaurant
+        ? {
+            "restaurant:name": restaurant.name,
+            "restaurant:address": addressParts,
+            "restaurant:price": restaurant.price || "",
+            "restaurant:cashback_rate": restaurant.cashback_rate.toString(),
+            "geo:latitude": restaurant.lat.toString(),
+            "geo:longitude": restaurant.lon.toString(),
+          }
+        : undefined,
     }
   );
 }
