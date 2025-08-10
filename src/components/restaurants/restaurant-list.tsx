@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getFirstTwoWordInitialsFromName, formatDistance } from "@/lib/utils";
 import { MapPin } from "lucide-react";
 import Link from "next/link";
@@ -29,6 +29,13 @@ function ListRow({ location }: { location: LocationItem }) {
         className="flex items-start gap-3 px-4 py-4 border-b !border-gray-400 last:border-b-0 hover:bg-accent/30 transition-colors"
       >
         <Avatar className="size-12 sm:size-16 rounded-lg ring-1 ring-border bg-muted flex-shrink-0">
+          {location.logo_url ? (
+            <AvatarImage 
+              src={location.logo_url} 
+              alt={`${location.name} logo`}
+              className="object-cover"
+            />
+          ) : null}
           <AvatarFallback
             title={location.name}
             className="font-medium text-sm sm:text-base"
