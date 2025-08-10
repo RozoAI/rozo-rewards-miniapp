@@ -8,11 +8,12 @@
       "address_line2": " Jalan Forest City",
       "lat": 1.3353,
       "lon": 103.5939,
+      "payTo": "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
       "createdAt": "2025-08-09T12:21:20.572Z",
       "updatedAt": "2025-08-09T12:21:20.572Z",
       "__v": 0,
       "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
-      "cashback_rate": 10
+      "cashback_rate": 1
     },
     {
       "_id": "66c62be12697d882a8b03e60",
