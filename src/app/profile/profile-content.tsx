@@ -160,19 +160,56 @@ function ProfilePageContentInternal() {
         </CardHeader>
       </Card>
 
-      {/* Stats Grid - Using main branch layout but with our functionality */}
-      <div className="grid grid-cols-1 gap-4 mb-4">
-        {/* Rewards Stats */}
+              {/* ROZO Points Display */}
+        <div className="grid grid-cols-1 gap-4 mb-4">
+          {/* ROZO Balance Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Coins className="h-5 w-5 text-blue-500" />
+                ROZO Points
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Current Balance */}
+                <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
+                  <span className="text-sm text-blue-700">Available Points</span>
+                  <span className="text-2xl font-bold text-blue-600">10 ROZO</span>
+                </div>
 
+                {/* Activity History */}
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-900">Recent Activity</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium text-green-800">New User Registration</p>
+                        <p className="text-xs text-green-600">Welcome bonus earned</p>
+                      </div>
+                      <span className="text-sm font-semibold text-green-600">+10 ROZO</span>
+                    </div>
+                  </div>
+                </div>
 
-        {/* Authorization & Payment Components */}
-        <SpendAuthorization
-          onAuthorizationComplete={handleAuthorizationComplete}
-          onBalanceUpdate={handleBalanceUpdate}
-          onCreditUpdate={handleCreditUpdate}
-        />
+                {/* Points Info */}
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-600 text-center">
+                    Earn more ROZO by making purchases at participating merchants
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-      </div>
+          {/* Authorization & Payment Components */}
+          {/* <SpendAuthorization
+            onAuthorizationComplete={handleAuthorizationComplete}
+            onBalanceUpdate={handleBalanceUpdate}
+            onCreditUpdate={handleCreditUpdate}
+          /> */}
+
+        </div>
 
       <FabActions />
     </div>
