@@ -283,6 +283,48 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
 
   return (
     <div className="space-y-4">
+
+      {/* ROZO Balance Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>ROZO pts</CardTitle>
+          <CardDescription>Your cashback rewards balance</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {rozoBalance ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
+                <div>
+                  <p className="text-2xl font-bold text-purple-800">
+                    {(rozoBalance.available_cashback_rozo).toFixed(2)} ROZO
+                  </p>
+                  <p className="text-sm text-purple-600">
+                    ≈ ${(rozoBalance.available_cashback_usd || 0).toFixed(2)} USD
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-purple-600">Tier</p>
+                  <p className="text-lg font-semibold text-purple-800 capitalize">
+                    {rozoBalance.current_tier}
+                  </p>
+                </div>
+              </div>
+              
+              {rozoBalance.available_cashback_rozo === 0 && (
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    💡 Make your first purchase to start earning ROZO cashback!
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-4 text-center text-gray-500">
+              {loading ? 'Loading balance...' : 'Unable to load balance'}
+            </div>
+          )}
+        </CardContent>
+      </Card>
       {/* Spend Authorization Card */}
       <Card>
         <CardHeader>
@@ -344,7 +386,7 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-600">Total Authorized</p>
+                  <p className="text-sm text-blue-600">Authorized</p>
                   <p className="text-lg font-semibold text-blue-800">
                     ${spendPermission.allowance.toFixed(2)}
                   </p>
@@ -365,51 +407,6 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
         </CardContent>
       </Card>
 
-      {/* ROZO Balance Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>ROZO Balance</CardTitle>
-          <CardDescription>Your cashback rewards balance</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {rozoBalance ? (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
-                <div>
-                  <p className="text-sm text-purple-600">Available ROZO</p>
-                  <p className="text-2xl font-bold text-purple-800">
-                    {rozoBalance.available_cashback_rozo} ROZO
-                  </p>
-                  <p className="text-sm text-purple-600">
-                    ≈ ${(rozoBalance.available_cashback_usd || 0).toFixed(2)} USD
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-purple-600">Tier</p>
-                  <p className="text-lg font-semibold text-purple-800 capitalize">
-                    {rozoBalance.current_tier}
-                  </p>
-                  <p className="text-sm text-purple-600">
-                    {rozoBalance.tier_multiplier}x multiplier
-                  </p>
-                </div>
-              </div>
-              
-              {rozoBalance.available_cashback_rozo === 0 && (
-                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-800">
-                    💡 Make your first purchase to start earning ROZO cashback!
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="p-4 text-center text-gray-500">
-              {loading ? 'Loading balance...' : 'Unable to load balance'}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Error Display */}
       {error && (

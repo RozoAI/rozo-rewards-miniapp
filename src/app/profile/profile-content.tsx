@@ -142,60 +142,28 @@ function ProfilePageContentInternal() {
                     <Copy className="h-3 w-3" />
                   </Button>
                 </CardTitle>
-                <div className="text-sm text-purple-600 font-medium mt-1">
-                  💰 {rozoBalance} ROZO Balance
-                </div>
-                <div className="text-sm text-green-600 font-medium">
-                  💳 ${availableCredit.toFixed(2)} Available Credit
-                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowNSCafe(!showNSCafe)}
-              className="flex items-center gap-2"
+            {/* Right-aligned disconnect button */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleDisconnect}
+              className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
             >
-              ☕ {showNSCafe ? 'Hide' : 'Show'} NS Cafe Payment
-            </Button>
-            
-            <Button variant="outline" size="sm" onClick={handleDisconnect}>
               <LogOut className="h-4 w-4" />
               Disconnect
             </Button>
           </div>
+
         </CardHeader>
       </Card>
 
       {/* Stats Grid - Using main branch layout but with our functionality */}
       <div className="grid grid-cols-1 gap-4 mb-4">
         {/* Rewards Stats */}
-        <Card className="relative overflow-hidden gap-2">
-          <CardHeader className="pb-3">
-            <CardTitle>Rewards</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Total Rozo - Featured */}
-            <div className="bg-muted p-4 rounded-lg">
-              <div className="flex justify-between items-center">
-                <div>
-                  <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                    Total Rozo
-                  </span>
-                  <div className="text-2xl font-bold text-neutral-800 dark:text-neutral-200 mt-1">
-                    {rozoBalance}
-                  </div>
-                </div>
-                <div className="bg-neutral-200 dark:bg-neutral-800 p-3 rounded-full">
-                  <Coins className="h-6 w-6 text-neutral-700 dark:text-neutral-300" />
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
 
         {/* Authorization & Payment Components */}
         <SpendAuthorization
@@ -203,12 +171,7 @@ function ProfilePageContentInternal() {
           onBalanceUpdate={handleBalanceUpdate}
           onCreditUpdate={handleCreditUpdate}
         />
-        
-        {showNSCafe && (
-          <NSCafePayment 
-            onPaymentSuccess={handlePaymentSuccess}
-          />
-        )}
+
       </div>
 
       <FabActions />

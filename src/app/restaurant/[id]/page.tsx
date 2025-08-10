@@ -90,7 +90,7 @@ export default function RestaurantDetailPage() {
 
   const handleRozoPaymentSuccess = (paymentData: any) => {
     toast.success(`🎉 ROZO cashback earned at ${restaurant?.name}!`, {
-      description: `You earned ${paymentData.cashback_earned} ROZO tokens`,
+      description: `You earned ${paymentData.cashback_earned} ROZO pts`,
       duration: 5000,
     });
     
@@ -232,7 +232,7 @@ export default function RestaurantDetailPage() {
           </div>
 
           {/* Rozo Integration Toggle */}
-          <div className="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg">
+          {/* <div className="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg">
             <div>
               <p className="font-medium text-purple-800">🪙 ROZO Rewards Integration</p>
               <p className="text-sm text-purple-600">Earn cashback on your purchase</p>
@@ -245,10 +245,9 @@ export default function RestaurantDetailPage() {
             >
               {showRozoIntegration ? 'Hide' : 'Show'} Demo
             </Button>
-          </div>
+          </div> */}
 
-          {/* Rozo Payment Integration */}
-          {showRozoIntegration && (
+          {restaurant.cashback_rate > 0 && (
             <RozoPaymentIntegration
               restaurantId={restaurant._id}
               restaurantName={restaurant.name}
@@ -275,7 +274,7 @@ export default function RestaurantDetailPage() {
               </Link>
             </Button>
 
-            {!payment && (
+            {!payment && restaurant._id === "88c62be12697d882a8b03e60" && (
               <Button
                 onClick={handlePayment}
                 disabled={paymentLoading}
@@ -297,7 +296,7 @@ export default function RestaurantDetailPage() {
               </Button>
             )}
 
-            {payment && (
+            {payment && restaurant._id === "88c62be12697d882a8b03e60" && (
               <RozoPayButton.Custom
                 defaultOpen
                 closeOnSuccess

@@ -1,5 +1,16 @@
 [
   {
+    "domain": "rozo.ai",
+    "name": "Popup Event",
+    "category": "Others",
+    "description": "Buy me a coffee for $1 @ CodeNY",
+    "logo_url": "https://www.rozo.ai/_next/image?url=%2Frozo-logo.png&w=96&q=75",
+    "source": "https://x.com/rozoai",
+    "payTo": "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
+    "maxAmountRequired": "1000000",
+    "cashback_rate": 100
+  },
+  {
     "domain": "remixme.xyz",
     "name": "Remix video generation",
     "category": "API",

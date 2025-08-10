@@ -170,46 +170,7 @@ export const RozoPaymentIntegration: React.FC<RozoPaymentIntegrationProps> = ({
           </div>
 
           {/* Payment Methods */}
-          <Tabs defaultValue={availableCredit > 0 ? "credit" : "crypto"} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="credit" disabled={availableCredit === 0}>
-                💳 Credit {availableCredit > 0 ? `($${availableCredit.toFixed(2)})` : '(None)'}
-              </TabsTrigger>
-              <TabsTrigger value="crypto">🪙 Crypto</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="credit" className="space-y-3">
-              {availableCredit > 0 ? (
-                <CreditPaymentButton
-                  merchantName={restaurantName}
-                  merchantAddress={TEST_CONFIG.nsCafeWallet}
-                  amount={amount}
-                  cashbackRate={cashbackRate}
-                  onPaymentSuccess={onPaymentSuccess}
-                />
-              ) : (
-                <Card className="border-yellow-200 bg-yellow-50">
-                  <CardContent className="p-4 text-center">
-                    <p className="text-sm text-yellow-800 font-medium mb-2">
-                      💳 No Credit Available
-                    </p>
-                    <p className="text-xs text-yellow-700 mb-3">
-                      Set up payment authorization in your profile to use credit payments
-                    </p>
-                    <Button 
-                      onClick={() => window.location.href = '/profile'}
-                      size="sm"
-                      variant="outline"
-                    >
-                      Go to Profile
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="crypto" className="space-y-3">
-              {paymentEligible === null && (
+          {paymentEligible === null && (
                 <Button 
                   onClick={checkEligibility}
                   disabled={loading}
@@ -254,11 +215,8 @@ export const RozoPaymentIntegration: React.FC<RozoPaymentIntegrationProps> = ({
                   </Button>
                 </div>
               )}
-            </TabsContent>
-          </Tabs>
-
           <div className="text-xs text-green-700 text-center">
-            <p>🎯 Demo Integration: Cashback automatically credited to your account</p>
+            <p>🎯 Rozo pts will be automatically credited to your account</p>
           </div>
         </div>
       </CardContent>

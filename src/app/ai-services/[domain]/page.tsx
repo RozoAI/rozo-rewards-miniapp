@@ -281,7 +281,7 @@ export default function AIServiceDetailPage() {
               Visit Website
             </Button>
 
-            {availableCredit > 0 && !showCreditPayment && (
+            {/* {availableCredit > 0 && !showCreditPayment && service.domain === "rozo.ai" && (
               <Button
                 onClick={() => setShowCreditPayment(true)}
                 className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold bg-purple-600 hover:bg-purple-700"
@@ -290,9 +290,9 @@ export default function AIServiceDetailPage() {
                 <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                 Pay $1.00 with Credit ({availableCredit.toFixed(2)} available)
               </Button>
-            )}
+            )} */}
 
-            {!payment && (
+            {!payment && service.domain === "rozo.ai" && (
               <Button
                 onClick={handlePayment}
                 disabled={paymentLoading}
