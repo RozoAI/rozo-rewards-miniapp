@@ -1,5 +1,6 @@
 "use client";
 
+import { GoogleMap } from "@/components/home/google-map";
 import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,6 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import { toast } from "sonner";
 
 type LocationItem = {
@@ -212,32 +212,21 @@ export default function RestaurantDetailPage() {
         <CardContent className="space-y-2">
           {/* Map View */}
           <div className="h-64 w-full rounded-lg overflow-hidden border">
-            <MapContainer
-              center={[restaurant.lat, restaurant.lon]}
-              zoom={15}
-              scrollWheelZoom={false}
-              style={{ height: "100%", width: "100%" }}
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <Marker position={[restaurant.lat, restaurant.lon]}>
-                <Popup>
-                  <div className="text-center">
-                    <strong>{restaurant.name}</strong>
-                    <br />
-                    {restaurant.address_line1}
-                    {restaurant.address_line2 && (
-                      <>
-                        <br />
-                        {restaurant.address_line2}
-                      </>
-                    )}
-                  </div>
-                </Popup>
-              </Marker>
-            </MapContainer>
+            <GoogleMap
+              defaultCenter={{ lat: restaurant.lat, lng: restaurant.lon }}
+              restaurants={[restaurant]}
+              mapProps={{
+                defaultZoom: 15,
+                disableDefaultUI: true,
+                zoomControl: true,
+                mapTypeControl: false,
+                scaleControl: false,
+                streetViewControl: false,
+                rotateControl: false,
+                fullscreenControl: false,
+                draggable: false,
+              }}
+            />
           </div>
 
           {/* Action Buttons */}

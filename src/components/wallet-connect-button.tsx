@@ -2,11 +2,12 @@
 
 import { formatAddress } from "@/lib/utils";
 import { WalletProvider } from "@coinbase/onchainkit/wallet";
+import { UserIcon } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { useEffect, useState } from "react";
 
 export function WalletComponents() {
   const { address: accountAddress, status } = useAccount();
@@ -45,7 +46,7 @@ export function WalletComponents() {
             <Avatar className="size-4">
               <AvatarImage src={`https://avatar.tobi.sh/${displayAddress}`} />
               <AvatarFallback>
-                {fallbackText}
+                <UserIcon className="size-4" />
               </AvatarFallback>
             </Avatar>
 
