@@ -1,14 +1,25 @@
 [
   {
+    "domain": "remixme.xyz",
+    "name": "Remix video generation",
+    "category": "API",
+    "description": "$0.5 / req. Daily remix video generation with profile picture.",
+    "logo_url": "https://www.remixme.xyz/remix-logo.png",
+    "source": "https://www.remixme.xyz/api/generate/daily",
+    "payTo": "0x37ffc90BDb5B0c3aCF8beCCCe4AA7e7d74ab38Ba",
+    "maxAmountRequired": "500000",
+    "cashback_rate": 0
+  },
+  {
     "domain": "prixe.io",
     "name": "Modern Stock Price API Platform",
     "category": "API",
-    "description": "$0.001 / req. Powerful, flexible, and easy for devs, AI agents, and businesses.",
+    "description": "$0.0002 / req. Powerful, flexible, and easy for devs, AI agents, and businesses.",
     "logo_url": "http://prixe.io/static/images/prixe.png",
     "source": "https://api.prixe.io/x402/search?query=TSLA",
-    "payTo": "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
-    "maxAmountRequired": "1000",
-    "cashback_rate": 50
+    "payTo": "0xa2477E16dCB42E2AD80f03FE97D7F1a1646cd1c0",
+    "maxAmountRequired": "200",
+    "cashback_rate": 0
   },
   {
     "domain": "openrouter.ai",
