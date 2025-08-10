@@ -304,8 +304,8 @@ export const useRozoAPI = () => {
         
         // If 401 status OR auth error message, clear authentication state
         const isAuthError = response.status === 401 || 
-          (errorData.error?.message && errorData.error.message.includes('401')) ||
-          (errorData.error?.code && errorData.error.code.includes('token'));
+          (errorData.error?.message && typeof errorData.error.message === 'string' && errorData.error.message.includes('401')) ||
+          (errorData.error?.code && typeof errorData.error.code === 'string' && errorData.error.code.includes('token'));
         
         if (isAuthError) {
           console.log('API returned authentication error, clearing authentication state');
