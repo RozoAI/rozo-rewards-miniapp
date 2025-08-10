@@ -8,30 +8,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { useRozoAPI } from "@/hooks/useRozoAPI";
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 
-export function WalletComponents() {
+// Internal component that contains wagmi hooks - only rendered after hydration
+function WalletComponentsInternal() {
   const { address: accountAddress, status } = useAccount();
   const { connectors, connect, status: connectStatus } = useConnect();
   const { isAuthenticated } = useRozoAPI();
-  const [mounted, setMounted] = useState(false);
-
-  // Ensure component is mounted on client side
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Ensure consistent rendering between server and client
   const displayAddress = accountAddress || "";
   const fallbackText = displayAddress.slice(0, 2) || "??";
-
-  // Show loading state until mounted to prevent hydration mismatch
-  if (!mounted) {
-    return (
-      <WalletProvider>
-        <Button disabled>Loading...</Button>
-      </WalletProvider>
-    );
-  }
 
   return (
     <WalletProvider>
@@ -60,4 +47,25 @@ export function WalletComponents() {
       )}
     </WalletProvider>
   );
+}
+
+export function WalletComponents() {
+  const [mounted, setMounted] = useState(false);
+
+  // Ensure component is mounted on client side
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Show loading state until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <WalletProvider>
+        <Button disabled>Loading...</Button>
+      </WalletProvider>
+    );
+  }
+
+  // Render the internal component only after mounting
+  return <WalletComponentsInternal />;
 }
