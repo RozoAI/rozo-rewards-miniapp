@@ -259,8 +259,8 @@ async function checkActualCdpPermission(walletAddress: string): Promise<any> {
     const { createPublicClient, http, formatUnits } = await import('https://esm.sh/viem@2.21.44');
     const { base, baseSepolia } = await import('https://esm.sh/viem@2.21.44/chains');
     
-    // Determine network and contracts
-    const isProduction = Deno.env.get('NODE_ENV') === 'production';
+    // Determine network and contracts - Use Base mainnet for production
+    const isProduction = Deno.env.get('NODE_ENV') === 'production' || Deno.env.get('NEXT_PUBLIC_USE_MAINNET') === 'true';
     const chain = isProduction ? base : baseSepolia;
     const contracts = {
       SpendPermissionManager: '0xf85210B21cC50302F477BA56686d2019dC9b67Ad',

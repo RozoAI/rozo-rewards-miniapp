@@ -66,7 +66,7 @@ export const ROZO_PAYMASTER_ADDRESS = process.env.NEXT_PUBLIC_ROZO_PAYMASTER_ADD
 
 // NS Cafe merchant address (Base mainnet)
 export const NS_CAFE_ADDRESS = process.env.NEXT_PUBLIC_NS_CAFE_ADDRESS as Address || 
-  '0x742d35Cc6634C0532925a3b8D427bF7c4d18e2b5' as Address; // Example address, replace with real one
+  '0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897' as Address; // Real NS Cafe address
 
 // Default spend permission parameters
 export const DEFAULT_SPEND_PERMISSION = {
