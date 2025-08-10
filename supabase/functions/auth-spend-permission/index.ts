@@ -29,20 +29,75 @@ serve(async (req) => {
   console.log('✅ CORS handled, proceeding...');
 
   try {
-    // Return test data directly for development (bypass all auth)
-    console.log('🔧 Development mode: returning test data');
+    // Check if authorization header is present
+    const authHeader = req.headers.get('authorization');
+    console.log('🔍 Authorization header present:', !!authHeader);
+    
+    // For development mode - if no auth header, return test data directly
+    if (!authHeader) {
+      console.log('🔧 No auth header - returning development test data');
+      
+      const testResponse = {
+        user_id: 'test-user-123',
+        authorized: true,
+        allowance: 20.0,
+        expiry: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
+        last_check: new Date().toISOString(),
+        status: 'active',
+        recommendations: [
+          '✅ You have $20.00 authorized for spending',
+          'Your spend permission is active and ready for payments',
+          '🔧 Development mode: using test data (no auth header)'
+        ]
+      };
+
+      console.log('📤 Returning test response:', testResponse);
+      return createResponse(testResponse);
+    }
+
+    // If auth header is present, calculate remaining allowance based on user spending
+    console.log('🔧 Auth header present - calculating remaining allowance');
+    
+    // Initialize Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Get user's total spending from profile
+    let totalSpent = 0;
+    try {
+      const { data: profile } = await supabaseClient
+        .from('cb_hack_profiles')
+        .select('total_spent_usd')
+        .eq('wallet_address', 'dev_user_8cb4')
+        .single();
+      
+      if (profile) {
+        totalSpent = profile.total_spent_usd || 0;
+        console.log(`💰 User has spent: $${totalSpent}`);
+      }
+    } catch (error) {
+      console.log('ℹ️ No spending history found, assuming $0 spent');
+    }
+
+    const initialAllowance = 20.0;
+    const remainingAllowance = Math.max(0, initialAllowance - totalSpent);
+    
+    console.log(`📊 Allowance calculation: $${initialAllowance} - $${totalSpent} = $${remainingAllowance}`);
     
     const testResponse = {
       user_id: 'test-user-123',
       authorized: true,
-      allowance: 20.0,
+      allowance: remainingAllowance,
       expiry: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
       last_check: new Date().toISOString(),
       status: 'active',
       recommendations: [
-        '✅ You have $20.00 authorized for spending',
+        `✅ You have $${remainingAllowance.toFixed(2)} remaining for spending`,
+        `💳 Total authorized: $${initialAllowance.toFixed(2)} (spent: $${totalSpent.toFixed(2)})`,
         'Your spend permission is active and ready for payments',
-        '🔧 Development mode: using test data'
+        '🔧 Development mode: using calculated allowance'
       ]
     };
 

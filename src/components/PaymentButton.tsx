@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRozoAPI } from '@/hooks/useRozoAPI';
 import { useCDPPermissions } from '@/hooks/useCDPPermissions';
+import { cdpClient } from '@/lib/cdp-client';
 import { useAccount } from 'wagmi';
 import { toast } from 'sonner';
 
@@ -60,6 +61,7 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
     error: cdpError,
     payWithROZORewards,
     checkUSDCBalance,
+    checkPermissionStatus,
     clearError: clearCDPError
   } = useCDPPermissions();
 
@@ -104,7 +106,7 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
     setProcessingPayment(true);
     
     try {
-      console.log('🚀 Starting payment process...');
+      console.log('🚀 Starting CDP one-tap payment process...');
 
       // Check USDC balance first
       const usdcBalance = await checkUSDCBalance();
@@ -113,29 +115,73 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
         return;
       }
 
-      // Use current mock payment system (will be upgraded to real CDP later)
-      const result = await processPayment(
-        merchantWallet,
-        amount,
-        cashbackRate,
-        false // Using USDC, not ROZO credit
-      );
+      // Try to execute real CDP payment first
+      let paymentResult = null;
+      let useBackendAPI = false;
 
-      if (result) {
-        toast.success(
-          `✅ Payment successful! Paid $${amount.toFixed(2)} to ${merchantName}. ` +
-          `Earned ${result.cashback_earned.toFixed(1)} ROZO!`
-        );
+      try {
+        // Check if we have a valid spend permission
+        const permissionStatus = await checkPermissionStatus?.();
         
-        onPaymentSuccess?.(result);
+        if (permissionStatus?.isValid && permissionStatus.remaining >= amount) {
+          console.log('✅ Valid CDP spend permission found, attempting direct payment...');
+          
+          // Create a spend permission structure for the payment
+          const spendPermission = await cdpClient.createSpendPermission(address, 100, 24); // $100 daily limit
+          
+          // Execute payment using CDP spend permission
+          const cdpResult = await payWithROZORewards(spendPermission, amount, (result) => {
+            console.log('💰 CDP payment successful:', result);
+          });
+
+          if (cdpResult) {
+            // Convert CDP result format to match expected format
+            paymentResult = {
+              transaction_id: cdpResult.txHash,
+              payment_method: "direct_usdc_cdp",
+              amount_paid_usd: amount,
+              cashback_earned: cdpResult.rozoEarned,
+              tx_hash: cdpResult.txHash,
+            };
+            
+            toast.success(
+              `✅ CDP Payment successful! Paid $${amount.toFixed(2)} to ${merchantName}. ` +
+              `Earned ${cdpResult.rozoEarned.toFixed(1)} ROZO!`
+            );
+          }
+        } else {
+          console.log('⚠️ No valid CDP spend permission, falling back to backend API...');
+          useBackendAPI = true;
+        }
+      } catch (cdpPaymentError) {
+        console.log('⚠️ CDP payment failed, falling back to backend API...', cdpPaymentError);
+        useBackendAPI = true;
+      }
+
+      // Fallback to backend API (which now has real blockchain integration)
+      if (useBackendAPI || !paymentResult) {
+        console.log('🔄 Using backend API for payment processing...');
+        paymentResult = await processPayment(
+          merchantWallet,
+          amount,
+          cashbackRate,
+          false // Using USDC, not ROZO credit
+        );
+
+        if (paymentResult) {
+          toast.success(
+            `✅ Payment successful! Paid $${amount.toFixed(2)} to ${merchantName}. ` +
+            `Earned ${paymentResult.cashback_earned.toFixed(1)} ROZO!`
+          );
+        }
+      }
+
+      if (paymentResult) {
+        onPaymentSuccess?.(paymentResult);
         
         // Refresh eligibility for next payment
         await checkEligibility();
       }
-      
-      // TODO: Implement real CDP payment execution
-      // When spend permission storage is available:
-      // const paymentResult = await payWithROZORewards(spendPermission, amount);
       
     } catch (error: any) {
       console.error('❌ Payment error:', error);

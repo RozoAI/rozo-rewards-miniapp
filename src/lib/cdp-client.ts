@@ -273,7 +273,66 @@ export class CDPClient {
   }
 
   /**
-   * Execute a spend (payment) using approved permission
+   * Execute spend with automatic approval (Coinbase Spend Permissions standard)
+   * Implements the official two-step flow: approveWithSignature -> spend
+   */
+  async executeSpendWithApproval(
+    spendPermission: SpendPermission,
+    signature: Hex,
+    amountUSD: number,
+    walletClient?: any
+  ): Promise<{ approvalTxHash?: Hex; spendTxHash: Hex }> {
+    if (!walletClient) {
+      throw new Error('Wallet client required for transaction');
+    }
+
+    const amountWei = parseUnits(amountUSD.toString(), 6);
+
+    try {
+      console.log(`🎯 Executing Coinbase Spend Permissions standard flow for $${amountUSD}...`);
+      console.log('🔍 SpendPermission details:', spendPermission);
+
+      // Step 1: Approve with signature (if needed)
+      let approvalTxHash: Hex | undefined;
+      
+      try {
+        console.log('📝 Step 1: Approving spend permission with signature...');
+        approvalTxHash = await walletClient.writeContract({
+          address: this.contracts.SpendPermissionManager,
+          abi: SPEND_PERMISSION_MANAGER_ABI,
+          functionName: 'approveWithSignature',
+          args: [spendPermission, signature],
+        });
+        
+        console.log('✅ Approval transaction submitted:', approvalTxHash);
+        
+        // Wait for approval confirmation
+        await this.waitForTransaction(approvalTxHash);
+        console.log('✅ Spend permission approved on-chain');
+      } catch (approvalError) {
+        console.log('⚠️ Approval may already exist or failed:', approvalError);
+        // Continue to spend step even if approval fails (permission might already exist)
+      }
+
+      // Step 2: Execute spend
+      console.log('💸 Step 2: Executing spend transaction...');
+      const spendTxHash = await walletClient.writeContract({
+        address: this.contracts.SpendPermissionManager,
+        abi: SPEND_PERMISSION_MANAGER_ABI,
+        functionName: 'spend',
+        args: [spendPermission, amountWei],
+      });
+
+      console.log('✅ Spend transaction submitted:', spendTxHash);
+      return { approvalTxHash, spendTxHash };
+    } catch (error) {
+      console.error('❌ Error executing spend with approval:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Execute a spend (payment) using approved permission (legacy method)
    */
   async executeSpend(
     spendPermission: SpendPermission,

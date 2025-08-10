@@ -273,37 +273,81 @@ export const useCDPPermissions = () => {
     }
   }, [isConnected, address]);
 
-  // Execute payment with automatic ROZO earning
+  // Execute payment with automatic ROZO earning using Coinbase Spend Permissions standard
   const payWithROZORewards = useCallback(async (
     spendPermission: SpendPermission,
     amountUSD: number,
     onSuccess?: (result: { txHash: Hex; receipt: any; rozoEarned: number }) => void
   ): Promise<{ txHash: Hex; receipt: any; rozoEarned: number } | null> => {
+    if (!isConnected || !address) {
+      throw new Error('Wallet not connected');
+    }
+
+    setState(prev => ({ ...prev, loading: true, error: null }));
+
     try {
-      // Execute payment
-      const paymentResult = await payNSCafe(spendPermission, amountUSD);
-      if (!paymentResult) {
-        throw new Error('Payment execution failed');
-      }
+      console.log(`🎯 Starting Coinbase Spend Permissions standard payment flow...`);
+
+      // Step 1: Get user signature for spend permission
+      const typedData = cdpClient.getTypedDataForSigning(spendPermission);
+      
+      console.log('📝 Requesting user signature for spend permission...');
+      const signature = await signTypedDataAsync({
+        domain: typedData.domain,
+        types: typedData.types,
+        primaryType: 'SpendPermission' as const,
+        message: typedData.message,
+      });
+
+      console.log('✅ User signature obtained');
+
+      // Step 2: Create wallet client and execute standard flow
+      const walletClient = createWalletClientFromWindow();
+      
+      const result = await cdpClient.executeSpendWithApproval(
+        spendPermission,
+        signature,
+        amountUSD,
+        walletClient
+      );
+
+      // Wait for final transaction confirmation
+      const receipt = await cdpClient.waitForTransaction(result.spendTxHash);
 
       // Calculate ROZO rewards (payment amount * 10)
       const rozoEarned = amountUSD * 10;
 
-      console.log(`🎉 Payment successful! Earned ${rozoEarned} ROZO`);
+      console.log(`🎉 Coinbase Spend Permissions payment successful! Earned ${rozoEarned} ROZO`);
 
-      const result = {
-        ...paymentResult,
+      setState(prev => ({ ...prev, loading: false }));
+
+      const finalResult = {
+        txHash: result.spendTxHash,
+        receipt,
         rozoEarned
       };
 
-      onSuccess?.(result);
-      return result;
+      toast.success(`🎯 Payment successful via Coinbase Spend Permissions! $${amountUSD} sent`);
+      onSuccess?.(finalResult);
+      return finalResult;
 
-    } catch (error) {
-      console.error('❌ Payment with ROZO rewards failed:', error);
+    } catch (error: any) {
+      console.error('❌ Coinbase Spend Permissions payment failed:', error);
+      
+      const errorMessage = error.name === 'UserRejectedRequestError' 
+        ? 'Payment cancelled by user'
+        : `Payment failed: ${error.message}`;
+
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        error: errorMessage,
+      }));
+
+      toast.error(errorMessage);
       throw error;
     }
-  }, [payNSCafe]);
+  }, [isConnected, address, signTypedDataAsync]);
 
   // Clear error
   const clearError = useCallback(() => {

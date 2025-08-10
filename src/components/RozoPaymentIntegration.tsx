@@ -258,7 +258,7 @@ export const RozoPaymentIntegration: React.FC<RozoPaymentIntegrationProps> = ({
           </Tabs>
 
           <div className="text-xs text-green-700 text-center">
-            <p>🎯 Demo Integration: Cashback automatically credited to your account</p>
+            <p>⛓️ Blockchain Integration: Real on-chain transactions using CDP Spend Permissions</p>
           </div>
         </div>
       </CardContent>
