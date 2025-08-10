@@ -1,45 +1,27 @@
 "use client";
 
 import { GoogleMap } from "@/components/home/google-map";
-import { Restaurant } from "@/components/home/home-page";
 import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
+import { Restaurant } from "@/types/restaurant";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton } from "@rozoai/intent-pay";
 
 import {
-  ArrowLeft,
+  BadgePercent,
   CreditCard,
   Loader2,
   MapPin,
-  StoreIcon,
   Wallet,
 } from "lucide-react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "sonner";
-
-type LocationItem = {
-  _id: string;
-  name: string;
-  formatted: string;
-  address_line1: string;
-  address_line2?: string;
-  lat: number;
-  lon: number;
-  createdAt?: string;
-  updatedAt?: string;
-  logo_url: string;
-  cashback_rate: number;
-};
-
-type CoffeeMapResponse = {
-  locations: LocationItem[];
-  status?: string;
-};
 
 type PaymentIntentProps = {
   toAddress: string;
@@ -64,10 +46,10 @@ export default function RestaurantDetailPage() {
       try {
         const res = await fetch("/coffee_mapdata.json", { cache: "no-store" });
         if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        const data: CoffeeMapResponse = await res.json();
+        const data = await res.json();
 
         const foundRestaurant = data.locations.find(
-          (loc) => loc._id === restaurantId
+          (loc: Restaurant) => loc._id === restaurantId
         );
         if (!foundRestaurant) {
           throw new Error("Lifestyle not found");
@@ -90,7 +72,8 @@ export default function RestaurantDetailPage() {
     if (!restaurant) return;
 
     setPayment({
-      toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
+      toAddress: (restaurant.payTo ??
+        "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897") as `0x${string}`,
       toChain: baseUSDC.chainId,
       toToken: baseUSDC.token,
     });
@@ -138,17 +121,7 @@ export default function RestaurantDetailPage() {
   if (error || !restaurant) {
     return (
       <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
-        <div className="flex items-center gap-2 mb-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.back()}
-            className="shrink-0 h-8 w-8"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-lg sm:text-2xl font-bold">Lifestyle Details</h1>
-        </div>
+        <PageHeader title="Back to Lifestyle" isBackButton />
         <Card className="w-full">
           <CardContent className="flex flex-col items-center justify-center p-8 text-center">
             <p className="text-destructive text-lg font-medium mb-2">
@@ -172,11 +145,7 @@ export default function RestaurantDetailPage() {
   return (
     <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
       {/* Header */}
-      <PageHeader
-        title="Back to Lifestyle"
-        icon={<StoreIcon className="size-6" />}
-        isBackButton
-      />
+      <PageHeader title="Back to Lifestyle" isBackButton />
 
       {/* Restaurant Info Card */}
       <Card className="w-full gap-3">
@@ -207,6 +176,23 @@ export default function RestaurantDetailPage() {
                   )}
                 </div>
               </div>
+              {/* Price and Cashback Details */}
+              <div className="flex items-center gap-3 pt-1">
+                {restaurant.price && (
+                  <p className="text-sm text-muted-foreground">
+                    Price: <b>{restaurant.price}</b>
+                  </p>
+                )}
+                {restaurant.cashback_rate > 0 && (
+                  <Badge
+                    variant="default"
+                    className="text-xs bg-green-100 text-green-800 rounded-full"
+                  >
+                    <BadgePercent className="size-3" />
+                    Cashback: <b>{restaurant.cashback_rate}%</b>
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -234,13 +220,18 @@ export default function RestaurantDetailPage() {
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 pt-2">
             <Button
-              onClick={openMaps}
+              asChild
               variant="outline"
               className="w-full h-11 sm:h-12 text-sm sm:text-base font-medium"
               size="lg"
             >
-              <MapPin className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-              Open in Maps
+              <Link
+                href={`https://maps.google.com/?q=${restaurant.lat},${restaurant.lon}`}
+                target="_blank"
+              >
+                <MapPin className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                Open in Maps
+              </Link>
             </Button>
 
             {!payment && (

@@ -13,7 +13,8 @@
       "updatedAt": "2025-08-09T12:21:20.572Z",
       "__v": 0,
       "logo_url": "https://ns.com/favicon.ico",
-      "cashback_rate": 1
+      "cashback_rate": 1,
+      "price": "$"
     },
     {
       "_id": "e802cafc-72be-48b5-b02f-9361c13c7a9e",

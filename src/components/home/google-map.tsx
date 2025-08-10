@@ -10,16 +10,18 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
+import { Restaurant } from "@/types/restaurant";
 import {
   AdvancedMarker,
   APIProvider,
   Map,
   MapProps,
 } from "@vis.gl/react-google-maps";
+import { BadgePercent } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { MapPin } from "../map-pin";
-import { Restaurant } from "./home-page";
+import { Badge } from "../ui/badge";
 
 export function GoogleMap({
   defaultCenter,
@@ -108,14 +110,39 @@ export function GoogleMap({
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1 space-y-2">
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {restaurant.formatted}
-                        </p>
-                        <div className="flex items-center gap-2 pt-1">
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
-                            {restaurant.cashback_rate}% cashback
-                          </span>
+                        {/* Address details */}
+                        <div className="text-xs text-muted-foreground space-y-1">
+                          <div>{restaurant.address_line1}</div>
+                          {restaurant.address_line2 && (
+                            <div>{restaurant.address_line2}</div>
+                          )}
                         </div>
+
+                        {/* Distance and price */}
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          {restaurant.distance && (
+                            <span>{restaurant.distance}km away</span>
+                          )}
+                        </div>
+
+                        {/* Cashback rate */}
+                        <div className="flex items-center gap-3">
+                          {restaurant.price && (
+                            <p className="text-xs text-muted-foreground">
+                              Price: <b>{restaurant.price}</b>
+                            </p>
+                          )}
+                          {restaurant.cashback_rate > 0 && (
+                            <Badge
+                              variant="default"
+                              className="text-xs bg-green-100 text-green-800 rounded-full"
+                            >
+                              <BadgePercent className="size-3" />
+                              Cashback: <b>{restaurant.cashback_rate}%</b>
+                            </Badge>
+                          )}
+                        </div>
+
                         <Button asChild size="sm" className="w-full mt-3">
                           <Link href={`/restaurant/${restaurant._id}`}>
                             View Details

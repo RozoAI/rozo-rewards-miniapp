@@ -1,10 +1,11 @@
 "use client";
 
+import { FabActions } from "@/components/fab-actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatAddress } from "@/lib/utils";
-import { Activity, Coins, Copy, LogOut, Wallet } from "lucide-react";
+import { Activity, Coins, Copy, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -49,7 +50,7 @@ export default function ProfilePageContent() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-2xl">
+    <div className="container mx-auto px-4 py-6 max-w-2xl relative">
       {/* Profile Header */}
       <Card className="mb-4">
         <CardHeader className="gap-3">
@@ -65,12 +66,8 @@ export default function ProfilePageContent() {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <CardTitle className="text-xl">John Doe</CardTitle>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Wallet className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
-                    {formatAddress(address)}
-                  </span>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  {formatAddress(address)}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -79,17 +76,12 @@ export default function ProfilePageContent() {
                   >
                     <Copy className="h-3 w-3" />
                   </Button>
-                </div>
+                </CardTitle>
               </div>
             </div>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDisconnect}
-            className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-          >
+          <Button variant="outline" size="sm" onClick={handleDisconnect}>
             <LogOut className="h-4 w-4" />
             Disconnect
           </Button>
@@ -182,6 +174,8 @@ export default function ProfilePageContent() {
           </CardContent>
         </Card>
       </div>
+
+      <FabActions />
     </div>
   );
 }

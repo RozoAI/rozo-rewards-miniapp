@@ -21,7 +21,6 @@ export function WalletComponents() {
 
   // Ensure consistent rendering between server and client
   const displayAddress = accountAddress || "";
-  const fallbackText = displayAddress.slice(0, 2) || "??";
 
   // Show loading state until mounted to prevent hydration mismatch
   if (!mounted) {
