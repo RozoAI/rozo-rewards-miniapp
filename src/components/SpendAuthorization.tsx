@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRozoAPI, TEST_CONFIG } from '@/hooks/useRozoAPI';
+import { useCDPPermissions } from '@/hooks/useCDPPermissions';
 import { useAccount, useSignMessage } from 'wagmi';
 import { toast } from 'sonner';
 
@@ -46,6 +47,18 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
     getRozoBalance,
     clearError 
   } = useRozoAPI();
+
+  // CDP Permissions hook for real blockchain integration
+  const {
+    loading: cdpLoading,
+    error: cdpError,
+    isAuthorized: cdpAuthorized,
+    createSpendPermission,
+    submitSpendPermission,
+    checkPermissionStatus,
+    checkUSDCBalance,
+    clearError: clearCDPError
+  } = useCDPPermissions();
 
   const [spendPermission, setSpendPermission] = useState<SpendPermissionData | null>(null);
   const [rozoBalance, setRozoBalance] = useState<RozoBalanceData | null>(null);
@@ -133,37 +146,82 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
       return;
     }
 
-    if (!signMessageAsync) {
-      toast.error('Wallet signature capability not available');
-      return;
-    }
-
     try {
-      // Get wallet signature for CDP spend permission
-      const message = `Authorize ROZO spending limit of $${authorizationAmount.toFixed(2)}\nWallet: ${address}\nTimestamp: ${Date.now()}`;
-      const signature = await signMessageAsync({ message });
+      console.log('🚀 Starting real CDP spend permission authorization...');
       
-      // Send to backend for real CDP spend permission setup
+      // Step 1: Check USDC balance first
+      const usdcBalance = await checkUSDCBalance();
+      console.log(`💰 User USDC balance: $${usdcBalance}`);
+      
+      if (usdcBalance < authorizationAmount) {
+        toast.error(`Insufficient USDC balance. You have $${usdcBalance.toFixed(2)} but need $${authorizationAmount.toFixed(2)}. Please add USDC to your Base wallet.`);
+        return;
+      }
+
+      // Step 2: Create and sign EIP-712 spend permission
+      const permissionResult = await createSpendPermission(authorizationAmount, 24);
+      if (!permissionResult) {
+        throw new Error('Failed to create spend permission');
+      }
+      const { permission, signature } = permissionResult;
+      console.log('✅ EIP-712 spend permission created and signed');
+
+      // Step 3: Submit to blockchain (SpendPermissionManager contract)
+      const txHash = await submitSpendPermission(permission, signature);
+      console.log('✅ Spend permission submitted to blockchain:', txHash);
+
+      // Step 4: Update backend with the permission data
       const result = await authorizeSpending(authorizationAmount, signature);
       
       if (result) {
         setSpendPermission(result);
         setAvailableCredit(result.remaining_today || authorizationAmount);
         onCreditUpdate?.(result.remaining_today || authorizationAmount);
-        onAuthorizationComplete?.(result);
+        onAuthorizationComplete?.({
+          ...result,
+          txHash,
+          permission,
+          signature,
+          cdp_verified: true
+        });
         
         // Refresh balance after authorization
         await loadRozoBalance();
+        
+        toast.success(`🎉 CDP Spend Permission authorized successfully! ${txHash ? `Tx: ${txHash.slice(0, 10)}...` : ''}`);
       } else {
-        throw new Error('Authorization failed');
+        throw new Error('Backend authorization failed');
       }
       
     } catch (error: any) {
-      console.error('Authorization error:', error);
+      console.error('❌ CDP authorization error:', error);
+      
       if (error.name === 'UserRejectedRequestError') {
         toast.error('Signature cancelled. Authorization is required for ROZO payments.');
+      } else if (error.message.includes('insufficient')) {
+        toast.error(error.message);
       } else {
-        toast.error('Failed to authorize spending. Please check your connection and try again.');
+        // Fallback to traditional authorization for development
+        console.log('🔧 Falling back to traditional authorization...');
+        
+        try {
+          const message = `Authorize ROZO spending limit of $${authorizationAmount.toFixed(2)}\nWallet: ${address}\nTimestamp: ${Date.now()}`;
+          const signature = await signMessageAsync({ message });
+          
+          const result = await authorizeSpending(authorizationAmount, signature);
+          
+          if (result) {
+            setSpendPermission(result);
+            setAvailableCredit(result.remaining_today || authorizationAmount);
+            onCreditUpdate?.(result.remaining_today || authorizationAmount);
+            onAuthorizationComplete?.(result);
+            await loadRozoBalance();
+            
+            toast.success('✅ Fallback authorization completed successfully!');
+          }
+        } catch (fallbackError) {
+          toast.error('Failed to authorize spending. Please check your connection and try again.');
+        }
       }
     }
   };
