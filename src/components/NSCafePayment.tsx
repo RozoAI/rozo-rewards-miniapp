@@ -75,9 +75,13 @@ export const NSCafePayment: React.FC<NSCafePaymentProps> = ({
           </div>
           
           <div className="text-sm text-gray-600 space-y-1">
-            <p>• High-quality organic coffee</p>
-            <p>• Fast WiFi and comfortable seating</p>
-            <p>• Open 7AM - 10PM daily</p>
+            {[
+              "• High-quality organic coffee",
+              "• Fast WiFi and comfortable seating", 
+              "• Open 7AM - 10PM daily"
+            ].map((feature, index) => (
+              <p key={index}>{feature}</p>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -138,11 +142,14 @@ export const NSCafePayment: React.FC<NSCafePaymentProps> = ({
               💡 How it works
             </p>
             <div className="text-xs text-blue-700 space-y-1">
-              <p>1. Make sure you have authorized spending in your profile</p>
-              <p>2. Click &quot;Pay&quot; for instant one-tap payment</p>
-              <p>3. Earn ROZO cashback automatically</p>
-              <p>4. Use ROZO for future payments or keep earning</p>
-            </div>
+              {[
+                "1. Make sure you have authorized spending in your profile",
+                "2. Click \"Pay\" for instant one-tap payment", 
+                "3. Earn ROZO cashback automatically",
+                "4. Use ROZO for future payments or keep earning"
+              ].map((step, index) => (
+                <p key={index}>{step}</p>
+              ))}</div>
           </div>
         </CardContent>
       </Card>

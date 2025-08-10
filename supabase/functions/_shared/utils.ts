@@ -81,27 +81,40 @@ export function isValidEmail(email: string): boolean {
 
 // Helper function to get user from auth header
 export async function getUserFromAuth(authHeader: string | null): Promise<{ user: any; error?: string }> {
+  console.log("🔍 getUserFromAuth called with header:", authHeader ? "Bearer [TOKEN]" : "null");
+  
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    console.log("❌ Missing or invalid authorization header");
     return { user: null, error: "Missing or invalid authorization header" };
   }
 
   const token = authHeader.substring(7);
+  console.log("🎫 Token received (length:", token.length, ")");
   
   try {
     // Check if it's our custom token format (base64 payload)
     if (token.includes('.')) {
+      console.log("🔧 Processing custom token format with dot separator");
       const [payloadBase64, signature] = token.split('.');
       
       try {
         const payload = JSON.parse(atob(payloadBase64));
+        console.log("📦 Decoded payload:", {
+          user_id: payload.user_id,
+          wallet_address: payload.wallet_address,
+          exp: payload.exp,
+          iat: payload.iat
+        });
         
         // Validate token expiry
         if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+          console.log("⏰ Token expired");
           return { user: null, error: "Token expired" };
         }
         
         // Validate required fields
         if (!payload.user_id || !payload.wallet_address) {
+          console.log("❌ Missing required fields in token payload");
           return { user: null, error: "Invalid token payload" };
         }
         
@@ -113,21 +126,27 @@ export async function getUserFromAuth(authHeader: string | null): Promise<{ user
           }
         };
         
+        console.log("✅ Successfully authenticated user:", user.id);
         return { user };
       } catch (error) {
+        console.log("❌ Failed to decode token:", error);
         return { user: null, error: "Invalid token format" };
       }
     }
     
+    console.log("🔧 Processing as Supabase JWT token");
     // Fallback to Supabase auth for other token formats
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
     
     if (error || !user) {
+      console.log("❌ Supabase auth failed:", error);
       return { user: null, error: "Invalid or expired token" };
     }
 
+    console.log("✅ Supabase auth successful for user:", user.id);
     return { user };
   } catch (error) {
+    console.log("❌ Authentication error:", error);
     return { user: null, error: "Failed to authenticate user" };
   }
 }

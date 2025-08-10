@@ -42,11 +42,11 @@ serve(async (req) => {
 
     if (req.method === 'GET') {
       // Get current spend permission status
-      return await getSpendPermissionStatus(supabaseClient, user.id);
+      return await getSpendPermissionStatus(supabaseClient, user.id, user);
     } else if (req.method === 'POST') {
       // Update spend permission
       const updateData: UpdateSpendPermissionRequest = await req.json();
-      return await updateSpendPermission(supabaseClient, user.id, updateData);
+      return await updateSpendPermission(supabaseClient, user.id, updateData, user);
     } else {
       return createErrorResponse('Method not allowed', 405);
     }
@@ -57,32 +57,67 @@ serve(async (req) => {
   }
 });
 
-async function getSpendPermissionStatus(supabaseClient: any, userId: string) {
+async function getSpendPermissionStatus(supabaseClient: any, userId: string, user?: any) {
   try {
+    console.log(`Getting spend permission status for user: ${userId}`);
+    
     // Get user profile with spend permission info
-    const { data: profile, error: profileError } = await supabaseClient
+    let { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
 
+    // Auto-create profile if it doesn't exist
     if (profileError || !profile) {
-      return createErrorResponse('User profile not found', 404);
+      console.log(`🔧 Creating profile for user ${userId}`);
+      // Extract wallet address from the authenticated user object
+      const walletAddress = user?.user_metadata?.wallet_address || '0x1234567890abcdef1234567890abcdef12345678';
+      
+      console.log(`🏗️ Auto-creating profile for user ${userId} with wallet ${walletAddress}`);
+      
+      const { error: createError } = await supabaseClient
+        .from('profiles')
+        .insert({
+          id: userId,
+          wallet_address: walletAddress,
+          username: `User_${userId.slice(-6)}`,
+          referral_code: `ROZO${userId.slice(-6).toUpperCase()}`,
+          metadata: { created_via: 'api', auto_created: true }
+        });
+      
+      if (createError) {
+        console.error('Profile creation error:', createError);
+        return createErrorResponse('User profile not found and could not be created', 404);
+      }
+      
+      // Refetch the profile
+      const { data: newProfile, error: refetchError } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (refetchError || !newProfile) {
+        return createErrorResponse('User profile not found', 404);
+      }
+      profile = newProfile;
     }
 
-    // TODO: Optionally verify with actual CDP SDK
-    // const actualPermission = await checkActualCdpPermission(profile.wallet_address);
-
-    const now = new Date();
+    // Get actual values with safe defaults
+    const authorized = profile.spend_permission_authorized || false;
+    const allowance = profile.spend_permission_allowance || 0;
     const expiry = profile.spend_permission_expiry ? new Date(profile.spend_permission_expiry) : null;
     
+    const now = new Date();
     let status: 'active' | 'expired' | 'unauthorized' | 'insufficient_allowance' = 'unauthorized';
     const recommendations: string[] = [];
 
-    if (profile.spend_permission_authorized) {
+    if (authorized) {
       if (expiry && expiry > now) {
-        if (profile.spend_permission_allowance > 0) {
+        if (allowance > 0) {
           status = 'active';
+          recommendations.push(`✅ You have $${allowance.toFixed(2)} authorized for spending`);
           recommendations.push('Your spend permission is active and ready for payments');
         } else {
           status = 'insufficient_allowance';
@@ -96,13 +131,24 @@ async function getSpendPermissionStatus(supabaseClient: any, userId: string) {
       status = 'unauthorized';
       recommendations.push('Please authorize CDP Spend Permissions to enable one-tap payments');
       recommendations.push('This will allow secure, pre-authorized transactions');
+      
+      // Check USDC balance and add recommendations
+      if (profile.wallet_address) {
+        const usdcBalance = await checkUSDCBalance(profile.wallet_address);
+        if (usdcBalance > 0) {
+          recommendations.push(`💰 You have $${usdcBalance.toFixed(2)} USDC available for authorization`);
+        } else {
+          recommendations.push('❌ You need USDC in your wallet to authorize spending');
+          recommendations.push('🔗 Add USDC to your Base wallet at bridge.base.org');
+        }
+      }
     }
 
     const response: SpendPermissionResponse = {
       user_id: userId,
-      authorized: profile.spend_permission_authorized || false,
-      allowance: profile.spend_permission_allowance || 0,
-      expiry: profile.spend_permission_expiry,
+      authorized,
+      allowance,
+      expiry: expiry?.toISOString() || null,
       last_check: profile.last_spend_permission_check || profile.updated_at,
       status,
       recommendations
@@ -119,7 +165,8 @@ async function getSpendPermissionStatus(supabaseClient: any, userId: string) {
 async function updateSpendPermission(
   supabaseClient: any, 
   userId: string, 
-  updateData: UpdateSpendPermissionRequest
+  updateData: UpdateSpendPermissionRequest,
+  user?: any
 ) {
   try {
     // Validate input
@@ -135,6 +182,38 @@ async function updateSpendPermission(
       return createErrorResponse('Invalid expiry field', 400);
     }
 
+    const allowance = updateData.allowance ?? 0;
+    const expiry = updateData.expiry ? new Date(updateData.expiry) : null;
+
+    // **NEW: Check user's actual USDC balance before allowing authorization**
+    if (updateData.authorized && allowance > 0) {
+      // Get user profile to get wallet address
+      const { data: profile, error: profileError } = await supabaseClient
+        .from('profiles')
+        .select('wallet_address')
+        .eq('id', userId)
+        .single();
+
+      if (profileError || !profile?.wallet_address) {
+        return createErrorResponse('User profile or wallet address not found', 404);
+      }
+
+      // Check USDC balance on Base network
+      const usdcBalance = await checkUSDCBalance(profile.wallet_address);
+      
+      console.log(`💰 USDC Balance Check: User ${userId} has $${usdcBalance}, requesting $${allowance}`);
+      
+      if (usdcBalance < allowance) {
+        return createErrorResponse(
+          'INSUFFICIENT_USDC_BALANCE',
+          `❌ Insufficient USDC balance. You have $${usdcBalance.toFixed(2)} but need $${allowance.toFixed(2)}. Please add more USDC to your Base wallet before authorizing.`,
+          400
+        );
+      }
+
+      console.log(`✅ Balance verified: User has sufficient USDC ($${usdcBalance}) for authorization ($${allowance})`);
+    }
+
     // TODO: Verify user signature if provided
     if (updateData.signature) {
       // const isValidSignature = await verifyUserSignature(userId, updateData.signature);
@@ -143,31 +222,29 @@ async function updateSpendPermission(
       // }
     }
 
-    const allowance = updateData.allowance ?? 0;
-    const expiry = updateData.expiry ? new Date(updateData.expiry) : null;
-
-    // Update spend permission using database function
-    const { data: updateResult, error: updateError } = await supabaseClient.rpc(
-      'update_spend_permission',
-      {
-        p_user_id: userId,
-        p_authorized: updateData.authorized,
-        p_allowance: allowance,
-        p_expiry: expiry
-      }
-    );
+    // **NEW: Update the database with spend permission details**
+    const { data: updateResult, error: updateError } = await supabaseClient
+      .from('profiles')
+      .update({
+        spend_permission_authorized: updateData.authorized,
+        spend_permission_allowance: allowance,
+        spend_permission_expiry: expiry?.toISOString(),
+        last_spend_permission_check: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+      .select()
+      .single();
 
     if (updateError) {
-      console.error('Update spend permission error:', updateError);
-      return createErrorResponse('Failed to update spend permission', 500);
+      console.error('Database update error:', updateError);
+      return createErrorResponse('Failed to save spend permission to database', 500);
     }
 
-    if (!updateResult) {
-      return createErrorResponse('User not found', 404);
-    }
+    console.log(`✅ Spend permission updated for user ${userId}:`, updateData);
 
     // Return updated status
-    return await getSpendPermissionStatus(supabaseClient, userId);
+    return await getSpendPermissionStatus(supabaseClient, userId, user);
 
   } catch (error) {
     console.error('Update spend permission error:', error);
@@ -192,6 +269,51 @@ async function checkActualCdpPermission(walletAddress: string): Promise<any> {
   } catch (error) {
     console.error('CDP permission check error:', error);
     return null;
+  }
+}
+
+// **NEW: Check user's actual USDC balance on Base network**
+async function checkUSDCBalance(userAddress: string): Promise<number> {
+  const BASE_USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+  const BASE_RPC_URL = "https://mainnet.base.org";
+  
+  try {
+    const response = await fetch(BASE_RPC_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'eth_call',
+        params: [
+          {
+            to: BASE_USDC_ADDRESS,
+            data: `0x70a08231000000000000000000000000${userAddress.slice(2)}` // balanceOf(address)
+          },
+          'latest'
+        ],
+        id: 1
+      })
+    });
+
+    const data = await response.json();
+    
+    if (data.error) {
+      console.error('RPC Error:', data.error);
+      return 0;
+    }
+
+    // Convert hex result to decimal (USDC has 6 decimals)
+    const balanceHex = data.result;
+    const balanceWei = BigInt(balanceHex);
+    const balanceUsdc = Number(balanceWei) / 1_000_000; // USDC has 6 decimals
+    
+    console.log(`💰 USDC Balance for ${userAddress}: $${balanceUsdc}`);
+    return balanceUsdc;
+  } catch (error) {
+    console.error('Failed to fetch USDC balance:', error);
+    return 0; // Return 0 on error - will trigger insufficient balance error
   }
 }
 

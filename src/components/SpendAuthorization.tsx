@@ -59,32 +59,65 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
   }, []);
 
   const loadAuthorizationStatus = useCallback(async () => {
-    const permission = await checkSpendPermission();
-    if (permission) {
-      setSpendPermission(permission);
-      // Set available credit from existing permission
-      if (permission.authorized && permission.remaining_today) {
-        setAvailableCredit(permission.remaining_today);
-        onCreditUpdate?.(permission.remaining_today);
-      }
+    if (!isAuthenticated) {
+      setSpendPermission(null);
+      setAvailableCredit(0);
+      onCreditUpdate?.(0);
+      return;
     }
-  }, [checkSpendPermission, onCreditUpdate]);
+
+    try {
+      const permission = await checkSpendPermission();
+      if (permission) {
+        setSpendPermission(permission);
+        // Set available credit from existing permission
+        if (permission.authorized && permission.remaining_today) {
+          setAvailableCredit(permission.remaining_today);
+          onCreditUpdate?.(permission.remaining_today);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load authorization status:', error);
+      setSpendPermission(null);
+      setAvailableCredit(0);
+      onCreditUpdate?.(0);
+    }
+  }, [checkSpendPermission, onCreditUpdate, isAuthenticated]);
 
   const loadRozoBalance = useCallback(async () => {
-    const balance = await getRozoBalance();
-    if (balance) {
-      setRozoBalance(balance);
-      onBalanceUpdate?.(balance.available_cashback_rozo);
+    if (!isAuthenticated) {
+      setRozoBalance(null);
+      onBalanceUpdate?.(0);
+      return;
     }
-  }, [getRozoBalance, onBalanceUpdate]);
+
+    try {
+      const balance = await getRozoBalance();
+      if (balance) {
+        setRozoBalance(balance);
+        onBalanceUpdate?.(balance.available_cashback_rozo);
+      }
+    } catch (error) {
+      console.error('Failed to load ROZO balance:', error);
+      setRozoBalance(null);
+      onBalanceUpdate?.(0);
+    }
+  }, [getRozoBalance, onBalanceUpdate, isAuthenticated]);
 
   // Load initial data when authenticated
   useEffect(() => {
     if (isConnected && isAuthenticated) {
       loadAuthorizationStatus();
       loadRozoBalance();
+    } else {
+      // Clear data when not authenticated
+      setSpendPermission(null);
+      setRozoBalance(null);
+      setAvailableCredit(0);
+      onCreditUpdate?.(0);
+      onBalanceUpdate?.(0);
     }
-  }, [isConnected, isAuthenticated, loadAuthorizationStatus, loadRozoBalance]);
+  }, [isConnected, isAuthenticated, loadAuthorizationStatus, loadRozoBalance, onCreditUpdate, onBalanceUpdate]);
 
   // Clear error when component updates
   useEffect(() => {

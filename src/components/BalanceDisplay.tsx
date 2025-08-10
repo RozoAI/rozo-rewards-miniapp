@@ -51,6 +51,12 @@ export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const refreshData = useCallback(async () => {
+    if (!isAuthenticated) {
+      setSpendPermission(null);
+      setRozoBalance(null);
+      return;
+    }
+
     try {
       const [permission, balance] = await Promise.all([
         checkSpendPermission(),
@@ -70,13 +76,11 @@ export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({
     } catch (error) {
       console.error('Failed to refresh data:', error);
     }
-  }, [checkSpendPermission, getRozoBalance]);
+  }, [checkSpendPermission, getRozoBalance, onBalanceUpdate, isAuthenticated]);
 
   // Load data when authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      refreshData();
-    }
+    refreshData();
   }, [isAuthenticated, refreshData]);
 
   // Clear error after some time

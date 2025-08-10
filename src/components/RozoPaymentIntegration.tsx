@@ -3,8 +3,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // Badge component not available, using span instead
 import { useRozoAPI, TEST_CONFIG } from '@/hooks/useRozoAPI';
+import { useCredit } from '@/contexts/CreditContext';
+import { CreditPaymentButton } from '@/components/CreditPaymentButton';
 import { toast } from 'sonner';
 
 interface RozoPaymentIntegrationProps {
@@ -29,6 +32,8 @@ export const RozoPaymentIntegration: React.FC<RozoPaymentIntegrationProps> = ({
     processPayment,
     authenticateWallet
   } = useRozoAPI();
+  
+  const { availableCredit } = useCredit();
 
   const [paymentEligible, setPaymentEligible] = useState<boolean | null>(null);
   const [processingPayment, setProcessingPayment] = useState(false);
@@ -164,54 +169,93 @@ export const RozoPaymentIntegration: React.FC<RozoPaymentIntegrationProps> = ({
             </span>
           </div>
 
-          {/* Action Buttons */}
-          <div className="space-y-2">
-            {paymentEligible === null && (
-              <Button 
-                onClick={checkEligibility}
-                disabled={loading}
-                className="w-full"
-                variant="outline"
-              >
-                Check One-Tap Payment Availability
-              </Button>
-            )}
-
-            {paymentEligible === true && (
-              <Button 
-                onClick={handleOneTapPayment}
-                disabled={processingPayment}
-                className="w-full bg-green-600 hover:bg-green-700"
-              >
-                {processingPayment ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Processing Payment...</span>
-                  </div>
-                ) : (
-                  `💳 One-Tap Pay $${amount.toFixed(2)}`
-                )}
-              </Button>
-            )}
-
-            {paymentEligible === false && (
-              <div className="text-center">
-                <p className="text-sm text-yellow-800 font-medium mb-2">
-                  ⚠️ One-tap payment not available
-                </p>
-                <p className="text-xs text-yellow-700 mb-3">
-                  Set up payment authorization in your profile first
-                </p>
+          {/* Payment Methods */}
+          <Tabs defaultValue={availableCredit > 0 ? "credit" : "crypto"} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="credit" disabled={availableCredit === 0}>
+                💳 Credit {availableCredit > 0 ? `($${availableCredit.toFixed(2)})` : '(None)'}
+              </TabsTrigger>
+              <TabsTrigger value="crypto">🪙 Crypto</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="credit" className="space-y-3">
+              {availableCredit > 0 ? (
+                <CreditPaymentButton
+                  merchantName={restaurantName}
+                  merchantAddress={TEST_CONFIG.nsCafeWallet}
+                  amount={amount}
+                  cashbackRate={cashbackRate}
+                  onPaymentSuccess={onPaymentSuccess}
+                />
+              ) : (
+                <Card className="border-yellow-200 bg-yellow-50">
+                  <CardContent className="p-4 text-center">
+                    <p className="text-sm text-yellow-800 font-medium mb-2">
+                      💳 No Credit Available
+                    </p>
+                    <p className="text-xs text-yellow-700 mb-3">
+                      Set up payment authorization in your profile to use credit payments
+                    </p>
+                    <Button 
+                      onClick={() => window.location.href = '/profile'}
+                      size="sm"
+                      variant="outline"
+                    >
+                      Go to Profile
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="crypto" className="space-y-3">
+              {paymentEligible === null && (
                 <Button 
-                  onClick={() => window.location.href = '/profile'}
-                  size="sm"
+                  onClick={checkEligibility}
+                  disabled={loading}
+                  className="w-full"
                   variant="outline"
                 >
-                  Go to Profile
+                  Check One-Tap Payment Availability
                 </Button>
-              </div>
-            )}
-          </div>
+              )}
+
+              {paymentEligible === true && (
+                <Button 
+                  onClick={handleOneTapPayment}
+                  disabled={processingPayment}
+                  className="w-full bg-green-600 hover:bg-green-700"
+                >
+                  {processingPayment ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Processing Payment...</span>
+                    </div>
+                  ) : (
+                    `💳 One-Tap Pay $${amount.toFixed(2)}`
+                  )}
+                </Button>
+              )}
+
+              {paymentEligible === false && (
+                <div className="text-center">
+                  <p className="text-sm text-yellow-800 font-medium mb-2">
+                    ⚠️ One-tap payment not available
+                  </p>
+                  <p className="text-xs text-yellow-700 mb-3">
+                    Set up payment authorization in your profile first
+                  </p>
+                  <Button 
+                    onClick={() => window.location.href = '/profile'}
+                    size="sm"
+                    variant="outline"
+                  >
+                    Go to Profile
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
 
           <div className="text-xs text-green-700 text-center">
             <p>🎯 Demo Integration: Cashback automatically credited to your account</p>

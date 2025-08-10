@@ -19,6 +19,8 @@ import {
 import { useParams, useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "sonner";
+import { CreditPaymentButton } from "@/components/CreditPaymentButton";
+import { useCredit } from "@/contexts/CreditContext";
 
 type CatalogItem = {
   domain: string;
@@ -48,6 +50,8 @@ export default function AIServiceDetailPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = React.useState(false);
+  const [showCreditPayment, setShowCreditPayment] = React.useState(false);
+  const { availableCredit } = useCredit();
 
   React.useEffect(() => {
     async function loadService() {
@@ -235,6 +239,41 @@ export default function AIServiceDetailPage() {
             </div>
           </div>
 
+          {/* Credit Payment Section */}
+          {showCreditPayment && (
+            <Card className="border-purple-200 bg-purple-50">
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-purple-800">💳 Pay with Credit</h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowCreditPayment(false)}
+                      className="text-purple-600 hover:text-purple-800"
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                  
+                  <CreditPaymentButton
+                    merchantName={service.name}
+                    merchantAddress="0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897"
+                    amount={1.0} // $1 demo payment for AI service
+                    cashbackRate={5} // 5% cashback for AI services
+                    onPaymentSuccess={(data) => {
+                      toast.success(`🎉 Payment successful to ${service.name}!`, {
+                        description: `Earned ${data.cashback_earned} ROZO tokens`,
+                        duration: 5000,
+                      });
+                      setShowCreditPayment(false);
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 pt-2">
             <Button
@@ -246,6 +285,17 @@ export default function AIServiceDetailPage() {
               <ExternalLink className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
               Visit Website
             </Button>
+
+            {availableCredit > 0 && !showCreditPayment && (
+              <Button
+                onClick={() => setShowCreditPayment(true)}
+                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold bg-purple-600 hover:bg-purple-700"
+                size="lg"
+              >
+                <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                Pay $1.00 with Credit ({availableCredit.toFixed(2)} available)
+              </Button>
+            )}
 
             {!payment && (
               <Button

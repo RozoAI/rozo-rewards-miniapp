@@ -1,6 +1,7 @@
 import { BottomNavbar } from "@/components/bottom-navbar";
 import { FabActions } from "@/components/fab-actions";
 import IntercomInitializer from "@/components/intercom";
+import { CreditProvider } from "@/contexts/CreditContext";
 import { MiniKitContextProvider } from "@/providers/MiniKitProvider";
 import { Web3Provider } from "@/providers/Web3Provider";
 // import "@coinbase/onchainkit/styles.css";
@@ -79,12 +80,13 @@ export default function RootLayout({
       >
         <Web3Provider>
           <MiniKitContextProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem={false}
-              disableTransitionOnChange
-            >
+            <CreditProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="light"
+                enableSystem={false}
+                disableTransitionOnChange
+              >
               <main className="flex min-h-screen flex-col justify-between gap-4 md:min-h-screen md:items-center md:justify-center relative">
                 <NextTopLoader showSpinner={false} />
                 {children}
@@ -95,7 +97,8 @@ export default function RootLayout({
                 <FabActions />
                 <BottomNavbar />
               </main>
-            </ThemeProvider>
+              </ThemeProvider>
+            </CreditProvider>
           </MiniKitContextProvider>
         </Web3Provider>
       </body>

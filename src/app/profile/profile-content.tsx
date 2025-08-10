@@ -13,6 +13,7 @@ import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { SpendAuthorization } from "@/components/SpendAuthorization";
 import { BalanceDisplay } from "@/components/BalanceDisplay";
 import { NSCafePayment } from "@/components/NSCafePayment";
+import { useCredit } from "@/contexts/CreditContext";
 
 export default function ProfilePageContent() {
   const { address, isConnected, status } = useAccount();
@@ -21,8 +22,8 @@ export default function ProfilePageContent() {
   const router = useRouter();
   const [rozoBalance, setRozoBalance] = useState<number>(0);
   const [showNSCafe, setShowNSCafe] = useState(false);
-  const [availableCredit, setAvailableCredit] = useState<number>(0);
   const [mounted, setMounted] = useState(false);
+  const { availableCredit, setAvailableCredit, deductCredit } = useCredit();
 
   // Prevent hydration issues
   useEffect(() => {
@@ -67,7 +68,7 @@ export default function ProfilePageContent() {
     
     // Deduct the payment amount from available credit
     if (data.amount_paid_usd) {
-      setAvailableCredit(prev => Math.max(0, prev - data.amount_paid_usd));
+      deductCredit(data.amount_paid_usd);
     }
     
     // Refresh balance display
@@ -123,11 +124,9 @@ export default function ProfilePageContent() {
                 <div className="text-sm text-purple-600 font-medium mt-1">
                   💰 {rozoBalance} ROZO Balance
                 </div>
-                {availableCredit > 0 && (
-                  <div className="text-sm text-green-600 font-medium">
-                    💳 ${availableCredit.toFixed(2)} Available Credit
-                  </div>
-                )}
+                <div className="text-sm text-green-600 font-medium">
+                  💳 ${availableCredit.toFixed(2)} Available Credit
+                </div>
               </div>
             </div>
           </div>
@@ -183,14 +182,18 @@ export default function ProfilePageContent() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-3">
                 <div className="text-center p-3 bg-green-50 rounded-lg">
-                  <p className="text-2xl font-bold text-green-600">{rozoBalance}</p>
-                  <p className="text-sm text-green-600">ROZO Balance</p>
+                  <p className="text-xl font-bold text-green-600">{rozoBalance}</p>
+                  <p className="text-xs text-green-600">ROZO Earned</p>
                 </div>
                 <div className="text-center p-3 bg-blue-50 rounded-lg">
-                  <p className="text-2xl font-bold text-blue-600">0</p>
-                  <p className="text-sm text-blue-600">Payments Made</p>
+                  <p className="text-xl font-bold text-blue-600">${availableCredit.toFixed(2)}</p>
+                  <p className="text-xs text-blue-600">Available Credit</p>
+                </div>
+                <div className="text-center p-3 bg-purple-50 rounded-lg">
+                  <p className="text-xl font-bold text-purple-600">0</p>
+                  <p className="text-xs text-purple-600">Payments Made</p>
                 </div>
               </div>
             </CardContent>

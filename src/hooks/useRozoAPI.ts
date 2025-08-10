@@ -353,21 +353,64 @@ export const useRozoAPI = () => {
     return errorType;
   }, []);
 
+  // Add retry tracking to prevent infinite loops
+  const [retryCount, setRetryCount] = useState<{ [key: string]: number }>({});
+  const MAX_RETRIES = 3;
+  const RETRY_WINDOW = 30000; // 30 seconds
+
   // Check current spend permission status
   const checkSpendPermission = useCallback(async (): Promise<SpendPermission | null> => {
+    // Don't make API calls if not authenticated
+    if (!isAuthenticated) {
+      console.log('Skipping spend permission check - user not authenticated');
+      return null;
+    }
+
+    const endpoint = '/auth-spend-permission';
+    const now = Date.now();
+    const retryKey = `${endpoint}_${now - (now % RETRY_WINDOW)}`;
+    
+    // Check if we've exceeded retry limit in this window
+    if ((retryCount[retryKey] || 0) >= MAX_RETRIES) {
+      console.warn(`Max retries exceeded for ${endpoint}, returning null`);
+      setError('Authentication temporarily unavailable. Please try again later.');
+      return null;
+    }
+
     try {
       setLoading(true);
       setError(null);
       
-      const response = await apiCall('/auth-spend-permission');
+      const response = await apiCall(endpoint);
+      
+      // Clear retry count on success
+      setRetryCount(prev => ({ ...prev, [retryKey]: 0 }));
+      
       return response.data;
     } catch (error) {
-      handleError(error);
+      // Increment retry count
+      setRetryCount(prev => ({
+        ...prev,
+        [retryKey]: (prev[retryKey] || 0) + 1
+      }));
+      
+      const errorType = handleError(error);
+      
+      // Don't retry authentication errors immediately
+      if (errorType === ErrorType.AUTHENTICATION_ERROR) {
+        console.warn('Authentication failed, clearing token and stopping retries');
+        // Clear stored auth data
+        localStorage.removeItem('rozo_jwt_token');
+        localStorage.removeItem('rozo_jwt_expires');
+        setAuthToken(null);
+        setIsAuthenticated(false);
+      }
+      
       return null;
     } finally {
       setLoading(false);
     }
-  }, [apiCall, handleError]);
+  }, [apiCall, handleError, retryCount, isAuthenticated]);
 
   // Set up spend permission authorization
   const authorizeSpending = useCallback(async (
@@ -403,6 +446,23 @@ export const useRozoAPI = () => {
 
   // Get ROZO balance
   const getRozoBalance = useCallback(async (): Promise<RozoBalance | null> => {
+    // Don't make API calls if not authenticated
+    if (!isAuthenticated) {
+      console.log('Skipping balance check - user not authenticated');
+      return null;
+    }
+
+    const endpoint = '/cashback-balance';
+    const now = Date.now();
+    const retryKey = `${endpoint}_${now - (now % RETRY_WINDOW)}`;
+    
+    // Check if we've exceeded retry limit in this window
+    if ((retryCount[retryKey] || 0) >= MAX_RETRIES) {
+      console.warn(`Max retries exceeded for ${endpoint}, returning null`);
+      setError('Balance service temporarily unavailable. Please try again later.');
+      return null;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -412,7 +472,10 @@ export const useRozoAPI = () => {
         throw new Error('Authentication required');
       }
       
-      const response = await apiCall('/cashback-balance');
+      const response = await apiCall(endpoint);
+      
+      // Clear retry count on success
+      setRetryCount(prev => ({ ...prev, [retryKey]: 0 }));
       
       // Safe access to response data
       if (response?.data?.balance_summary) {
@@ -421,12 +484,28 @@ export const useRozoAPI = () => {
         throw new Error('Invalid response format from balance API');
       }
     } catch (error) {
-      handleError(error);
+      // Increment retry count
+      setRetryCount(prev => ({
+        ...prev,
+        [retryKey]: (prev[retryKey] || 0) + 1
+      }));
+      
+      const errorType = handleError(error);
+      
+      // Don't retry authentication errors immediately
+      if (errorType === ErrorType.AUTHENTICATION_ERROR) {
+        console.warn('Authentication failed for balance check, clearing token');
+        localStorage.removeItem('rozo_jwt_token');
+        localStorage.removeItem('rozo_jwt_expires');
+        setAuthToken(null);
+        setIsAuthenticated(false);
+      }
+      
       return null;
     } finally {
       setLoading(false);
     }
-  }, [apiCall, handleError, authToken]);
+  }, [apiCall, handleError, authToken, retryCount]);
 
   // Check payment eligibility
   const checkPaymentEligibility = useCallback(async (
