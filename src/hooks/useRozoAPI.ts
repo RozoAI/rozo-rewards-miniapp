@@ -40,18 +40,20 @@ interface RozoBalance {
   available_cashback_rozo: number;
   available_cashback_usd: number;
   used_cashback_rozo: number;
+  used_cashback_usd: number;
   total_cashback_rozo: number;
+  total_cashback_usd: number;
   current_tier: string;
   tier_multiplier: number;
+  conversion_rate?: string;
 }
 
 interface PaymentResult {
-  transaction_id: string;
-  payment_method: string;
+  success: boolean;
   amount_paid_usd: number;
-  rozo_balance_change: number;
-  new_rozo_balance: number;
   cashback_earned: number;
+  transaction_hash: string;
+  message: string;
 }
 
 // API configuration
