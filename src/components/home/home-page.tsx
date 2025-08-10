@@ -14,9 +14,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { type Restaurant } from "@/types/restaurant";
-import { ChevronUp, Loader2 } from "lucide-react";
+import { ChevronUp, Loader2, MapPinIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FabActions } from "../fab-actions";
+import { Button } from "../ui/button";
 import { WalletComponents } from "../wallet-connect-button";
 
 export default function HomePage() {
@@ -144,9 +145,8 @@ export default function HomePage() {
 
   return (
     <div className="relative h-screen w-full">
-      {locationPermission}
       {/* Location permission banner */}
-      {/* {locationPermission !== "granted" && (
+      {locationPermission !== "granted" && locationPermission !== "prompt" && (
         <div className="absolute top-0 left-0 right-0 z-50 bg-blue-600 text-white p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -156,17 +156,6 @@ export default function HomePage() {
                   "Enable location access for better restaurant recommendations"}
               </span>
             </div>
-
-            {locationPermission === "prompt" && (
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => requestLocationAccess(true)}
-                className="bg-white text-blue-600 hover:bg-gray-100"
-              >
-                Allow Location
-              </Button>
-            )}
 
             {locationPermission === "approximate" && (
               <Button
@@ -180,7 +169,7 @@ export default function HomePage() {
             )}
           </div>
         </div>
-      )} */}
+      )}
 
       {/* Full screen map */}
       {locationPermission === "granted" && (
