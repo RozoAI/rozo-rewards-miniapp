@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { ServerIcon, Sparkle, StoreIcon } from "lucide-react";
+import { Binoculars, StoreIcon, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -41,7 +41,7 @@ export function BottomNavbar() {
           )}
           prefetch={false}
         >
-          <Sparkle className="h-5 w-5 sm:h-6 sm:w-6" />
+          <Binoculars className="h-5 w-5 sm:h-6 sm:w-6" />
           <span className="text-xs font-medium" suppressHydrationWarning>
             Discovery
           </span>
@@ -56,7 +56,7 @@ export function BottomNavbar() {
           )}
           prefetch={false}
         >
-          <ServerIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+          <User className="h-5 w-5 sm:h-6 sm:w-6" />
           <span className="text-xs font-medium">Profile</span>
         </Link>
       </div>

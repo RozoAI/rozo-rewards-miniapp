@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatAddress } from "@/lib/utils";
-import { Activity, Coins, Copy, LogOut } from "lucide-react";
+import { Coins, Copy, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -89,43 +89,67 @@ export default function ProfilePageContent() {
       </Card>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 gap-4 mb-4">
         {/* Rewards Stats */}
-        <Card className="gap-4">
-          <CardHeader>
+        <Card className="relative overflow-hidden">
+          <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Coins className="h-5 w-5 text-yellow-500" />
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Coins className="h-5 w-5 text-yellow-600" />
+              </div>
               Rewards
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
+          <CardContent className="space-y-4">
+            {/* Total Rozo - Featured */}
+            <div className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  Total Rozo
-                </span>
-                <span className="font-bold text-lg">1,247</span>
+                <div>
+                  <span className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
+                    Total Rozo
+                  </span>
+                  <div className="text-2xl font-bold text-yellow-800 dark:text-yellow-200 mt-1">
+                    1,247
+                  </div>
+                </div>
+                <div className="bg-yellow-200 dark:bg-yellow-800 p-3 rounded-full">
+                  <Coins className="h-6 w-6 text-yellow-700 dark:text-yellow-300" />
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <div className="text-lg font-bold text-green-700 dark:text-green-300">
+                  +234
+                </div>
+                <div className="text-xs text-green-600 dark:text-green-400 font-medium">
                   This Month
-                </span>
-                <span className="font-semibold text-green-600">+234</span>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Rank</span>
-                <span className="font-semibold text-blue-600">#127</span>
+              <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="text-lg font-bold text-blue-700 dark:text-blue-300">
+                  #127
+                </div>
+                <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                  Rank
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Level</span>
-                <span className="font-semibold text-yellow-600">Gold</span>
+              <div className="text-center p-3 bg-neutral-50 dark:bg-neutral-900/20 rounded-lg border border-neutral-200 dark:border-neutral-800">
+                <div className="text-lg font-bold text-neutral-700 dark:text-neutral-300">
+                  Silver
+                </div>
+                <div className="text-xs text-neutral-600 dark:text-neutral-400 font-medium">
+                  Level
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Recent Activity */}
-        <Card className="gap-4">
+        {/* <Card className="gap-4">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Activity className="h-5 w-5 text-blue-500" />
@@ -172,7 +196,7 @@ export default function ProfilePageContent() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       <FabActions />
