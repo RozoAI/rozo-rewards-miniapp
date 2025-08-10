@@ -261,7 +261,7 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
                 <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                   <p className="text-sm text-green-600">💳 Available Credit</p>
                   <p className="text-lg font-semibold text-green-800">
-                    ${availableCredit.toFixed(2)}
+                    ${(availableCredit || 0).toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -290,7 +290,7 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
                     {rozoBalance.available_cashback_rozo} ROZO
                   </p>
                   <p className="text-sm text-purple-600">
-                    ≈ ${rozoBalance.available_cashback_usd.toFixed(2)} USD
+                    ≈ ${(rozoBalance.available_cashback_usd || 0).toFixed(2)} USD
                   </p>
                 </div>
                 <div className="text-right">

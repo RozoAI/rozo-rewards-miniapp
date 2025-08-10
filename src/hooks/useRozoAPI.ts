@@ -315,7 +315,7 @@ export const useRozoAPI = () => {
       
       // Development mode fallbacks
       if (typeof window !== 'undefined' && window.location.hostname === 'localhost' && 
-          token && typeof token === 'string' && token.startsWith('eyJ')) {
+          token && typeof token === 'string') {
         try {
           const decoded = JSON.parse(atob(token));
           if (decoded.dev_mode) {
