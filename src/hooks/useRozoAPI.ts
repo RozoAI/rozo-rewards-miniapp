@@ -381,7 +381,8 @@ export const useRozoAPI = () => {
       allowance: 20.0,
       remaining_today: 20.0,
       daily_limit: 20.0,
-      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+      expiry: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      status: "active"
     };
   }, []);
 
