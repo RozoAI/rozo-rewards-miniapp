@@ -301,6 +301,16 @@ export const useRozoAPI = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        
+        // If 401, clear authentication state
+        if (response.status === 401) {
+          console.log('API returned 401, clearing authentication state');
+          localStorage.removeItem('rozo_jwt_token');
+          localStorage.removeItem('rozo_jwt_expires');
+          setAuthToken(null);
+          setIsAuthenticated(false);
+        }
+        
         throw new Error(errorData.error?.message || `HTTP ${response.status}`);
       }
 
@@ -360,9 +370,10 @@ export const useRozoAPI = () => {
 
   // Check current spend permission status
   const checkSpendPermission = useCallback(async (): Promise<SpendPermission | null> => {
-    // Don't make API calls if not authenticated
-    if (!isAuthenticated) {
-      console.log('Skipping spend permission check - user not authenticated');
+    // Don't make API calls if not authenticated or no valid token
+    const token = getAuthToken();
+    if (!isAuthenticated || !token) {
+      console.log('Skipping spend permission check - user not authenticated or no valid token');
       return null;
     }
 
@@ -410,7 +421,7 @@ export const useRozoAPI = () => {
     } finally {
       setLoading(false);
     }
-  }, [apiCall, handleError, retryCount, isAuthenticated]);
+  }, [apiCall, handleError, retryCount, isAuthenticated, getAuthToken]);
 
   // Set up spend permission authorization
   const authorizeSpending = useCallback(async (
@@ -446,9 +457,10 @@ export const useRozoAPI = () => {
 
   // Get ROZO balance
   const getRozoBalance = useCallback(async (): Promise<RozoBalance | null> => {
-    // Don't make API calls if not authenticated
-    if (!isAuthenticated) {
-      console.log('Skipping balance check - user not authenticated');
+    // Don't make API calls if not authenticated or no valid token
+    const token = getAuthToken();
+    if (!isAuthenticated || !token) {
+      console.log('Skipping balance check - user not authenticated or no valid token');
       return null;
     }
 
@@ -505,7 +517,7 @@ export const useRozoAPI = () => {
     } finally {
       setLoading(false);
     }
-  }, [apiCall, handleError, authToken, retryCount, isAuthenticated]);
+  }, [apiCall, handleError, authToken, retryCount, isAuthenticated, getAuthToken]);
 
   // Check payment eligibility
   const checkPaymentEligibility = useCallback(async (
