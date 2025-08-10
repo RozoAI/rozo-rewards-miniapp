@@ -160,6 +160,35 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
     );
   }
 
+  // Show authentication prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Authentication Required</CardTitle>
+          <CardDescription>Sign in with your wallet to access ROZO features</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-gray-600">
+            To set up payment authorization and access ROZO features, you need to authenticate with your wallet.
+          </p>
+          <Button 
+            onClick={authenticateWallet}
+            disabled={loading}
+            className="w-full"
+          >
+            {loading ? 'Authenticating...' : '🔐 Sign In with Wallet'}
+          </Button>
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-sm">{error}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* Spend Authorization Card */}

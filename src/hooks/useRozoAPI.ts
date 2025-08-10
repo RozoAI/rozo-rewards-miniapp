@@ -63,13 +63,28 @@ export const useRozoAPI = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [authToken, setAuthToken] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Auto-authenticate when wallet connects
+  // Initialize token from localStorage on mount
   useEffect(() => {
-    if (isConnected && address && !authToken) {
-      authenticateWallet();
+    const storedToken = localStorage.getItem('rozo_jwt_token');
+    const storedExpiry = localStorage.getItem('rozo_jwt_expires');
+    
+    if (storedToken && storedExpiry) {
+      const expiryTime = parseInt(storedExpiry);
+      if (Date.now() < expiryTime) {
+        setAuthToken(storedToken);
+        setIsAuthenticated(true);
+      } else {
+        // Token expired
+        localStorage.removeItem('rozo_jwt_token');
+        localStorage.removeItem('rozo_jwt_expires');
+      }
     }
-  }, [isConnected, address, authToken]);
+  }, []);
+
+  // Don't auto-authenticate - let user manually authenticate
+  // This prevents double popups
 
   // Authenticate with wallet signature and get JWT token
   const authenticateWallet = useCallback(async () => {
@@ -110,8 +125,9 @@ export const useRozoAPI = () => {
       if (data.success && data.data.access_token) {
         const token = data.data.access_token;
         setAuthToken(token);
+        setIsAuthenticated(true);
         localStorage.setItem('rozo_jwt_token', token);
-        localStorage.setItem('rozo_jwt_expires', String(Date.now() + (data.data.expires_in * 1000)));
+        localStorage.setItem('rozo_jwt_expires', String(Date.now() + (7 * 24 * 60 * 60 * 1000))); // 7 days
         
         toast.success('Successfully authenticated with Rozo Rewards!');
         return token;
@@ -136,7 +152,7 @@ export const useRozoAPI = () => {
 
   // Get current JWT token (from state or localStorage)
   const getAuthToken = useCallback(() => {
-    if (authToken) return authToken;
+    if (authToken && isAuthenticated) return authToken;
     
     const storedToken = localStorage.getItem('rozo_jwt_token');
     const storedExpiry = localStorage.getItem('rozo_jwt_expires');
@@ -145,16 +161,18 @@ export const useRozoAPI = () => {
       const expiryTime = parseInt(storedExpiry);
       if (Date.now() < expiryTime) {
         setAuthToken(storedToken);
+        setIsAuthenticated(true);
         return storedToken;
       } else {
         // Token expired
         localStorage.removeItem('rozo_jwt_token');
         localStorage.removeItem('rozo_jwt_expires');
+        setIsAuthenticated(false);
       }
     }
     
     return null;
-  }, [authToken]);
+  }, [authToken, isAuthenticated]);
 
   // Helper function to make authenticated API calls
   const apiCall = useCallback(async (endpoint: string, options: RequestInit = {}) => {
@@ -188,50 +206,7 @@ export const useRozoAPI = () => {
 
       return response.json();
     } catch (error: any) {
-      // Handle network errors with demo mode fallback
-      if (error.message?.includes('Failed to fetch') || error.message?.includes('CORS')) {
-        console.warn(`API call to ${endpoint} failed, using demo data`);
-        
-        // Return demo data based on endpoint
-        if (endpoint.includes('/auth-spend-permission')) {
-          return {
-            success: true,
-            data: {
-              user_id: address,
-              authorized: false,
-              allowance: 0,
-              status: 'demo_mode',
-              recommendations: ['Demo mode: Set up authorization to test payment flow']
-            }
-          };
-        } else if (endpoint.includes('/cashback/balance')) {
-          return {
-            success: true,
-            data: {
-              user_id: address,
-              available_cashback_rozo: 0,
-              total_earned_rozo: 0,
-              current_tier: 'bronze'
-            }
-          };
-        } else if (endpoint.includes('/payments/eligibility')) {
-          return {
-            success: true,
-            data: {
-              eligible: false,
-              reason: 'Demo mode: Set up authorization first',
-              recommendations: ['Connect to live API for real payments']
-            }
-          };
-        }
-        
-        // Default demo response
-        return {
-          success: false,
-          error: { message: 'Demo mode: API not available' }
-        };
-      }
-      
+      console.error(`API call to ${endpoint} failed:`, error);
       throw error;
     }
   }, [getAuthToken, isConnected, address, authenticateWallet]);
@@ -439,7 +414,7 @@ export const useRozoAPI = () => {
     loading,
     error,
     authToken,
-    isAuthenticated: !!authToken,
+    isAuthenticated,
     authenticateWallet,
     checkSpendPermission,
     authorizeSpending,
