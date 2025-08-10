@@ -42,7 +42,9 @@ export function BottomNavbar() {
           prefetch={false}
         >
           <Sparkle className="h-5 w-5 sm:h-6 sm:w-6" />
-          <span className="text-xs font-medium">AI Services</span>
+          <span className="text-xs font-medium" suppressHydrationWarning>
+            Discovery
+          </span>
         </Link>
         <Link
           href="/map"

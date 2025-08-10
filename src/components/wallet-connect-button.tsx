@@ -7,11 +7,31 @@ import { useAccount, useConnect } from "wagmi";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { useRozoAPI } from "@/hooks/useRozoAPI";
+import { useEffect, useState } from "react";
 
 export function WalletComponents() {
   const { address: accountAddress, status } = useAccount();
   const { connectors, connect, status: connectStatus } = useConnect();
   const { isAuthenticated } = useRozoAPI();
+  const [mounted, setMounted] = useState(false);
+
+  // Ensure component is mounted on client side
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Ensure consistent rendering between server and client
+  const displayAddress = accountAddress || "";
+  const fallbackText = displayAddress.slice(0, 2) || "??";
+
+  // Show loading state until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <WalletProvider>
+        <Button disabled>Loading...</Button>
+      </WalletProvider>
+    );
+  }
 
   return (
     <WalletProvider>
@@ -25,13 +45,13 @@ export function WalletComponents() {
         <Button asChild variant="secondary">
           <Link href={`/profile`}>
             <Avatar className="size-4">
-              <AvatarImage src={`https://avatar.tobi.sh/${accountAddress}`} />
+              <AvatarImage src={`https://avatar.tobi.sh/${displayAddress}`} />
               <AvatarFallback>
-                {(accountAddress ?? "").slice(0, 2)}
+                {fallbackText}
               </AvatarFallback>
             </Avatar>
 
-            <span className="text-sm">{formatAddress(accountAddress)}</span>
+            <span className="text-sm">{formatAddress(displayAddress)}</span>
             {isAuthenticated && (
               <div className="w-2 h-2 bg-green-500 rounded-full ml-1" title="Rozo Authenticated" />
             )}

@@ -150,7 +150,7 @@ export default function AIServiceDetailPage() {
               onClick={() => router.push("/ai-services")}
               variant="outline"
             >
-              Back to AI Services
+              Back to Discovery
             </Button>
           </CardContent>
         </Card>
@@ -165,7 +165,7 @@ export default function AIServiceDetailPage() {
     <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
       {/* Header */}
       <PageHeader
-        title="Back to AI Services"
+        title="Back to Discovery"
         icon={<SparkleIcon className="size-6" />}
         isBackButton
       />

@@ -77,8 +77,8 @@ export const embedConfigs = {
   },
   aiServices: {
     imageUrl: process.env.NEXT_PUBLIC_APP_HERO_IMAGE || "/logo.png",
-    buttonTitle: "✨ AI Services",
-    name: "AI Services",
+    buttonTitle: "✨ Discovery",
+    name: "Discovery",
   },
   profile: {
     imageUrl: process.env.NEXT_PUBLIC_APP_HERO_IMAGE || "/logo.png",
