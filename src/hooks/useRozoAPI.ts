@@ -505,7 +505,7 @@ export const useRozoAPI = () => {
     } finally {
       setLoading(false);
     }
-  }, [apiCall, handleError, authToken, retryCount]);
+  }, [apiCall, handleError, authToken, retryCount, isAuthenticated]);
 
   // Check payment eligibility
   const checkPaymentEligibility = useCallback(async (
