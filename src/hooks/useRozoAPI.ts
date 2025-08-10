@@ -420,17 +420,17 @@ export const useRozoAPI = () => {
 
   // Get ROZO balance
   const getRozoBalance = useCallback(async (): Promise<RozoBalance | null> => {
-    // For development: return mock data directly, no auth required
-    console.log('🔧 Development mode: returning mock balance');
+    // For development: return mock data for new user (0 ROZO initially)
+    console.log('🔧 Development mode: returning new user balance (0 ROZO)');
     return {
-      available_cashback_rozo: 100,
-      total_cashback_rozo: 150,
-      used_cashback_rozo: 50,
-      available_cashback_usd: 1.0,
-      total_cashback_usd: 1.5,
-      used_cashback_usd: 0.5,
-      current_tier: "silver",
-      tier_multiplier: 1.2,
+      available_cashback_rozo: 0,
+      total_cashback_rozo: 0,
+      used_cashback_rozo: 0,
+      available_cashback_usd: 0.0,
+      total_cashback_usd: 0.0,
+      used_cashback_usd: 0.0,
+      current_tier: "bronze",
+      tier_multiplier: 1.0,
       conversion_rate: "1 ROZO = $0.01 USD"
     };
   }, []);
