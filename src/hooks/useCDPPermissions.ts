@@ -7,6 +7,7 @@ import { useCallback, useState } from 'react';
 import { useAccount, useSignTypedData } from 'wagmi';
 import { Address, Hex } from 'viem';
 import { cdpClient, SpendPermission, createWalletClientFromWindow } from '@/lib/cdp-client';
+import { NS_CAFE_ADDRESS } from '@/lib/cdp-config';
 import { toast } from 'sonner';
 
 interface CDPPermissionState {
@@ -220,6 +221,90 @@ export const useCDPPermissions = () => {
     }
   }, [isConnected, address]);
 
+  // Execute payment to NS Cafe using CDP spend permission
+  const payNSCafe = useCallback(async (
+    spendPermission: SpendPermission,
+    amountUSD: number
+  ): Promise<{ txHash: Hex; receipt: any } | null> => {
+    if (!isConnected || !address) {
+      throw new Error('Wallet not connected');
+    }
+
+    setState(prev => ({ ...prev, loading: true, error: null }));
+
+    try {
+      console.log(`☕ Processing NS Cafe payment of $${amountUSD}...`);
+
+      // Create wallet client
+      const walletClient = createWalletClientFromWindow();
+
+      // Option 1: Try to use CDP spend permission
+      let txHash: Hex;
+      try {
+        txHash = await cdpClient.executeSpend(spendPermission, amountUSD, walletClient);
+        console.log('✅ Payment executed via CDP spend permission');
+      } catch (spendError) {
+        console.log('⚠️ CDP spend failed, trying direct USDC transfer...');
+        // Option 2: Fallback to direct USDC transfer
+        txHash = await cdpClient.executeDirectUSDCTransfer(NS_CAFE_ADDRESS, amountUSD, walletClient);
+        console.log('✅ Payment executed via direct USDC transfer');
+      }
+
+      // Wait for transaction confirmation
+      const receipt = await cdpClient.waitForTransaction(txHash);
+
+      setState(prev => ({ ...prev, loading: false }));
+
+      toast.success(`☕ NS Cafe payment successful! $${amountUSD} sent`);
+      return { txHash, receipt };
+
+    } catch (error: any) {
+      console.error('❌ NS Cafe payment failed:', error);
+      
+      const errorMessage = `Payment failed: ${error.message}`;
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        error: errorMessage,
+      }));
+
+      toast.error(errorMessage);
+      throw error;
+    }
+  }, [isConnected, address]);
+
+  // Execute payment with automatic ROZO earning
+  const payWithROZORewards = useCallback(async (
+    spendPermission: SpendPermission,
+    amountUSD: number,
+    onSuccess?: (result: { txHash: Hex; receipt: any; rozoEarned: number }) => void
+  ): Promise<{ txHash: Hex; receipt: any; rozoEarned: number } | null> => {
+    try {
+      // Execute payment
+      const paymentResult = await payNSCafe(spendPermission, amountUSD);
+      if (!paymentResult) {
+        throw new Error('Payment execution failed');
+      }
+
+      // Calculate ROZO rewards (payment amount * 10)
+      const rozoEarned = amountUSD * 10;
+
+      console.log(`🎉 Payment successful! Earned ${rozoEarned} ROZO`);
+
+      const result = {
+        ...paymentResult,
+        rozoEarned
+      };
+
+      onSuccess?.(result);
+      return result;
+
+    } catch (error) {
+      console.error('❌ Payment with ROZO rewards failed:', error);
+      throw error;
+    }
+  }, [payNSCafe]);
+
   // Clear error
   const clearError = useCallback(() => {
     setState(prev => ({ ...prev, error: null }));
@@ -230,6 +315,8 @@ export const useCDPPermissions = () => {
     createSpendPermission,
     submitSpendPermission,
     executeSpend,
+    payNSCafe,
+    payWithROZORewards,
     checkPermissionStatus,
     checkUSDCBalance,
     clearError,

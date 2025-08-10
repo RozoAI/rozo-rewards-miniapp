@@ -287,6 +287,9 @@ export class CDPClient {
     const amountWei = parseUnits(amountUSD.toString(), 6);
 
     try {
+      console.log(`💸 Executing spend of $${amountUSD} (${amountWei} wei)...`);
+      console.log('🔍 SpendPermission details:', spendPermission);
+
       const hash = await walletClient.writeContract({
         address: this.contracts.SpendPermissionManager,
         abi: SPEND_PERMISSION_MANAGER_ABI,
@@ -294,9 +297,63 @@ export class CDPClient {
         args: [spendPermission, amountWei],
       });
 
+      console.log('✅ Spend transaction submitted:', hash);
       return hash;
     } catch (error) {
-      console.error('Error executing spend:', error);
+      console.error('❌ Error executing spend:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Execute direct USDC transfer (fallback method)
+   */
+  async executeDirectUSDCTransfer(
+    toAddress: Address,
+    amountUSD: number,
+    walletClient?: any
+  ): Promise<Hex> {
+    if (!walletClient) {
+      throw new Error('Wallet client required for transaction');
+    }
+
+    const amountWei = parseUnits(amountUSD.toString(), 6);
+
+    try {
+      console.log(`💸 Executing direct USDC transfer of $${amountUSD} to ${toAddress}...`);
+
+      const hash = await walletClient.writeContract({
+        address: this.contracts.USDC,
+        abi: USDC_ABI,
+        functionName: 'transfer',
+        args: [toAddress, amountWei],
+      });
+
+      console.log('✅ USDC transfer transaction submitted:', hash);
+      return hash;
+    } catch (error) {
+      console.error('❌ Error executing USDC transfer:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Wait for transaction confirmation
+   */
+  async waitForTransaction(txHash: Hex): Promise<any> {
+    try {
+      console.log(`⏳ Waiting for transaction confirmation: ${txHash}`);
+      
+      // Wait for transaction receipt
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash: txHash,
+        timeout: 60_000, // 60 seconds timeout
+      });
+
+      console.log('✅ Transaction confirmed:', receipt);
+      return receipt;
+    } catch (error) {
+      console.error('❌ Transaction confirmation failed:', error);
       throw error;
     }
   }

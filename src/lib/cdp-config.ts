@@ -27,8 +27,8 @@ export const SUPPORTED_NETWORKS = {
   TESTNET: 84532,  // Base Sepolia
 } as const;
 
-// Current network (use testnet for development)
-export const CURRENT_NETWORK = process.env.NODE_ENV === 'production' 
+// Current network (use mainnet for real deployment)
+export const CURRENT_NETWORK = process.env.NEXT_PUBLIC_USE_MAINNET === 'true'
   ? SUPPORTED_NETWORKS.MAINNET 
   : SUPPORTED_NETWORKS.TESTNET;
 
@@ -63,6 +63,10 @@ export const SPEND_PERMISSION_TYPES = {
 // Our Rozo PayMaster address (to be deployed)
 export const ROZO_PAYMASTER_ADDRESS = process.env.NEXT_PUBLIC_ROZO_PAYMASTER_ADDRESS as Address || 
   '0x0000000000000000000000000000000000000000' as Address;
+
+// NS Cafe merchant address (Base mainnet)
+export const NS_CAFE_ADDRESS = process.env.NEXT_PUBLIC_NS_CAFE_ADDRESS as Address || 
+  '0x742d35Cc6634C0532925a3b8D427bF7c4d18e2b5' as Address; // Example address, replace with real one
 
 // Default spend permission parameters
 export const DEFAULT_SPEND_PERMISSION = {

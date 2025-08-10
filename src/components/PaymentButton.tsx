@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRozoAPI } from '@/hooks/useRozoAPI';
+import { useCDPPermissions } from '@/hooks/useCDPPermissions';
+import { useAccount } from 'wagmi';
 import { toast } from 'sonner';
 
 interface PaymentButtonProps {
@@ -52,6 +54,17 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
     clearError 
   } = useRozoAPI();
 
+  // CDP Permissions for real blockchain payments
+  const {
+    loading: cdpLoading,
+    error: cdpError,
+    payWithROZORewards,
+    checkUSDCBalance,
+    clearError: clearCDPError
+  } = useCDPPermissions();
+
+  const { address, isConnected } = useAccount();
+
   const [eligibility, setEligibility] = useState<PaymentEligibility | null>(null);
   const [processingPayment, setProcessingPayment] = useState(false);
 
@@ -83,9 +96,24 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
       return;
     }
 
+    if (!isConnected || !address) {
+      toast.error('Please connect your wallet to make payments.');
+      return;
+    }
+
     setProcessingPayment(true);
     
     try {
+      console.log('🚀 Starting payment process...');
+
+      // Check USDC balance first
+      const usdcBalance = await checkUSDCBalance();
+      if (usdcBalance < amount) {
+        toast.error(`Insufficient USDC balance. You have $${usdcBalance.toFixed(2)} but need $${amount.toFixed(2)}.`);
+        return;
+      }
+
+      // Use current mock payment system (will be upgraded to real CDP later)
       const result = await processPayment(
         merchantWallet,
         amount,
@@ -94,13 +122,31 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
       );
 
       if (result) {
+        toast.success(
+          `✅ Payment successful! Paid $${amount.toFixed(2)} to ${merchantName}. ` +
+          `Earned ${result.cashback_earned.toFixed(1)} ROZO!`
+        );
+        
         onPaymentSuccess?.(result);
         
         // Refresh eligibility for next payment
         await checkEligibility();
       }
-    } catch (error) {
-      console.error('Payment error:', error);
+      
+      // TODO: Implement real CDP payment execution
+      // When spend permission storage is available:
+      // const paymentResult = await payWithROZORewards(spendPermission, amount);
+      
+    } catch (error: any) {
+      console.error('❌ Payment error:', error);
+      
+      if (error.message.includes('insufficient')) {
+        toast.error(error.message);
+      } else if (error.name === 'UserRejectedRequestError') {
+        toast.error('Payment cancelled by user.');
+      } else {
+        toast.error('Payment failed. Please try again.');
+      }
     } finally {
       setProcessingPayment(false);
     }
