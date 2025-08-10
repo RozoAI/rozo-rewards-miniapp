@@ -35,12 +35,12 @@ serve(async (req) => {
     const testResponse = {
       user_id: 'test-user-123',
       authorized: true,
-      allowance: 100.0,
+      allowance: 20.0,
       expiry: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
       last_check: new Date().toISOString(),
       status: 'active',
       recommendations: [
-        '✅ You have $100.00 authorized for spending',
+        '✅ You have $20.00 authorized for spending',
         'Your spend permission is active and ready for payments',
         '🔧 Development mode: using test data'
       ]
