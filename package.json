@@ -10,7 +10,7 @@
     "prepare": "if [ -d .git ]; then lefthook install; fi",
     "test:e2e": "tsx tests/e2e/run-tests.ts",
     "test:e2e:auth": "tsx tests/e2e/run-tests.ts auth",
-    "test:e2e:payments": "tsx tests/e2e/run-tests.ts payments", 
+    "test:e2e:payments": "tsx tests/e2e/run-tests.ts payments",
     "test:e2e:orders": "tsx tests/e2e/run-tests.ts orders",
     "test:e2e:quick": "tsx tests/e2e/run-tests.ts quick"
   },
@@ -35,6 +35,7 @@
     "nextjs-toploader": "^3.8.16",
     "react": "19.0.0-rc.1",
     "react-dom": "19.0.0-rc.1",
+    "react-is": "^19.1.1",
     "react-leaflet": "5.0.0-rc.2",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
