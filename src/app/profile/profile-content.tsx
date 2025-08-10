@@ -91,35 +91,30 @@ export default function ProfilePageContent() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-4 mb-4">
         {/* Rewards Stats */}
-        <Card className="relative overflow-hidden">
+        <Card className="relative overflow-hidden gap-2">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Coins className="h-5 w-5 text-yellow-600" />
-              </div>
-              Rewards
-            </CardTitle>
+            <CardTitle>Rewards</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Total Rozo - Featured */}
-            <div className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
+            <div className="bg-muted p-4 rounded-lg">
               <div className="flex justify-between items-center">
                 <div>
-                  <span className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
+                  <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                     Total Rozo
                   </span>
-                  <div className="text-2xl font-bold text-yellow-800 dark:text-yellow-200 mt-1">
+                  <div className="text-2xl font-bold text-neutral-800 dark:text-neutral-200 mt-1">
                     1,247
                   </div>
                 </div>
-                <div className="bg-yellow-200 dark:bg-yellow-800 p-3 rounded-full">
-                  <Coins className="h-6 w-6 text-yellow-700 dark:text-yellow-300" />
+                <div className="bg-neutral-200 dark:bg-neutral-800 p-3 rounded-full">
+                  <Coins className="h-6 w-6 text-neutral-700 dark:text-neutral-300" />
                 </div>
               </div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-3">
+            {/* <div className="grid grid-cols-3 gap-3">
               <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                 <div className="text-lg font-bold text-green-700 dark:text-green-300">
                   +234
@@ -144,7 +139,7 @@ export default function ProfilePageContent() {
                   Level
                 </div>
               </div>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
 
