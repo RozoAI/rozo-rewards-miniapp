@@ -118,9 +118,24 @@ When users encounter "Transaction preview unavailable", they need to:
 5. **Retry Transaction**: After proper authorization, transaction preview should work
 
 ### **📱 User Experience**
+
+#### **If Automatic Setup Works:**
 - Users will see: "Please re-authorize spend permissions to add wallet owner permissions"
 - The authorization process may take slightly longer (2 transactions instead of 1)
 - Console provides detailed diagnostic information
+
+#### **If Automatic Setup Fails:**
+- Error message: "Wallet setup required. Please follow the setup guide that just appeared."
+- A detailed setup guide modal appears with step-by-step instructions
+- Options provided:
+  1. **Manual Setup**: Add SpendPermissionManager as wallet owner in Coinbase Wallet settings
+  2. **Create New Wallet**: Create a new Coinbase Smart Wallet with spend permissions pre-enabled
+
+#### **Setup Guide Features:**
+- Copy-to-clipboard functionality for SpendPermissionManager address
+- Links to official Coinbase documentation
+- Technical details and troubleshooting information
+- Multiple resolution paths based on user preference
 
 ## 🔗 Official Documentation References
 

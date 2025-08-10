@@ -10,6 +10,102 @@ import { cdpClient, SpendPermission, createWalletClientFromWindow } from '@/lib/
 import { NS_CAFE_ADDRESS, getChain, getCurrentContracts } from '@/lib/cdp-config';
 import { toast } from 'sonner';
 
+// Helper function to attempt automatic wallet owner setup
+async function attemptWalletOwnerSetup(
+  walletClient: any,
+  address: string,
+  fallbackErrorMessage: string
+): Promise<void> {
+  console.log('🔄 Attempting alternative wallet owner setup methods...');
+  
+  try {
+    // Method 1: Try the standard addOwnerAddress for ERC-4337 accounts
+    const addOwnerTxHash = await walletClient.writeContract({
+      address: address as Address,
+      abi: [
+        {
+          inputs: [{ name: 'owner', type: 'address' }],
+          name: 'addOwnerAddress',
+          outputs: [],
+          stateMutability: 'nonpayable',
+          type: 'function',
+        },
+      ],
+      functionName: 'addOwnerAddress',
+      args: [getCurrentContracts().SpendPermissionManager],
+    });
+    
+    console.log('✅ Method 1 success - Adding SpendPermissionManager as wallet owner:', addOwnerTxHash);
+    
+    // Wait for confirmation
+    const publicClient = createPublicClient({
+      chain: getChain() as Chain,
+      transport: http()
+    });
+    
+    await publicClient.waitForTransactionReceipt({
+      hash: addOwnerTxHash,
+      timeout: 60_000,
+    });
+    
+    // Verify the change
+    const isNowApproved = await cdpClient.checkSpendPermissionManagerApproval(address);
+    if (isNowApproved) {
+      console.log('✅ SpendPermissionManager successfully added as wallet owner');
+      return; // Success!
+    } else {
+      throw new Error('Failed to verify SpendPermissionManager as wallet owner after addition');
+    }
+    
+  } catch (method1Error) {
+    console.log('❌ Method 1 (addOwnerAddress) failed:', method1Error);
+    
+    // Method 2: Try alternative function names
+    try {
+      const addOwnerTxHash2 = await walletClient.writeContract({
+        address: address as Address,
+        abi: [
+          {
+            inputs: [{ name: 'owner', type: 'address' }],
+            name: 'addOwner',
+            outputs: [],
+            stateMutability: 'nonpayable',
+            type: 'function',
+          },
+        ],
+        functionName: 'addOwner',
+        args: [getCurrentContracts().SpendPermissionManager],
+      });
+      
+      console.log('✅ Method 2 success - Adding owner via addOwner:', addOwnerTxHash2);
+      
+      const publicClient = createPublicClient({
+        chain: getChain() as Chain,
+        transport: http()
+      });
+      
+      await publicClient.waitForTransactionReceipt({
+        hash: addOwnerTxHash2,
+        timeout: 60_000,
+      });
+      
+      const isNowApproved = await cdpClient.checkSpendPermissionManagerApproval(address);
+      if (isNowApproved) {
+        console.log('✅ SpendPermissionManager successfully added via addOwner');
+        return; // Success!
+      } else {
+        throw new Error('Failed to verify SpendPermissionManager as wallet owner after addOwner');
+      }
+      
+    } catch (method2Error) {
+      console.log('❌ Method 2 (addOwner) failed:', method2Error);
+      
+      // Final fallback: Provide clear user instructions
+      throw new Error(fallbackErrorMessage);
+    }
+  }
+}
+
 interface CDPPermissionState {
   loading: boolean;
   error: string | null;
@@ -197,50 +293,24 @@ export const useCDPPermissions = () => {
       const isManagerApproved = await cdpClient.checkSpendPermissionManagerApproval(address);
       
       if (!isManagerApproved) {
-        console.log('🔧 SpendPermissionManager not yet approved as wallet owner, adding now...');
+        console.log('🔧 SpendPermissionManager not yet approved as wallet owner');
+        console.log('💡 For Coinbase Smart Wallets, SpendPermissionManager must be added during wallet creation or via wallet settings');
+        console.log('🔗 Reference: https://docs.cdp.coinbase.com/wallet-api/v2/evm-features/spend-permissions');
         
-        // Add SpendPermissionManager as wallet owner first
-        try {
-          const addOwnerTxHash = await walletClient.writeContract({
-            address: address as Address,
-            abi: [
-              {
-                inputs: [{ name: 'owner', type: 'address' }],
-                name: 'addOwnerAddress',
-                outputs: [],
-                stateMutability: 'nonpayable',
-                type: 'function',
-              },
-            ],
-            functionName: 'addOwnerAddress',
-            args: [getCurrentContracts().SpendPermissionManager],
-          });
-          
-          console.log('✅ Adding SpendPermissionManager as wallet owner:', addOwnerTxHash);
-          
-          // Wait for the addOwner transaction to be confirmed
-          const publicClient = createPublicClient({
-            chain: getChain() as Chain,
-            transport: http()
-          });
-          
-          await publicClient.waitForTransactionReceipt({
-            hash: addOwnerTxHash,
-            timeout: 60_000,
-          });
-          
-          console.log('✅ SpendPermissionManager successfully added as wallet owner');
-          
-          // Verify the change
-          const isNowApproved = await cdpClient.checkSpendPermissionManagerApproval(address);
-          if (!isNowApproved) {
-            throw new Error('Failed to add SpendPermissionManager as wallet owner');
-          }
-          
-        } catch (addOwnerError) {
-          console.error('❌ Failed to add SpendPermissionManager as wallet owner:', addOwnerError);
-          throw new Error('SpendPermissionManager must be added as wallet owner for spend permissions to work');
-        }
+        // Show clear error message to user about wallet owner requirement
+        const errorMessage = 
+          'SpendPermissionManager must be added as wallet owner for spend permissions to work.\n\n' +
+          'For Coinbase Smart Wallets:\n' +
+          '1. Go to your Coinbase Wallet settings\n' +
+          '2. Navigate to "Advanced Settings" or "Smart Account"\n' +
+          '3. Add SpendPermissionManager as an authorized owner\n' +
+          '4. SpendPermissionManager address: ' + getCurrentContracts().SpendPermissionManager + '\n\n' +
+          'Alternatively, create a new Coinbase Smart Wallet with spend permissions enabled.';
+        
+        console.error('❌ ' + errorMessage);
+        
+        // Try to add the owner automatically
+        await attemptWalletOwnerSetup(walletClient, address, errorMessage);
       }
 
       // Submit to SpendPermissionManager contract

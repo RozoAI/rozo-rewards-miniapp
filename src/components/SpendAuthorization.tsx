@@ -7,6 +7,8 @@ import { useRozoAPI, TEST_CONFIG } from '@/hooks/useRozoAPI';
 import { useCDPPermissions } from '@/hooks/useCDPPermissions';
 import { useAccount, useSignMessage } from 'wagmi';
 import { toast } from 'sonner';
+import { SpendPermissionSetupGuide } from './SpendPermissionSetupGuide';
+import { getCurrentContracts } from '@/lib/cdp-config';
 
 interface SpendAuthorizationProps {
   onAuthorizationComplete?: (data: any) => void;
@@ -67,6 +69,7 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
   const [authorizationAmount, setAuthorizationAmount] = useState(TEST_CONFIG.authorizationAmount);
   const [availableCredit, setAvailableCredit] = useState<number>(0);
   const [mounted, setMounted] = useState(false);
+  const [showSetupGuide, setShowSetupGuide] = useState(false);
 
   // Prevent hydration issues
   useEffect(() => {
@@ -254,6 +257,10 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
         toast.error('Signature cancelled. Authorization is required for ROZO payments.');
       } else if (error.message.includes('insufficient')) {
         toast.error(error.message);
+      } else if (error.message.includes('SpendPermissionManager must be added as wallet owner')) {
+        // Show the setup guide for wallet owner issues
+        setShowSetupGuide(true);
+        toast.error('Wallet setup required. Please follow the setup guide that just appeared.');
       } else {
         // Fallback to traditional authorization for development
         console.log('🔧 Falling back to traditional authorization...');
@@ -498,6 +505,14 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Wallet Setup Guide Modal */}
+      {showSetupGuide && (
+        <SpendPermissionSetupGuide
+          spendPermissionManagerAddress={getCurrentContracts().SpendPermissionManager}
+          onDismiss={() => setShowSetupGuide(false)}
+        />
       )}
     </div>
   );

@@ -140,13 +140,15 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
         // Check if SpendPermissionManager is approved (critical for transaction preview)
         if (permissionStatus?.isManagerApproved === false) {
           toast.error(
-            'Transaction preview unavailable: SpendPermissionManager needs approval. ' +
-            'Please re-authorize spend permissions to add wallet owner permissions.',
-            { duration: 8000 }
+            'Wallet Setup Required: SpendPermissionManager must be added as wallet owner. ' +
+            'Please check console for setup instructions or create a new Coinbase Smart Wallet.',
+            { duration: 10000 }
           );
           console.error('❌ SpendPermissionManager not approved - this causes "Transaction preview unavailable" errors');
-          console.log('📝 Solution: User needs to re-authorize spend permissions to add SpendPermissionManager as wallet owner');
-          console.log('💡 Previous authorization may have only set permission without adding wallet owner');
+          console.log('📝 WALLET SETUP REQUIRED:');
+          console.log('   1. SpendPermissionManager address: 0xf85210B21cC50302F477BA56686d2019dC9b67Ad');
+          console.log('   2. This must be added as a wallet owner in your Coinbase Smart Wallet');
+          console.log('   3. Or create a new Coinbase Smart Wallet with spend permissions pre-enabled');
           console.log('🔗 Reference: https://docs.cdp.coinbase.com/wallet-api/v2/evm-features/spend-permissions');
           return;
         }
