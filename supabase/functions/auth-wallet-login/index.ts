@@ -100,7 +100,7 @@ serve(async (req: Request) => {
 
     console.log("Creating auth token for:", body.wallet_address);
 
-    // Create a simple JWT-like token for testing
+    // Create a JWT-like token compatible with the shared utils validation
     const tokenPayload = {
       wallet_address: body.wallet_address,
       user_id: `user_${body.wallet_address.slice(-6)}`,
@@ -108,7 +108,10 @@ serve(async (req: Request) => {
       iat: Math.floor(Date.now() / 1000),
     };
 
-    const token = btoa(JSON.stringify(tokenPayload));
+    // Format as base64_payload.signature to match getUserFromAuth expectations
+    const payloadBase64 = btoa(JSON.stringify(tokenPayload));
+    const signature = "rozo_auth_signature"; // Simple signature for development
+    const token = `${payloadBase64}.${signature}`;
 
     const response: WalletLoginResponse = {
       access_token: token,

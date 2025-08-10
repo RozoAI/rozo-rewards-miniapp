@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders, createErrorResponse, createSuccessResponse } from "../_shared/utils.ts";
+import { corsHeaders, createErrorResponse, createResponse, getUserFromAuth } from "../_shared/utils.ts";
 
 interface UpdateSpendPermissionRequest {
   authorized: boolean;
@@ -31,17 +31,13 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get user from JWT token
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      return createErrorResponse('Missing authorization header', 401);
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    // Get user from JWT token using shared auth utility
+    const { user, error: authError } = await getUserFromAuth(
+      req.headers.get("authorization")
+    );
     
     if (authError || !user) {
-      return createErrorResponse('Invalid token', 401);
+      return createErrorResponse(authError || 'Invalid token', 401);
     }
 
     if (req.method === 'GET') {
@@ -112,7 +108,7 @@ async function getSpendPermissionStatus(supabaseClient: any, userId: string) {
       recommendations
     };
 
-    return createSuccessResponse(response);
+    return createResponse(response);
 
   } catch (error) {
     console.error('Get spend permission status error:', error);
