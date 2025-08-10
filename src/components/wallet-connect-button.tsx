@@ -2,13 +2,13 @@
 
 import { formatAddress } from "@/lib/utils";
 import { WalletProvider } from "@coinbase/onchainkit/wallet";
+import { UserIcon } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { useRozoAPI } from "@/hooks/useRozoAPI";
-import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
 
 // Internal component that contains wagmi hooks - only rendered after hydration
 function WalletComponentsInternal() {
@@ -18,7 +18,6 @@ function WalletComponentsInternal() {
 
   // Ensure consistent rendering between server and client
   const displayAddress = accountAddress || "";
-  const fallbackText = displayAddress.slice(0, 2) || "??";
 
   return (
     <WalletProvider>
@@ -34,7 +33,7 @@ function WalletComponentsInternal() {
             <Avatar className="size-4">
               <AvatarImage src={`https://avatar.tobi.sh/${displayAddress}`} />
               <AvatarFallback>
-                {fallbackText}
+                <UserIcon className="size-4" />
               </AvatarFallback>
             </Avatar>
 

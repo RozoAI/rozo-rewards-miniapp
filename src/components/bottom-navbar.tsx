@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { ServerIcon, Sparkle, StoreIcon, MapPin } from "lucide-react";
+import { Binoculars, StoreIcon, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -41,23 +41,10 @@ export function BottomNavbar() {
           )}
           prefetch={false}
         >
-          <Sparkle className="h-5 w-5 sm:h-6 sm:w-6" />
+          <Binoculars className="h-5 w-5 sm:h-6 sm:w-6" />
           <span className="text-xs font-medium" suppressHydrationWarning>
             Discovery
           </span>
-        </Link>
-        <Link
-          href="/map"
-          className={cn(
-            "flex flex-col items-center justify-center gap-1 transition-colors min-w-0",
-            isActive("/map")
-              ? "text-primary dark:text-primary font-bold"
-              : "text-gray-500 hover:text-gray-900 focus:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 dark:focus:text-gray-50"
-          )}
-          prefetch={false}
-        >
-          <MapPin className="h-5 w-5 sm:h-6 sm:w-6" />
-          <span className="text-xs font-medium">Map</span>
         </Link>
         <Link
           href="/profile"
@@ -69,7 +56,7 @@ export function BottomNavbar() {
           )}
           prefetch={false}
         >
-          <ServerIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+          <User className="h-5 w-5 sm:h-6 sm:w-6" />
           <span className="text-xs font-medium">Profile</span>
         </Link>
       </div>

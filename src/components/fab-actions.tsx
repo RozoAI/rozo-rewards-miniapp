@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { HelpCircleIcon, MoonIcon, SunIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -7,7 +8,7 @@ import { useEffect, useState } from "react";
 /**
  * Floating Action Button with theme switcher and support actions
  */
-export function FabActions() {
+export function FabActions({ className }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -23,7 +24,7 @@ export function FabActions() {
   };
 
   return (
-    <div className="fixed right-4 bottom-20 z-50">
+    <div className={cn("fixed right-4 bottom-20 z-50", className)}>
       <div className="flex flex-row overflow-hidden rounded-md border bg-background shadow-xs dark:border-input">
         {/* Theme Switcher Button */}
         <button

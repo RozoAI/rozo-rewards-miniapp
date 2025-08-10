@@ -1,7 +1,7 @@
 import { AiServicesContent } from "@/components/ai-services/ai-services-content";
 import { PageHeader } from "@/components/page-header";
 import { createMiniAppMetadata, embedConfigs } from "@/lib/miniapp-embed";
-import { SparkleIcon } from "lucide-react";
+import { Binoculars } from "lucide-react";
 import { Metadata } from "next";
 
 export const metadata: Metadata = createMiniAppMetadata(
@@ -23,10 +23,7 @@ export const metadata: Metadata = createMiniAppMetadata(
 export default function AiServicesPage() {
   return (
     <div className="w-full mb-16 flex flex-col gap-4 mt-4">
-      <PageHeader
-        title="Discovery"
-        icon={<SparkleIcon className="size-6" />}
-      />
+      <PageHeader title="Discovery" icon={<Binoculars className="size-6" />} />
       <AiServicesContent />
     </div>
   );

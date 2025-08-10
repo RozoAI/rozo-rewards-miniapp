@@ -4,23 +4,24 @@ import { ListSearchInput } from "@/components/list-search-input";
 import { Button } from "@/components/ui/button";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useGeolocation } from "@/hooks/useGeolocation";
-import { cn, calculateDistance } from "@/lib/utils";
-import { MapPin, Search, RefreshCw } from "lucide-react";
+import { calculateDistance, cn } from "@/lib/utils";
+import { Restaurant } from "@/types/restaurant";
+import { MapPin, RefreshCw, Search } from "lucide-react";
 import * as React from "react";
-import { LocationItem, RestaurantList } from "./restaurant-list";
-
-type CoffeeMapResponse = {
-  locations: LocationItem[];
-  status?: string;
-};
+import { RestaurantList } from "./restaurant-list";
 
 export function RestaurantsContent({ className }: { className?: string }) {
-  const [locations, setLocations] = React.useState<LocationItem[] | null>(null);
+  const [locations, setLocations] = React.useState<Restaurant[] | null>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 250);
-  
-  const { coordinates, loading: locationLoading, error: locationError, requestLocation } = useGeolocation();
+
+  const {
+    coordinates,
+    loading: locationLoading,
+    error: locationError,
+    requestLocation,
+  } = useGeolocation();
 
   React.useEffect(() => {
     let isMounted = true;
@@ -29,11 +30,11 @@ export function RestaurantsContent({ className }: { className?: string }) {
       try {
         const res = await fetch("/coffee_mapdata.json");
         if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        const data: CoffeeMapResponse = await res.json();
+        const data = await res.json();
         if (!data || !Array.isArray(data.locations)) {
           throw new Error("Invalid data shape");
         }
-        if (isMounted) setLocations(data.locations);
+        if (isMounted) setLocations(data.locations as Restaurant[]);
       } catch (err) {
         if (isMounted)
           setErrorMessage(
@@ -53,6 +54,7 @@ export function RestaurantsContent({ className }: { className?: string }) {
 
     return locations.map((location) => ({
       ...location,
+      price: location.price || "",
       distance: calculateDistance(
         coordinates.latitude,
         coordinates.longitude,
@@ -64,9 +66,9 @@ export function RestaurantsContent({ className }: { className?: string }) {
 
   const filteredAndSortedLocations = React.useMemo(() => {
     if (!locationsWithDistance) return null;
-    
+
     let filtered = locationsWithDistance;
-    
+
     // Filter by search query
     const q = debouncedSearchQuery.trim().toLowerCase();
     if (q) {
@@ -79,7 +81,7 @@ export function RestaurantsContent({ className }: { className?: string }) {
             location.address_line2.toLowerCase().includes(q))
       );
     }
-    
+
     // Sort by distance if location is available
     if (coordinates) {
       filtered = [...filtered].sort((a, b) => {
@@ -88,7 +90,7 @@ export function RestaurantsContent({ className }: { className?: string }) {
         return distanceA - distanceB;
       });
     }
-    
+
     return filtered;
   }, [locationsWithDistance, debouncedSearchQuery, coordinates]);
 
@@ -127,7 +129,8 @@ export function RestaurantsContent({ className }: { className?: string }) {
     );
   }
 
-  const hasResults = filteredAndSortedLocations && filteredAndSortedLocations.length > 0;
+  const hasResults =
+    filteredAndSortedLocations && filteredAndSortedLocations.length > 0;
   const showNoResults =
     filteredAndSortedLocations &&
     filteredAndSortedLocations.length === 0 &&
@@ -149,7 +152,9 @@ export function RestaurantsContent({ className }: { className?: string }) {
             disabled={locationLoading}
             className="text-yellow-800 border-yellow-300 hover:bg-yellow-100"
           >
-            <RefreshCw className={cn("h-3 w-3 mr-1", locationLoading && "animate-spin")} />
+            <RefreshCw
+              className={cn("h-3 w-3 mr-1", locationLoading && "animate-spin")}
+            />
             Retry
           </Button>
         </div>
@@ -168,7 +173,7 @@ export function RestaurantsContent({ className }: { className?: string }) {
         onClear={clearSearch}
         placeholder="Search restaurants..."
       />
-      
+
       {showNoResults ? (
         <div className="text-center py-8 px-4">
           <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

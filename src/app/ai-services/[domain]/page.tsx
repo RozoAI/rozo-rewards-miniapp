@@ -12,7 +12,6 @@ import {
   CreditCard,
   ExternalLink,
   Loader2,
-  SparkleIcon,
   Tag,
   Wallet,
 } from "lucide-react";
@@ -168,11 +167,7 @@ export default function AIServiceDetailPage() {
   return (
     <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
       {/* Header */}
-      <PageHeader
-        title="Back to Discovery"
-        icon={<SparkleIcon className="size-6" />}
-        isBackButton
-      />
+      <PageHeader title="Back to Discovery" isBackButton />
 
       {/* Service Info Card */}
       <Card className="w-full gap-3">

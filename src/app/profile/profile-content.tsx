@@ -1,11 +1,12 @@
 "use client";
 
+import { FabActions } from "@/components/fab-actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 // Badge component not available, using span instead
 import { formatAddress } from "@/lib/utils";
-import { Activity, Coins, Copy, LogOut, Wallet } from "lucide-react";
+import { Coins, Copy, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -114,7 +115,7 @@ function ProfilePageContentInternal() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-4xl">
+    <div className="container mx-auto px-4 py-6 max-w-2xl relative">
       {/* Profile Header */}
       <Card className="mb-6">
         <CardHeader className="gap-3">
@@ -130,12 +131,8 @@ function ProfilePageContentInternal() {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <CardTitle className="text-xl">Rozo Rewards User</CardTitle>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Wallet className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
-                    {formatAddress(address)}
-                  </span>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  {formatAddress(address)}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -144,7 +141,7 @@ function ProfilePageContentInternal() {
                   >
                     <Copy className="h-3 w-3" />
                   </Button>
-                </div>
+                </CardTitle>
                 <div className="text-sm text-purple-600 font-medium mt-1">
                   💰 {rozoBalance} ROZO Balance
                 </div>
@@ -165,12 +162,7 @@ function ProfilePageContentInternal() {
               ☕ {showNSCafe ? 'Hide' : 'Show'} NS Cafe Payment
             </Button>
             
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDisconnect}
-              className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-            >
+            <Button variant="outline" size="sm" onClick={handleDisconnect}>
               <LogOut className="h-4 w-4" />
               Disconnect
             </Button>
@@ -178,72 +170,48 @@ function ProfilePageContentInternal() {
         </CardHeader>
       </Card>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column - Authorization & Balance */}
-        <div className="space-y-6">
-                            <SpendAuthorization
-                    onAuthorizationComplete={handleAuthorizationComplete}
-                    onBalanceUpdate={handleBalanceUpdate}
-                    onCreditUpdate={handleCreditUpdate}
-                  />
-        </div>
+      {/* Stats Grid - Using main branch layout but with our functionality */}
+      <div className="grid grid-cols-1 gap-4 mb-4">
+        {/* Rewards Stats */}
+        <Card className="relative overflow-hidden gap-2">
+          <CardHeader className="pb-3">
+            <CardTitle>Rewards</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Total Rozo - Featured */}
+            <div className="bg-muted p-4 rounded-lg">
+              <div className="flex justify-between items-center">
+                <div>
+                  <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    Total Rozo
+                  </span>
+                  <div className="text-2xl font-bold text-neutral-800 dark:text-neutral-200 mt-1">
+                    {rozoBalance}
+                  </div>
+                </div>
+                <div className="bg-neutral-200 dark:bg-neutral-800 p-3 rounded-full">
+                  <Coins className="h-6 w-6 text-neutral-700 dark:text-neutral-300" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Right Column - NS Cafe Payment */}
-        <div className="space-y-6">
-          {showNSCafe && (
-            <NSCafePayment 
-              onPaymentSuccess={handlePaymentSuccess}
-            />
-          )}
-          
-          {/* Quick Stats */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Activity className="h-5 w-5 text-blue-500" />
-                Quick Stats
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="text-center p-3 bg-green-50 rounded-lg">
-                  <p className="text-xl font-bold text-green-600">{rozoBalance}</p>
-                  <p className="text-xs text-green-600">ROZO Earned</p>
-                </div>
-                <div className="text-center p-3 bg-blue-50 rounded-lg">
-                  <p className="text-xl font-bold text-blue-600">${availableCredit.toFixed(2)}</p>
-                  <p className="text-xs text-blue-600">Available Credit</p>
-                </div>
-                <div className="text-center p-3 bg-purple-50 rounded-lg">
-                  <p className="text-xl font-bold text-purple-600">0</p>
-                  <p className="text-xs text-purple-600">Payments Made</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Integration Status */}
-          <Card className="bg-blue-50 border-blue-200">
-            <CardHeader>
-              <CardTitle className="text-lg text-blue-800">🔗 Integration Demo</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-blue-700">
-              <div className="space-y-2">
-                <p><strong>✅ Step 1:</strong> Set up $20 authorization above</p>
-                <p><strong>✅ Step 2:</strong> Make $0.1 payment at NS Cafe (10% cashback)</p>
-                <p><strong>✅ Step 3:</strong> See updated balance: $19.9 auth + 1 ROZO</p>
-              </div>
-              <div className="mt-3 p-3 bg-blue-100 rounded-lg">
-                <p className="font-medium text-blue-800">Expected Flow:</p>
-                <p className="text-xs">
-                  Authorize $20 → Pay $0.1 → Earn 1 ROZO → Remaining $19.9
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Authorization & Payment Components */}
+        <SpendAuthorization
+          onAuthorizationComplete={handleAuthorizationComplete}
+          onBalanceUpdate={handleBalanceUpdate}
+          onCreditUpdate={handleCreditUpdate}
+        />
+        
+        {showNSCafe && (
+          <NSCafePayment 
+            onPaymentSuccess={handlePaymentSuccess}
+          />
+        )}
       </div>
+
+      <FabActions />
     </div>
   );
 }
