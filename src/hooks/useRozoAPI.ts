@@ -240,6 +240,7 @@ export const useRozoAPI = () => {
       console.error(`API call to ${endpoint} failed:`, error);
       
       // Development mode fallbacks
+      const token = getAuthToken();
       if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname.includes('vercel.app')) && 
           token && typeof token === 'string') {
         try {
@@ -507,7 +508,7 @@ export const useRozoAPI = () => {
     } finally {
       setLoading(false);
     }
-  }, [apiCall, getAuthToken, isAuthenticated, handleError]);
+  }, [apiCall, getAuthToken, isAuthenticated, handleError, getRozoBalance, checkSpendPermission]);
 
   // Retry with exponential backoff
   const retryWithBackoff = useCallback(async (

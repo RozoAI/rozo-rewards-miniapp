@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sheet";
 import { type Restaurant } from "@/types/restaurant";
 import { ChevronUp, Loader2, MapPinIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FabActions } from "../fab-actions";
 import { Button } from "../ui/button";
 import { WalletComponents } from "../wallet-connect-button";
@@ -50,7 +50,7 @@ export default function HomePage() {
     }
   };
 
-  const requestLocationAccess = async (forceGPS = false) => {
+  const requestLocationAccess = useCallback(async (forceGPS = false) => {
     // If Chrome on macOS and not forcing GPS, skip geolocation
     if (isChromeOnMacOS() && !forceGPS) {
       console.warn(
@@ -111,7 +111,7 @@ export default function HomePage() {
       setLocationError("Geolocation is not supported by this browser.");
       setUserLocation({ lat: 37.7749, lng: -122.4194 });
     }
-  };
+  }, []);
 
   // Check location permission on component mount
   useEffect(() => {
@@ -130,7 +130,7 @@ export default function HomePage() {
       // If permissions API is not available, try to get location directly
       setUserLocation({ lat: 37.7749, lng: -122.4194 });
     }
-  }, []);
+  }, [requestLocationAccess]);
 
   // Use user location or fallback
   const defaultCenter = userLocation;

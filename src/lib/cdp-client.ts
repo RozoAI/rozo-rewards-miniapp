@@ -310,8 +310,10 @@ export class CDPClient {
         console.log('✅ Approval transaction submitted:', approvalTxHash);
         
         // Wait for approval confirmation
-        await this.waitForTransaction(approvalTxHash);
-        console.log('✅ Spend permission approved on-chain');
+        if (approvalTxHash) {
+          await this.waitForTransaction(approvalTxHash);
+          console.log('✅ Spend permission approved on-chain');
+        }
       } catch (approvalError) {
         console.log('⚠️ Approval may already exist or failed:', approvalError);
         // Continue to spend step even if approval fails (permission might already exist)

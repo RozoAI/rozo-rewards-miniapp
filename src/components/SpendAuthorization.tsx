@@ -198,7 +198,7 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
           simple_mode: true
         });
         
-        toast.success(`🎉 Spend Permission authorized for tap-to-pay! Tx: ${txHash.slice(0, 10)}...`);
+        toast.success(`🎉 Spend Permission authorized for tap-to-pay! ${txHash ? `Tx: ${txHash.slice(0, 10)}...` : ''}`);
         return;
       }
       
