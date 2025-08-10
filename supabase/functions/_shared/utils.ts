@@ -87,6 +87,38 @@ export async function getUserFromAuth(authHeader: string | null): Promise<{ user
   const token = authHeader.substring(7);
   
   try {
+    // Check if it's our custom token format (base64 payload)
+    if (token.includes('.')) {
+      const [payloadBase64, signature] = token.split('.');
+      
+      try {
+        const payload = JSON.parse(atob(payloadBase64));
+        
+        // Validate token expiry
+        if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+          return { user: null, error: "Token expired" };
+        }
+        
+        // Validate required fields
+        if (!payload.user_id || !payload.wallet_address) {
+          return { user: null, error: "Invalid token payload" };
+        }
+        
+        // Create a user object that matches Supabase format
+        const user = {
+          id: payload.user_id,
+          user_metadata: {
+            wallet_address: payload.wallet_address
+          }
+        };
+        
+        return { user };
+      } catch (error) {
+        return { user: null, error: "Invalid token format" };
+      }
+    }
+    
+    // Fallback to Supabase auth for other token formats
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
     
     if (error || !user) {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 // Badge component not available - using span replacement
@@ -40,6 +40,7 @@ export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({
   const { 
     loading, 
     error, 
+    isAuthenticated,
     checkSpendPermission, 
     getRozoBalance,
     clearError 
@@ -49,20 +50,7 @@ export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({
   const [rozoBalance, setRozoBalance] = useState<RozoBalanceData | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  // Load data on mount
-  useEffect(() => {
-    refreshData();
-  }, []);
-
-  // Clear error after some time
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(clearError, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [error, clearError]);
-
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     try {
       const [permission, balance] = await Promise.all([
         checkSpendPermission(),
@@ -82,7 +70,22 @@ export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({
     } catch (error) {
       console.error('Failed to refresh data:', error);
     }
-  };
+  }, [checkSpendPermission, getRozoBalance]);
+
+  // Load data when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      refreshData();
+    }
+  }, [isAuthenticated, refreshData]);
+
+  // Clear error after some time
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(clearError, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, clearError]);
 
   const getTierColor = (tier: string) => {
     switch (tier.toLowerCase()) {

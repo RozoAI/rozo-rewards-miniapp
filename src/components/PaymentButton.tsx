@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRozoAPI } from '@/hooks/useRozoAPI';
@@ -46,6 +46,7 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
   const { 
     loading, 
     error, 
+    isAuthenticated,
     checkPaymentEligibility, 
     processPayment,
     clearError 
@@ -54,15 +55,19 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
   const [eligibility, setEligibility] = useState<PaymentEligibility | null>(null);
   const [processingPayment, setProcessingPayment] = useState(false);
 
-  // Check payment eligibility when component mounts or amount changes
+  const checkEligibility = useCallback(async () => {
+    const result = await checkPaymentEligibility(amount, false);
+    if (result) {
+      setEligibility(result);
+    }
+  }, [checkPaymentEligibility, amount]);
+
+  // Check payment eligibility when authenticated and amount changes
   useEffect(() => {
-    if (amount > 0) {
+    if (isAuthenticated && amount > 0) {
       checkEligibility();
     }
-  }, [amount]);
-
-  // Force demo eligibility after a delay if loading too long
-  // Removed demo mode timeout - now using real API only
+  }, [isAuthenticated, amount, checkEligibility]);
 
   // Clear error after some time
   useEffect(() => {
@@ -71,13 +76,6 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
       return () => clearTimeout(timer);
     }
   }, [error, clearError]);
-
-  const checkEligibility = async () => {
-    const result = await checkPaymentEligibility(amount, false);
-    if (result) {
-      setEligibility(result);
-    }
-  };
 
   const handlePayment = async () => {
     if (!eligibility?.eligible) {

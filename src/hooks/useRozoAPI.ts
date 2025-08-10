@@ -39,6 +39,8 @@ interface SpendPermission {
 interface RozoBalance {
   available_cashback_rozo: number;
   available_cashback_usd: number;
+  used_cashback_rozo: number;
+  total_cashback_rozo: number;
   current_tier: string;
   tier_multiplier: number;
 }
@@ -89,7 +91,7 @@ export const useRozoAPI = () => {
         headers: { 
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Origin': 'http://localhost:3000'
+          'Origin': typeof window !== 'undefined' ? window.location.origin : 'https://rozo-rewards-miniapp.vercel.app'
         },
         body: JSON.stringify({
           wallet_address: address,
@@ -174,7 +176,7 @@ export const useRozoAPI = () => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Origin': 'http://localhost:3000',
+          'Origin': typeof window !== 'undefined' ? window.location.origin : 'https://rozo-rewards-miniapp.vercel.app',
           ...options.headers,
         },
       });

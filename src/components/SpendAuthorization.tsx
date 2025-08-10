@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRozoAPI, TEST_CONFIG } from '@/hooks/useRozoAPI';
@@ -39,6 +39,7 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
   const { 
     loading, 
     error, 
+    isAuthenticated,
     checkSpendPermission, 
     authorizeSpending, 
     getRozoBalance,
@@ -56,23 +57,7 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
     setMounted(true);
   }, []);
 
-  // Load initial data
-  useEffect(() => {
-    if (isConnected) {
-      loadAuthorizationStatus();
-      loadRozoBalance();
-    }
-  }, [isConnected]);
-
-  // Clear error when component updates
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(clearError, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [error, clearError]);
-
-  const loadAuthorizationStatus = async () => {
+  const loadAuthorizationStatus = useCallback(async () => {
     const permission = await checkSpendPermission();
     if (permission) {
       setSpendPermission(permission);
@@ -82,15 +67,31 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
         onCreditUpdate?.(permission.remaining_today);
       }
     }
-  };
+  }, [checkSpendPermission, onCreditUpdate]);
 
-  const loadRozoBalance = async () => {
+  const loadRozoBalance = useCallback(async () => {
     const balance = await getRozoBalance();
     if (balance) {
       setRozoBalance(balance);
       onBalanceUpdate?.(balance.available_cashback_rozo);
     }
-  };
+  }, [getRozoBalance, onBalanceUpdate]);
+
+  // Load initial data when authenticated
+  useEffect(() => {
+    if (isConnected && isAuthenticated) {
+      loadAuthorizationStatus();
+      loadRozoBalance();
+    }
+  }, [isConnected, isAuthenticated, loadAuthorizationStatus, loadRozoBalance]);
+
+  // Clear error when component updates
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(clearError, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, clearError]);
 
   const handleAuthorizeSpending = async () => {
     if (!isConnected || !address) {
