@@ -1,14 +1,15 @@
 "use client";
 
 import { GoogleMap } from "@/components/home/google-map";
+import { Restaurant } from "@/components/home/home-page";
 import { PageHeader } from "@/components/page-header";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton } from "@rozoai/intent-pay";
-import "leaflet/dist/leaflet.css";
+
 import {
   ArrowLeft,
   CreditCard,
@@ -53,7 +54,7 @@ export default function RestaurantDetailPage() {
   const restaurantId = params.id as string;
 
   const [payment, setPayment] = useState<PaymentIntentProps>();
-  const [restaurant, setRestaurant] = React.useState<LocationItem | null>(null);
+  const [restaurant, setRestaurant] = React.useState<Restaurant | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = React.useState(false);
@@ -72,7 +73,7 @@ export default function RestaurantDetailPage() {
           throw new Error("Lifestyle not found");
         }
 
-        setRestaurant(foundRestaurant);
+        setRestaurant(foundRestaurant as Restaurant);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
@@ -182,6 +183,7 @@ export default function RestaurantDetailPage() {
         <CardHeader>
           <div className="flex items-start gap-3">
             <Avatar className="size-16 sm:size-20 rounded-lg ring-1 ring-border bg-muted flex-shrink-0">
+              <AvatarImage src={restaurant.logo_url} alt={restaurant.name} />
               <AvatarFallback
                 title={restaurant.name}
                 className="font-medium text-base sm:text-lg"
@@ -278,9 +280,11 @@ export default function RestaurantDetailPage() {
                 intent={`Pay for ${restaurant.name}`}
                 onPaymentStarted={() => {
                   setLoading(true);
+                  setPaymentLoading(true);
                 }}
                 onPaymentBounced={() => {
                   setLoading(false);
+                  setPaymentLoading(false);
                 }}
                 onPaymentCompleted={(args: PaymentCompletedEvent) => {
                   toast.success(`Payment successful to ${restaurant.name}!`, {
@@ -288,7 +292,7 @@ export default function RestaurantDetailPage() {
                       "Your payment has been processed successfully. Redirecting to receipt...",
                     duration: 2000,
                   });
-
+                  setPaymentLoading(false);
                   setTimeout(() => {
                     window.location.href = `https://invoice.rozo.ai/receipt?id=${args.payment.id}&back_url=${window.location.href}`;
                   }, 2000);

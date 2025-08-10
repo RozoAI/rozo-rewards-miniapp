@@ -1,3 +1,5 @@
+"use client";
+
 import coffeeData from "@/../public/coffee_mapdata.json";
 import { GoogleMap } from "@/components/home/google-map";
 import { MapPin } from "@/components/map-pin";
@@ -12,10 +14,11 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ChevronUp } from "lucide-react";
+import { useEffect, useState } from "react";
 import { FabActions } from "../fab-actions";
 import { WalletComponents } from "../wallet-connect-button";
 
-type Restaurant = {
+export type Restaurant = {
   _id: string;
   name: string;
   formatted: string;
@@ -29,17 +32,48 @@ type Restaurant = {
 
 export default function HomePage() {
   const restaurants: Restaurant[] = coffeeData.locations;
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
 
-  // Center map around first restaurant or default location
-  const defaultCenter =
-    restaurants.length > 0
-      ? { lat: restaurants[0].lat, lng: restaurants[0].lon }
-      : { lat: 37.7749, lng: -122.4194 }; // San Francisco default
+  // Get user's current location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("Error getting user location:", error);
+          // Fallback to San Francisco if geolocation fails
+          setUserLocation({ lat: 37.7749, lng: -122.4194 });
+        }
+      );
+    } else {
+      // Fallback if geolocation is not supported
+      setUserLocation({ lat: 37.7749, lng: -122.4194 });
+    }
+  }, []);
+
+  // Use user location or fallback
+  const defaultCenter = userLocation;
+
+  if (!defaultCenter) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="relative h-screen w-full">
       {/* Full screen map */}
-      <GoogleMap defaultCenter={defaultCenter} restaurants={restaurants} />
+      <GoogleMap
+        defaultCenter={defaultCenter}
+        restaurants={restaurants}
+        selectedLocation={userLocation}
+      />
 
       {/* Trigger card above bottom navbar */}
       <div className="absolute bottom-16 left-0 right-0 px-4 pb-4">
