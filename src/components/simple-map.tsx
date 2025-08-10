@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { Coins } from "lucide-react";
 
 type LocationItem = {
   _id: string;
@@ -36,14 +35,24 @@ export function SimpleMap({ center, locations }: SimpleMapProps) {
       try {
         // Import leaflet
         const L = await import("leaflet");
-        await import("leaflet/dist/leaflet.css");
+
+        // Import CSS dynamically
+        if (typeof document !== "undefined") {
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+          document.head.appendChild(link);
+        }
 
         // Fix default markers
         delete (L.Icon.Default.prototype as any)._getIconUrl;
         L.Icon.Default.mergeOptions({
-          iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-          iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-          shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+          iconRetinaUrl:
+            "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+          iconUrl:
+            "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+          shadowUrl:
+            "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
         });
 
         // Create map
@@ -51,12 +60,13 @@ export function SimpleMap({ center, locations }: SimpleMapProps) {
 
         // Add tile layer (OpenStreetMap)
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }).addTo(map);
 
         // User location marker (blue dot)
         const userIcon = L.divIcon({
-          className: 'user-location-marker',
+          className: "user-location-marker",
           html: '<div style="background-color: #3b82f6; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>',
           iconSize: [22, 22],
           iconAnchor: [11, 11],
@@ -64,11 +74,11 @@ export function SimpleMap({ center, locations }: SimpleMapProps) {
 
         userMarker = L.marker(center, { icon: userIcon })
           .addTo(map)
-          .bindPopup('<strong>Your Location</strong>');
+          .bindPopup("<strong>Your Location</strong>");
 
         // Crypto merchant markers
         const baseIcon = L.divIcon({
-          className: 'base-merchant-marker',
+          className: "base-merchant-marker",
           html: '<div style="background-color: #0052ff; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><span style="color: white; font-size: 10px; font-weight: bold;">B</span></div>',
           iconSize: [26, 26],
           iconAnchor: [13, 13],
@@ -76,21 +86,33 @@ export function SimpleMap({ center, locations }: SimpleMapProps) {
 
         // Add merchant markers
         locations.forEach((location) => {
-          const marker = L.marker([location.lat, location.lon], { icon: baseIcon })
-            .addTo(map)
-            .bindPopup(`
+          const marker = L.marker([location.lat, location.lon], {
+            icon: baseIcon,
+          }).addTo(map).bindPopup(`
               <div style="text-align: center; min-width: 150px;">
                 <div style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 8px;">
                   <span style="color: #0052ff; font-size: 12px; font-weight: 600;">⚡ Accepts Base</span>
                 </div>
-                <strong style="display: block; font-size: 14px; margin-bottom: 4px;">${location.name}</strong>
-                <p style="font-size: 11px; color: #666; line-height: 1.3; margin-bottom: 4px;">${location.address_line1}</p>
-                ${location.address_line2 ? `<p style="font-size: 11px; color: #666; line-height: 1.3; margin-bottom: 8px;">${location.address_line2}</p>` : ''}
-                <p style="font-size: 11px; font-weight: 600; color: #2563eb; margin-bottom: 8px;">${location.distance?.toFixed(1)} miles away</p>
-                <a href="/restaurant/${location._id}" style="display: inline-block; padding: 4px 8px; background-color: #0052ff; color: white; text-decoration: none; border-radius: 4px; font-size: 11px; font-weight: 600;">Pay with Base</a>
+                <strong style="display: block; font-size: 14px; margin-bottom: 4px;">${
+                  location.name
+                }</strong>
+                <p style="font-size: 11px; color: #666; line-height: 1.3; margin-bottom: 4px;">${
+                  location.address_line1
+                }</p>
+                ${
+                  location.address_line2
+                    ? `<p style="font-size: 11px; color: #666; line-height: 1.3; margin-bottom: 8px;">${location.address_line2}</p>`
+                    : ""
+                }
+                <p style="font-size: 11px; font-weight: 600; color: #2563eb; margin-bottom: 8px;">${location.distance?.toFixed(
+                  1
+                )} miles away</p>
+                <a href="/restaurant/${
+                  location._id
+                }" style="display: inline-block; padding: 4px 8px; background-color: #0052ff; color: white; text-decoration: none; border-radius: 4px; font-size: 11px; font-weight: 600;">Pay with Base</a>
               </div>
             `);
-          
+
           merchantMarkers.push(marker);
         });
 
@@ -111,14 +133,14 @@ export function SimpleMap({ center, locations }: SimpleMapProps) {
   }, [center, locations]);
 
   return (
-    <div 
-      ref={mapRef} 
-      style={{ 
-        height: "500px", 
-        width: "100%", 
+    <div
+      ref={mapRef}
+      style={{
+        height: "500px",
+        width: "100%",
         backgroundColor: mapLoaded ? "transparent" : "#f3f4f6",
-        borderRadius: "8px"
-      }} 
+        borderRadius: "8px",
+      }}
       className="relative"
     >
       {!mapLoaded && (
@@ -131,4 +153,4 @@ export function SimpleMap({ center, locations }: SimpleMapProps) {
       )}
     </div>
   );
-} 
+}
