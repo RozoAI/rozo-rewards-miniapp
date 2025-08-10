@@ -302,9 +302,13 @@ export const useRozoAPI = () => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         
-        // If 401, clear authentication state
-        if (response.status === 401) {
-          console.log('API returned 401, clearing authentication state');
+        // If 401 status OR auth error message, clear authentication state
+        const isAuthError = response.status === 401 || 
+          (errorData.error?.message && errorData.error.message.includes('401')) ||
+          (errorData.error?.code && errorData.error.code.includes('token'));
+        
+        if (isAuthError) {
+          console.log('API returned authentication error, clearing authentication state');
           localStorage.removeItem('rozo_jwt_token');
           localStorage.removeItem('rozo_jwt_expires');
           setAuthToken(null);
@@ -370,10 +374,16 @@ export const useRozoAPI = () => {
 
   // Check current spend permission status
   const checkSpendPermission = useCallback(async (): Promise<SpendPermission | null> => {
-    // Don't make API calls if not authenticated or no valid token
+    // Check token validity first
     const token = getAuthToken();
-    if (!isAuthenticated || !token) {
-      console.log('Skipping spend permission check - user not authenticated or no valid token');
+    if (!token) {
+      console.log('Skipping spend permission check - no valid token');
+      return null;
+    }
+    
+    // Double check authentication state
+    if (!isAuthenticated) {
+      console.log('Skipping spend permission check - user not authenticated');
       return null;
     }
 
@@ -457,10 +467,16 @@ export const useRozoAPI = () => {
 
   // Get ROZO balance
   const getRozoBalance = useCallback(async (): Promise<RozoBalance | null> => {
-    // Don't make API calls if not authenticated or no valid token
+    // Check token validity first
     const token = getAuthToken();
-    if (!isAuthenticated || !token) {
-      console.log('Skipping balance check - user not authenticated or no valid token');
+    if (!token) {
+      console.log('Skipping balance check - no valid token');
+      return null;
+    }
+    
+    // Double check authentication state
+    if (!isAuthenticated) {
+      console.log('Skipping balance check - user not authenticated');
       return null;
     }
 
