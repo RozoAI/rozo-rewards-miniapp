@@ -1,23 +1,25 @@
 "use client";
 
-import { getDefaultConfig, RozoPayProvider } from "@rozoai/intent-pay";
+import { useWagmiConfig } from "@/wagmi";
+import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { RozoPayProvider } from "@rozoai/intent-pay";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createConfig, WagmiProvider } from "wagmi";
-
-const config = createConfig(
-  getDefaultConfig({
-    appName: "Rozo Rewards MiniApp",
-    appIcon: "https://rozo.ai/rozo-logo.png",
-  })
-);
+import { WagmiProvider } from "wagmi";
 
 const queryClient = new QueryClient();
 
-export function Web3Provider({ children }: { children: React.ReactNode }) {
+export default function Web3Provider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const wagmiConfig = useWagmiConfig();
   return (
-    <WagmiProvider config={config}>
+    <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RozoPayProvider>{children}</RozoPayProvider>
+        <RozoPayProvider>
+          <RainbowKitProvider>{children}</RainbowKitProvider>
+        </RozoPayProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );

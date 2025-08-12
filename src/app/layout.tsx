@@ -2,7 +2,7 @@ import { BottomNavbar } from "@/components/bottom-navbar";
 import IntercomInitializer from "@/components/intercom";
 import { CreditProvider } from "@/contexts/CreditContext";
 import { MiniKitContextProvider } from "@/providers/MiniKitProvider";
-import { Web3Provider } from "@/providers/Web3Provider";
+import Web3Provider from "@/providers/Web3Provider";
 // import "@coinbase/onchainkit/styles.css";
 import { generateOgMetadata } from "@/lib/og-image";
 import type { Metadata } from "next";
