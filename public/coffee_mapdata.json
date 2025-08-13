@@ -17,6 +17,38 @@
       "price": "$"
     },
     {
+      "_id": "28c62be12697d882a8b03e60",
+      "name": "Golden Sand Spa",
+      "formatted": "5% Cashback - Golden Sand Jinsha Spa",
+      "address_line1": "Forest City Marina Hotel",
+      "address_line2": " Jalan Forest City",
+      "lat": 1.3353,
+      "lon": 103.5939,
+      "payTo": "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
+      "createdAt": "2025-08-09T12:21:20.572Z",
+      "updatedAt": "2025-08-09T12:21:20.572Z",
+      "__v": 0,
+      "logo_url": "https://mugglespublicweb.s3.ap-southeast-1.amazonaws.com/icons/spa.png",
+      "cashback_rate": 5,
+      "price": "$$"
+    },
+    {
+      "_id": "38c62be12697d882a8b03e60",
+      "name": "Meisan Restaurant",
+      "formatted": "Chinese Cuisine 15% Cashback",
+      "address_line1": "Forest City Marina Hotel",
+      "address_line2": " Jalan Forest City",
+      "lat": 1.3353,
+      "lon": 103.5939,
+      "payTo": "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
+      "createdAt": "2025-08-09T12:21:20.572Z",
+      "updatedAt": "2025-08-09T12:21:20.572Z",
+      "__v": 0,
+      "logo_url": "https://mugglespublicweb.s3.ap-southeast-1.amazonaws.com/merchants/meisan.png",
+      "cashback_rate": 15,
+      "price": "$$"
+    },
+    {
       "_id": "e802cafc-72be-48b5-b02f-9361c13c7a9e",
       "name": "Tacos 1986",
       "formatted": "1 Cornelia St, New York, NY, 10014, USA",
