@@ -50,5 +50,8 @@ export async function GET() {
       ogDescription: process.env.NEXT_PUBLIC_APP_OG_DESCRIPTION,
       ogImageUrl: process.env.NEXT_PUBLIC_APP_OG_IMAGE,
     }),
+    baseBuilder: {
+      allowedAddress: process.env.ALLOWED_BASE_ADDRESS,
+    },
   });
 }
