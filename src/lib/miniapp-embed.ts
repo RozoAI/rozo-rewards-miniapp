@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { generateOgMetadata } from "./og-image";
 
 export interface MiniAppEmbedConfig {
   version?: string;
@@ -57,9 +58,24 @@ export function createMiniAppMetadata(
     });
   }
 
+  const ogMetadata = generateOgMetadata({
+    title: (additionalMetadata.title || "Rozo Rewards") as string,
+    description: (additionalMetadata.description ||
+      process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
+      "Earn rewards at your favorite restaurants") as string,
+    ogImageParams: {
+      type: "lifestyle",
+      title: (additionalMetadata.title || "Rozo Rewards") as string,
+      subtitle: (additionalMetadata.description ||
+        process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
+        "Earn rewards at your favorite restaurants") as string,
+    },
+  });
+
   return {
     ...additionalMetadata,
     other: otherMetadata,
+    ...ogMetadata,
   };
 }
 

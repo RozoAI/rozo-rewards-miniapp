@@ -22,7 +22,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { RozoPaymentIntegration } from "@/components/RozoPaymentIntegration";
 
 type PaymentIntentProps = {
   toAddress: string;
@@ -93,7 +92,7 @@ export default function RestaurantDetailPage() {
       description: `You earned ${paymentData.cashback_earned} ROZO pts`,
       duration: 5000,
     });
-    
+
     // Optionally refresh the page or update UI state
     setTimeout(() => {
       setShowRozoIntegration(false);
@@ -200,7 +199,7 @@ export default function RestaurantDetailPage() {
                 {restaurant.cashback_rate > 0 && (
                   <Badge
                     variant="default"
-                    className="text-xs bg-green-100 text-green-800 rounded-full"
+                    className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full"
                   >
                     <BadgePercent className="size-3" />
                     Cashback: <b>{restaurant.cashback_rate}%</b>
@@ -247,7 +246,7 @@ export default function RestaurantDetailPage() {
             </Button>
           </div> */}
 
-          {restaurant.cashback_rate > 0 && (
+          {/* {restaurant.cashback_rate > 0 && (
             <RozoPaymentIntegration
               restaurantId={restaurant._id}
               restaurantName={restaurant.name}
@@ -255,7 +254,7 @@ export default function RestaurantDetailPage() {
               cashbackRate={restaurant.cashback_rate || 10}
               onPaymentSuccess={handleRozoPaymentSuccess}
             />
-          )}
+          )} */}
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 pt-2">

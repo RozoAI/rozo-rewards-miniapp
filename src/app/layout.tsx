@@ -4,6 +4,7 @@ import { CreditProvider } from "@/contexts/CreditContext";
 import { MiniKitContextProvider } from "@/providers/MiniKitProvider";
 import { Web3Provider } from "@/providers/Web3Provider";
 // import "@coinbase/onchainkit/styles.css";
+import { generateOgMetadata } from "@/lib/og-image";
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -42,11 +43,22 @@ export async function generateMetadata(): Promise<Metadata> {
     },
   };
 
-  return {
+  const ogMetadata = generateOgMetadata({
     title: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME || "Rozo Rewards",
     description:
       process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
       "Earn rewards at your favorite restaurants",
+    ogImageParams: {
+      type: "homepage",
+      title: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME || "Rozo Rewards",
+      subtitle:
+        process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
+        "Earn rewards at your favorite restaurants",
+      image: process.env.NEXT_PUBLIC_APP_HERO_IMAGE || "/logo.png",
+    },
+  });
+
+  return {
     robots: {
       index: false,
       follow: false,
@@ -55,6 +67,7 @@ export async function generateMetadata(): Promise<Metadata> {
       "fc:miniapp": JSON.stringify(embedConfig),
       "fc:frame": JSON.stringify(embedConfig), // For backward compatibility
     },
+    ...ogMetadata,
   };
 }
 

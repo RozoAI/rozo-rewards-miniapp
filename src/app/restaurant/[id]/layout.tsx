@@ -67,29 +67,6 @@ export async function generateMetadata({
     {
       title,
       description,
-      openGraph: {
-        title,
-        description,
-        url: urlPath,
-        type: "website",
-        images: restaurant?.logo_url
-          ? [
-              {
-                url: restaurant.logo_url,
-                width: 800,
-                height: 600,
-                alt: restaurant.name,
-              },
-            ]
-          : undefined,
-        siteName: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME,
-      },
-      twitter: {
-        card: "summary_large_image",
-        title,
-        description,
-        images: restaurant?.logo_url ? [restaurant.logo_url] : undefined,
-      },
       alternates: {
         canonical: urlPath,
       },

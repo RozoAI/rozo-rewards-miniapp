@@ -60,7 +60,7 @@ function ListRow({ location }: { location: Restaurant }) {
             {location.cashback_rate > 0 && (
               <Badge
                 variant="default"
-                className="text-xs bg-green-100 text-green-800 rounded-full"
+                className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full"
               >
                 <BadgePercent className="size-3" />
                 Cashback: <b>{location.cashback_rate}%</b>
