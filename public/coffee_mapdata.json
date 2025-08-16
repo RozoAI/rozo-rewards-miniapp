@@ -6,8 +6,8 @@
       "formatted": "Lobby, Forest City Marina Hotel, Jalan Forest City - Lebuhraya Tanjung Pelepas, 1, Pulau Satu, 81550 Gelang Patah, Johor, Malaysia",
       "address_line1": "Forest City Marina Hotel",
       "address_line2": " Jalan Forest City",
-      "lat": 1.3353,
-      "lon": 103.5939,
+      "lat": 1.3361,
+      "lon": 103.5938,
       "payTo": "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
       "createdAt": "2025-08-09T12:21:20.572Z",
       "updatedAt": "2025-08-09T12:21:20.572Z",
@@ -38,7 +38,7 @@
       "formatted": "Chinese Cuisine 15% Cashback",
       "address_line1": "Forest City Marina Hotel",
       "address_line2": " Jalan Forest City",
-      "lat": 1.3353,
+      "lat": 1.3362,
       "lon": 103.5939,
       "payTo": "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
       "createdAt": "2025-08-09T12:21:20.572Z",
@@ -1658,7 +1658,7 @@
       "updatedAt": "2024-08-21T18:21:17.481Z",
       "__v": 0,
       "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
-      "cashback_rate": 10
+      "cashback_rate": 0
     },
     {
       "_id": "66c6302bbc8e305a7e0e2c82",
@@ -1784,7 +1784,7 @@
       "updatedAt": "2024-09-07T05:06:57.365Z",
       "__v": 0,
       "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
-      "cashback_rate": 10
+      "cashback_rate": 0
     },
     {
       "_id": "670f3f896859381a7b1aa9d1",
@@ -1868,7 +1868,7 @@
       "updatedAt": "2024-10-16T04:25:59.285Z",
       "__v": 0,
       "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=DELI",
-      "cashback_rate": 10
+      "cashback_rate": 0
     },
     {
       "_id": "670f406e6859381a7b1aa9e3",
@@ -1882,7 +1882,7 @@
       "updatedAt": "2024-10-16T04:26:22.524Z",
       "__v": 0,
       "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=BAR",
-      "cashback_rate": 10
+      "cashback_rate": 0
     },
     {
       "_id": "670f40db6859381a7b1aa9e6",
@@ -1966,7 +1966,7 @@
       "updatedAt": "2024-10-16T04:37:51.979Z",
       "__v": 0,
       "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=CAFE",
-      "cashback_rate": 10
+      "cashback_rate": 0
     },
     {
       "_id": "670f43686859381a7b1aa9fa",
@@ -2050,7 +2050,7 @@
       "updatedAt": "2024-10-16T05:00:53.847Z",
       "__v": 0,
       "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
-      "cashback_rate": 10
+      "cashback_rate": 0
     },
     {
       "_id": "670f48f76859381a7b1aaa0e",
@@ -2134,7 +2134,7 @@
       "updatedAt": "2024-10-16T05:06:12.599Z",
       "__v": 0,
       "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
-      "cashback_rate": 10
+      "cashback_rate": 0
     },
     {
       "_id": "670f49cf6859381a7b1aaa20",
@@ -2204,7 +2204,7 @@
       "updatedAt": "2024-10-16T05:09:54.325Z",
       "__v": 0,
       "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=SHOP",
-      "cashback_rate": 10
+      "cashback_rate": 0
     },
     {
       "_id": "670f4b266859381a7b1aaa32",
@@ -2470,7 +2470,7 @@
       "updatedAt": "2025-03-26T23:02:49.327Z",
       "__v": 0,
       "logo_url": "https://via.placeholder.com/100x100/0052ff/ffffff?text=REST",
-      "cashback_rate": 10
+      "cashback_rate": 0
     },
     {
       "_id": "67e49646597cc5483ec5a452",
