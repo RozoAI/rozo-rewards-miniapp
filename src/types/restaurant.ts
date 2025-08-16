@@ -14,4 +14,6 @@ export type Restaurant = {
   cashback_rate: number;
   price?: string;
   distance?: number;
+  ns_id?: string;
+  is_ns?: boolean;
 };

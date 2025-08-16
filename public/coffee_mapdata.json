@@ -14,6 +14,8 @@
       "__v": 0,
       "logo_url": "https://ns.com/favicon.ico",
       "cashback_rate": 1,
+      "is_ns": true,
+      "ns_id": "cafe",
       "price": "$"
     },
     {
@@ -30,6 +32,8 @@
       "__v": 0,
       "logo_url": "https://mugglespublicweb.s3.ap-southeast-1.amazonaws.com/icons/spa.png",
       "cashback_rate": 5,
+      "is_ns": true,
+      "ns_id": "spa",
       "price": "$$"
     },
     {
@@ -46,6 +50,26 @@
       "__v": 0,
       "logo_url": "https://mugglespublicweb.s3.ap-southeast-1.amazonaws.com/merchants/meisan.png",
       "cashback_rate": 15,
+      "is_ns": true,
+      "ns_id": "meisan",
+      "price": "$$"
+    },
+    {
+      "_id": "48c62be12697d882a8b03e60",
+      "name": "Ride (Singapore <> Network States)",
+      "formatted": "Singapore <> Forest City",
+      "address_line1": "Forest City Marina Hotel",
+      "address_line2": " Jalan Forest City",
+      "lat": 1.3359,
+      "lon": 103.5938,
+      "payTo": "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
+      "createdAt": "2025-08-09T12:21:20.572Z",
+      "updatedAt": "2025-08-09T12:21:20.572Z",
+      "__v": 0,
+      "logo_url": "https://cdn1.npcdn.net/images/1694139822288-Limousine-Service_BUTTON.webp?md5id=cec819fa603e0b3f17e6aeaf4a6e6890&new_width=1600&new_height=1600&size=max&type=8&w=1697996365&off_wm=1&from=png",
+      "cashback_rate": 1,
+      "is_ns": true,
+      "ns_id": "ride",
       "price": "$$"
     },
     {

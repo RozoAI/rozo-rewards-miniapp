@@ -69,6 +69,12 @@ export default function RestaurantDetailPage() {
     }
   }, [restaurantId]);
 
+  const redirectToNS = () => {
+    if (restaurant && !!restaurant.ns_id) {
+      window.location.href = `https://ns.rozo.ai/ns/${restaurant.ns_id}`;
+    }
+  };
+
   const handlePayment = async () => {
     if (!restaurant) return;
 
@@ -273,9 +279,10 @@ export default function RestaurantDetailPage() {
               </Link>
             </Button>
 
-            {!payment && restaurant._id === "88c62be12697d882a8b03e60" && (
+            {!payment && !!restaurant.ns_id && (
               <Button
-                onClick={handlePayment}
+                // onClick={handlePayment}
+                onClick={redirectToNS}
                 disabled={paymentLoading}
                 className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
                 size="lg"
@@ -295,7 +302,7 @@ export default function RestaurantDetailPage() {
               </Button>
             )}
 
-            {payment && restaurant._id === "88c62be12697d882a8b03e60" && (
+            {payment && !!restaurant.ns_id && (
               <RozoPayButton.Custom
                 defaultOpen
                 closeOnSuccess
