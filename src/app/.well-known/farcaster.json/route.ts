@@ -52,7 +52,7 @@ export async function GET() {
     }),
     baseBuilder: {
       allowedAddress: process.env.ALLOWED_BASE_ADDRESS,
-      allowedAddresses: [process.env.ALLOWED_BASE_ADDRESS, "0x596215a85AF60197C111A2b002cE68253fb0B7f4"],
+      allowedAddresses: ["0x596215a85AF60197C111A2b002cE68253fb0B7f4"],
     },
   });
 }
