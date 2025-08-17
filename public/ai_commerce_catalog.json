@@ -1,125 +1,66 @@
 [
 
   {
-    "domain": "openrouter.ai",
-    "name": "OpenRouter",
+    "domain": "lovable",
+    "name": "Lovable",
     "category": "AI",
-    "description": "A unified API and marketplace to access hundreds of AI models across providers with routing, fallbacks, pricing insights, and developer docs.",
-    "logo_url": "https://openrouter.ai/favicon.ico",
-    "source": "https://openrouter.ai/"
+    "description": "Build something Lovable. Create apps and websites by chatting with AI",
+    "logo_url": "https://lovable.dev/favicon.ico",
+    "cashback_rate": 10,
+    "source": "https://lovable.dev?via=rozoai"
   },
   {
-    "domain": "civitai.com",
-    "name": "Civitai",
+    "domain": "beehiiv",
+    "name": "Beehiiv",
     "category": "AI",
-    "description": "A community and marketplace to discover, share, and generate with Stable Diffusion/Flux models and other open‑source generative AI resources.",
-    "logo_url": "https://civitai.com/favicon-blue.ico",
-    "source": "https://civitai.com/"
+    "cashback_rate": 40,
+    "description": "Email marketing for content creator. THE ONE PLACE TO BUILD Newsletters Websites. Launch, engage, and earn with the all-in-one growth system for digital content publishers.",
+    "logo_url": "https://beehiiv-marketing-images.s3.amazonaws.com/Redesign2023/favicon.png",
+    "source": "https://www.beehiiv.com?via=rozoai"
   },
   {
-    "domain": "app.pykaso.ai",
-    "name": "Pykaso App",
+    "domain": "Heygen",
+    "name": "Heygen",
     "category": "AI",
+    "cashback_rate": 15,
     "description": "Web app for Pykaso’s tools including AI image/video generator and bulk 4K face swaps.",
-    "logo_url": "https://app.pykaso.ai/favicon.ico",
-    "source": "https://app.pykaso.ai/"
+    "logo_url": "https://www.heygen.com/favicon.ico",
+    "source": "https://heygen.com/?sid=rewardful&via=rozoai"
   },
   {
-    "domain": "soulgen.net",
-    "name": "SoulGen",
+    "domain": "MaxAI",
+    "name": "MaxAI",
     "category": "AI",
-    "description": "Web‑based AI art generator focused on creating customizable anime/real‑style characters from text prompts with account‑based services.",
-    "logo_url": "https://www.soulgen.net/favicon.ico",
-    "source": "https://www.soulgen.net/"
+    "cashback_rate": 20,
+    "description": "Ask AI anything. Get instant, accurate, and reliable answers with clear citations that show exact quotes from your sources. Trusted by over 1 million people and 2,000 teams",
+    "logo_url": "https://www.maxai.co/favicon.ico",
+    "source": "https://www.maxai.co/?via=rozoai"
   },
   {
-    "domain": "venice.ai",
-    "name": "Venice",
+    "domain": "Taplio",
+    "name": "Taplio",
     "category": "AI",
-    "description": "Privacy‑first AI chat client offering access to leading open‑source LLMs and image models with fewer content restrictions and local‑first options.",
-    "logo_url": "https://venice.ai/favicon.ico",
-    "source": "https://venice.ai/"
+    "cashback_rate": 20,
+    "description": "Write the posts you need to grow on LinkedIn. Write the posts you need to grow on LinkedIn",
+    "logo_url": "https://taplio.com/wp-content/uploads/2024/06/icon-taplio.svg",
+    "source": "https://taplio.com?via=rozoai"
   },
   {
-    "domain": "kupid.ai",
-    "name": "Kupid AI",
+    "domain": "Create",
+    "name": "Create",
     "category": "AI",
-    "description": "AI companion platform to create and chat with personalized virtual partners, supporting image generation and voice/text chat.",
-    "logo_url": "https://www.kupid.ai/favicon.ico",
-    "source": "https://www.kupid.ai/"
+    "cashback_rate": 20,
+    "description": "Text to app. Turn your words into sites, tools, apps and products - built with code. Add GPT-4o and 40+ integrations in an instant.",
+    "logo_url": "https://www.create.xyz/favicon-anything.ico",
+    "source": "https://www.create.xyz?via=rozoai"
   },
   {
-    "domain": "compassmining.io",
-    "name": "Compass Mining",
-    "category": "CRYPTO",
-    "description": "Bitcoin‑first company that sources ASICs and provides managed hosting across facilities with uptime SLAs and account tools.",
-    "logo_url": "https://compassmining.io/favicon.ico",
-    "source": "https://compassmining.io/"
-  },
-  {
-    "domain": "whop.com",
-    "name": "Whop",
-    "category": "COMMERCE",
-    "description": "Platform to sell digital products, communities, and software with payments, access control, and a discovery marketplace.",
-    "logo_url": "https://whop.com/favicon.ico",
-    "source": "https://whop.com/"
-  },
-  {
-    "domain": "app.koinly.io",
-    "name": "Koinly (App)",
-    "category": "CRYPTO",
-    "description": "Web app for Koinly’s crypto portfolio import and tax reporting across exchanges and blockchains.",
-    "logo_url": "https://app.koinly.io/favicon.ico",
-    "source": "https://koinly.io/"
-  },
-
-  {
-    "domain": "porkbun.com",
-    "name": "Porkbun",
-    "category": "DOMAIN",
-    "description": "ICANN‑accredited domain name registrar offering low‑cost domains, email, SSL, and a simple control panel.",
-    "logo_url": "https://porkbun.com/favicon.ico",
-    "source": "https://porkbun.com/"
-  },
-
-  {
-    "domain": "lootie.com",
-    "name": "Lootie",
-    "category": "COMMERCE",
-    "description": "Provably fair online mystery boxes with real‑world items from brands like Apple, Supreme, Off‑White, with shipping and authentication.",
-    "logo_url": "https://www.lootie.com/favicon.ico",
-    "source": "https://www.lootie.com/"
-  },
-  {
-    "domain": "app.gomining.com",
-    "name": "GoMining (App)",
-    "category": "CRYPTO",
-    "description": "Account portal for GoMining’s digital miners and rewards—buy, manage, and trade tokenized miners tied to real data centers.",
-    "logo_url": "https://app.gomining.com/favicon.ico",
-    "source": "https://gomining.com/"
-  },
-  {
-    "domain": "owobot.com",
-    "name": "OwO Bot",
-    "category": "GAMING",
-    "description": "Popular Discord bot with hunting, battling, pets, gambling mini‑games, and leaderboards to engage server communities.",
-    "logo_url": "https://owobot.com/favicon.ico",
-    "source": "https://owobot.com/"
-  },
-  {
-    "domain": "dynadot.com",
-    "name": "Dynadot",
-    "category": "DOMAIN",
-    "description": "Domain registrar with competitive pricing, free privacy, APIs, and tools for bulk domain management.",
-    "logo_url": "https://www.dynadot.com/favicon.ico",
-    "source": "https://www.dynadot.com/"
-  },
-  {
-    "domain": "doctorsim.com",
-    "name": "doctorSIM",
-    "category": "COMMERCE",
-    "description": "Online service for IMEI phone unlocking, carrier checks, mobile top‑ups, and discounted digital gift cards.",
-    "logo_url": "https://www.doctorsim.com/favicon.ico",
-    "source": "https://www.doctorsim.com/"
+    "domain": "Riverside",
+    "name": "Riverside",
+    "category": "AI",
+    "cashback_rate": 5,
+    "description": "Create your best content yet. Your all-in-one studio to record in high quality, edit in a flash, and go live with a bang. All with AI that works with you.",
+    "logo_url": "https://cdn.prod.website-files.com/685be7dcd32275d3830651d3/685be7dcd32275d383065e49_RS_favicon-black.png",
+    "source": "https://riverside.fm/?utm_campaign=campaign_1&utm_medium=affiliate&utm_source=rewardful&via=rozoai"
   }
 ]
