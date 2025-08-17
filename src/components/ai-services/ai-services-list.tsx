@@ -13,6 +13,7 @@ export type CatalogItem = {
   description: string;
   logo_url?: string;
   source?: string;
+  cashback_rate?: number;
 };
 
 export type CatalogResponse = CatalogItem[];
@@ -58,6 +59,13 @@ function ListRow({ item }: { item: CatalogItem }) {
           >
             {item.description}
           </p>
+          {item.cashback_rate && (
+            <div className="flex items-center gap-1">
+              <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                {item.cashback_rate}% Cashback
+              </span>
+            </div>
+          )}
         </div>
 
         <ChevronRight className="size-4 text-muted-foreground m-auto" />
