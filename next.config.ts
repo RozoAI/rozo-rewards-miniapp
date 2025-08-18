@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   devIndicators: false,
   experimental: {
-    esmExternals: 'loose'
+    esmExternals: "loose",
   },
   webpack: (config) => {
     config.resolve.fallback = {
@@ -13,6 +13,15 @@ const nextConfig: NextConfig = {
       tls: false,
     };
     return config;
+  },
+  async redirects() {
+    return [
+      {
+        source: "/",
+        destination: "/ai-services",
+        permanent: false,
+      },
+    ];
   },
 };
 
