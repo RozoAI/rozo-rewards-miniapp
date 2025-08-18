@@ -19,10 +19,10 @@ export function BottomNavbar() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 h-16 bg-background border-t shadow-t shadow-card flex items-center max-w-xl mx-auto border-x">
       <div className="w-full items-center justify-around flex md:max-w-lg md:mx-auto">
         <Link
-          href="/"
+          href="/lifestyle"
           className={cn(
             "flex flex-col items-center justify-center gap-1 transition-colors min-w-0",
-            isActive("/")
+            isActive("/lifestyle")
               ? "text-primary dark:text-primary font-bold"
               : "text-gray-500 hover:text-gray-900 focus:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 dark:focus:text-gray-50"
           )}

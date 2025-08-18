@@ -150,7 +150,7 @@ export default function RestaurantDetailPage() {
               The restaurant you&apos;re looking for doesn&apos;t exist or has
               been removed.
             </p>
-            <Button onClick={() => router.push("/")} variant="outline">
+            <Button onClick={() => router.push("/lifestyle")} variant="outline">
               Back to Lifestyle
             </Button>
           </CardContent>

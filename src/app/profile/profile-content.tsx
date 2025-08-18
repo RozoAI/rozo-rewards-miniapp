@@ -53,17 +53,10 @@ function ProfilePageContentInternal() {
   const [showNSCafe, setShowNSCafe] = useState(false);
   const { availableCredit, setAvailableCredit, deductCredit } = useCredit();
 
-  // Redirect to home if not connected
-  // useEffect(() => {
-  //   if (status === "disconnected") {
-  //     router.push("/");
-  //   }
-  // }, [isConnected, status, router]);
-
   const handleDisconnect = () => {
     connectors.map((connector) => disconnect({ connector }));
     toast.success("Wallet disconnected");
-    router.push("/");
+    router.push("/lifestyle");
   };
 
   const copyAddress = () => {
