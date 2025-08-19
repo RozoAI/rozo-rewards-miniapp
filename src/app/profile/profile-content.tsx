@@ -228,7 +228,7 @@ function ProfilePageContentInternal() {
               <div className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 text-center">
                   {walletConnected 
-                    ? "100 ROZO points = 1 USDC. Earn points by making purchases at participating merchants."
+                    ? "Spend Crypto. Earn Cashback."
                     : "Connect your wallet to view your ROZO points balance"
                   }
                 </p>
