@@ -7,7 +7,8 @@ The **Rewards & Cashback Protocol** is a base smart contract designed to enable 
 ### Deployment
 
 Contract address: 
-0xeA359F684b11074a0598A36E19391Ee0A2b11a7A
+<!-- 0xeA359F684b11074a0598A36E19391Ee0A2b11a7A -->
+0x7A2CBbd6b82E9F981062c0b8c32e66689c02c22C
 
 Dev
 0x4bf7307C6f3a42d33C79ED527B76aFdc6B1A7664

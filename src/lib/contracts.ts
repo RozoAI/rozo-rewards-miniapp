@@ -1,5 +1,5 @@
 // ROZO Points Contract Configuration
-export const ROZO_POINTS_CONTRACT_ADDRESS = "0xeA359F684b11074a0598A36E19391Ee0A2b11a7A";
+export const ROZO_POINTS_CONTRACT_ADDRESS = "0x7A2CBbd6b82E9F981062c0b8c32e66689c02c22C";
 
 // ABI for the CashbackRewards contract
 export const ROZO_POINTS_ABI = [
@@ -162,6 +162,56 @@ export const ROZO_POINTS_ABI = [
       }
     ],
     "name": "WelcomeBonusClaimed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "pointsAdded",
+        "type": "uint256"
+      }
+    ],
+    "name": "AdminCashbackAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "merchant",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "itemPrice",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "pointsUsed",
+        "type": "uint256"
+      }
+    ],
+    "name": "AdminRedeemPoints",
     "type": "event"
   },
   {
@@ -402,6 +452,47 @@ export const ROZO_POINTS_ABI = [
       }
     ],
     "name": "withdrawUSDC",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "pointsToAdd",
+        "type": "uint256"
+      }
+    ],
+    "name": "adminAddCashback",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "merchant",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "itemPrice",
+        "type": "uint256"
+      }
+    ],
+    "name": "adminRedeemPoints",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
