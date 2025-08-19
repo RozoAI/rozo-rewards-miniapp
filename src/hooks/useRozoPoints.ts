@@ -192,7 +192,7 @@ export function useRozoPoints() {
   };
 
   // Function to purchase with USDC
-  const purchaseWithUSDC = async (merchantAddress: string, amount: number) => {
+  const purchaseWithUSDC = async (merchantId: number, amount: number) => {
     if (!isConnected || !address) {
       toast.error('Please connect your wallet first');
       return;
@@ -213,14 +213,14 @@ export function useRozoPoints() {
       return;
     }
 
-    console.log('amount', amount, merchantAddress);
+    console.log('amount', amount, merchantId);
     try {
       setIsLoading(true);
       purchase({
         address: ROZO_POINTS_CONTRACT_ADDRESS as `0x${string}`,
         abi: ROZO_POINTS_ABI,
         functionName: 'purchase',
-        args: [merchantAddress as `0x${string}`, amountInWei],
+        args: [BigInt(merchantId), amountInWei],
       });
     } catch (error) {
       console.error('Error making purchase:', error);
@@ -231,7 +231,7 @@ export function useRozoPoints() {
   };
 
   // Function to redeem with points
-  const redeemUsingPoints = async (merchantAddress: string, itemPrice: number) => {
+  const redeemUsingPoints = async (merchantId: number, itemPrice: number) => {
     if (!isConnected || !address) {
       toast.error('Please connect your wallet first');
       return;
@@ -254,7 +254,7 @@ export function useRozoPoints() {
         address: ROZO_POINTS_CONTRACT_ADDRESS as `0x${string}`,
         abi: ROZO_POINTS_ABI,
         functionName: 'redeemWithPoints',
-        args: [merchantAddress as `0x${string}`, BigInt(itemPrice * 1000000)], // Convert to USDC decimals (6)
+        args: [BigInt(merchantId), BigInt(itemPrice * 1000000)], // Convert to USDC decimals (6)
       });
     } catch (error) {
       console.error('Error redeeming with points:', error);

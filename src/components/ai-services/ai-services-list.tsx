@@ -15,6 +15,7 @@ export type CatalogItem = {
   source?: string;
   cashback_rate?: number;
   discount_rate?: number;
+  destination?: number;
 };
 
 export type CatalogResponse = CatalogItem[];
