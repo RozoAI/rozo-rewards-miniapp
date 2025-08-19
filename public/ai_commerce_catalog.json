@@ -1,5 +1,15 @@
 [
-
+  {
+    "domain": "bundle.lovable",
+    "price_in_usd": 0.1,
+    "destination": "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
+    "name": "80% OFF Lovable",
+    "category": "AI",
+    "description": "$60 for 12 months. 80% OFF! Extra 10% Cashback!",
+    "logo_url": "https://lovable.dev/favicon.ico",
+    "cashback_rate": 10,
+    "source": "https://lovable.dev?via=rozoai"
+  },
   {
     "domain": "lovable.dev",
     "name": "Lovable",

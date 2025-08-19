@@ -20,6 +20,8 @@ import React, { useState } from "react";
 import { toast } from "sonner";
 import { CreditPaymentButton } from "@/components/CreditPaymentButton";
 import { useCredit } from "@/contexts/CreditContext";
+import { useRozoPoints } from "@/hooks/useRozoPoints";
+import { useUSDCBalance } from "@/hooks/useUSDCBalance";
 
 type CatalogItem = {
   domain: string;
@@ -29,6 +31,8 @@ type CatalogItem = {
   logo_url?: string;
   source?: string;
   cashback_rate?: number;
+  price_in_usd?: number;
+  destination?: string;
 };
 
 type CatalogResponse = CatalogItem[];
@@ -52,6 +56,8 @@ export default function AIServiceDetailPage() {
   const [paymentLoading, setPaymentLoading] = React.useState(false);
   const [showCreditPayment, setShowCreditPayment] = React.useState(false);
   const { availableCredit } = useCredit();
+  const { points, purchaseWithUSDC, approveUSDCSpending, redeemUsingPoints, isConnected: walletConnected, isOnBaseChain, usdcAllowance } = useRozoPoints();
+  const { usdcBalance } = useUSDCBalance();
 
   React.useEffect(() => {
     async function loadService() {
@@ -164,7 +170,8 @@ export default function AIServiceDetailPage() {
 
   const initials = getFirstTwoWordInitialsFromName(service.name);
   const websiteUrl = service.source || `https://${service.domain}`;
-
+  // const amountInUnits = service.price_in_usd ? 1000000 * service.price_in_usd : 0;
+  const amountInUSD = service.price_in_usd ? service.price_in_usd : 0;
   return (
     <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
       {/* Header */}
@@ -316,6 +323,91 @@ export default function AIServiceDetailPage() {
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 pt-2">
+
+            {/* Payment Options */}
+            {walletConnected && isOnBaseChain && service && service.price_in_usd && (
+              <div className="bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                <div className="space-y-3">
+                  {/* USDC Payment Option */}
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-200 dark:border-blue-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                          <CreditCard className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">Pay with USDC</span>
+                      </div>
+                      <span className="text-lg font-bold text-blue-600">${service.price_in_usd}</span>
+                    </div>
+                    
+                    <Button
+                      onClick={() => {
+                        const amountInWei = BigInt(service.price_in_usd! * 1000000);
+                        const currentAllowance = usdcAllowance || BigInt(0);
+                        console.log("currentAllowance", currentAllowance);
+                        console.log("amountInWei", amountInWei);
+                        
+                        if (currentAllowance < amountInWei) {
+                          approveUSDCSpending(service.price_in_usd!);
+                        } else {
+                          purchaseWithUSDC(service.destination || "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897", amountInUSD);
+                        }
+                      }}
+                      disabled={usdcBalance < service.price_in_usd!}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                      size="lg"
+                    >
+                      {usdcBalance < service.price_in_usd! ? (
+                        <>
+                          <span className="text-red-200">Insufficient Balance</span>
+                          <span className="ml-2 text-xs bg-red-500 px-2 py-1 rounded">${usdcBalance.toFixed(2)}</span>
+                        </>
+                      ) : (() => {
+                        const amountInWei = BigInt(service.price_in_usd! * 1000000);
+                        const currentAllowance = usdcAllowance || BigInt(0);
+                        
+                        if (currentAllowance < amountInWei) {
+                          return "Approve USDC First";
+                        } else {
+                          return `Pay $${service.price_in_usd} USDC`;
+                        }
+                      })()}
+                    </Button>
+                  </div>
+
+                  {/* Points Payment Option */}
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-200 dark:border-blue-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                          <Tag className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">Redeem Points</span>
+                      </div>
+                      <span className="text-lg font-bold text-blue-600">{service.price_in_usd! * 100} pts</span>
+                    </div>
+                    
+                    <Button
+                      onClick={() => redeemUsingPoints(service.destination || "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897", amountInUSD)}
+                      disabled={points < service.price_in_usd! * 100}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                      size="lg"
+                    >
+                      {points < service.price_in_usd! * 100 ? (
+                        <>
+                          <span className="text-red-200">Insufficient Points</span>
+                          <span className="ml-2 text-xs bg-red-500 px-2 py-1 rounded">{points} pts</span>
+                        </>
+                      ) : (
+                        `Redeem ${service.price_in_usd! * 100} Points`
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Visit Website Button */}
             <Button
               onClick={visitWebsite}
               variant="outline"
@@ -326,88 +418,7 @@ export default function AIServiceDetailPage() {
               Visit Website
             </Button>
 
-            {/* {availableCredit > 0 && !showCreditPayment && service.domain === "rozo.ai" && (
-              <Button
-                onClick={() => setShowCreditPayment(true)}
-                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold bg-purple-600 hover:bg-purple-700"
-                size="lg"
-              >
-                <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                Pay $1.00 with Credit ({availableCredit.toFixed(2)} available)
-              </Button>
-            )} */}
 
-            {!payment && service.domain === "rozo.ai" && (
-              <Button
-                onClick={handlePayment}
-                disabled={paymentLoading}
-                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
-                size="lg"
-                variant="default"
-              >
-                {paymentLoading ? (
-                  <>
-                    <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
-                    Processing Payment...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                    Pay with Crypto
-                  </>
-                )}
-              </Button>
-            )}
-
-            {payment && (
-              <RozoPayButton.Custom
-                defaultOpen
-                closeOnSuccess
-                resetOnSuccess
-                appId={"rozoInvoice"}
-                toAddress={payment.toAddress as `0x${string}`}
-                toChain={Number(payment.toChain)}
-                {...(payment.toUnits && {
-                  toUnits: payment.toUnits,
-                })}
-                toToken={payment.toToken as `0x${string}`}
-                intent={`Pay for ${service.name}`}
-                onPaymentStarted={() => {
-                  setLoading(true);
-                }}
-                onPaymentBounced={() => {
-                  setLoading(false);
-                }}
-                onPaymentCompleted={(args: PaymentCompletedEvent) => {
-                  toast.success(`Payment successful to ${service.name}!`, {
-                    description:
-                      "Your payment has been processed successfully. Redirecting to receipt...",
-                    duration: 2000,
-                  });
-
-                  setTimeout(() => {
-                    window.location.href = `https://invoice.rozo.ai/receipt?id=${args.payment.id}&back_url=${window.location.href}`;
-                  }, 2000);
-                }}
-              >
-                {({ show }) => (
-                  <Button
-                    variant="default"
-                    className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
-                    onClick={show}
-                    disabled={loading}
-                    size="lg"
-                  >
-                    {loading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                    )}
-                    Pay with Crypto
-                  </Button>
-                )}
-              </RozoPayButton.Custom>
-            )}
           </div>
         </CardContent>
       </Card>

@@ -8,12 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WalletComponents } from "@/components/wallet-connect-button";
 import { useCredit } from "@/contexts/CreditContext";
 import { formatAddress } from "@/lib/utils";
-import { Coins, Copy, LogOut, Gift } from "lucide-react";
+import { Coins, Copy, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { useRozoPoints } from "@/hooks/useRozoPoints";
+import { useUSDCBalance } from "@/hooks/useUSDCBalance";
 
 export default function ProfilePageContent() {
   const [mounted, setMounted] = useState(false);
@@ -53,7 +54,8 @@ function ProfilePageContentInternal() {
   const [rozoBalance, setRozoBalance] = useState<number>(0);
   const [showNSCafe, setShowNSCafe] = useState(false);
   const { availableCredit, setAvailableCredit, deductCredit } = useCredit();
-  const { points, canClaim, isLoading: pointsLoading, claimBonus, isConnected: walletConnected, isOnBaseChain, switchToBase, isSwitching, debug } = useRozoPoints();
+  const { points, isLoading: pointsLoading, purchaseWithUSDC, redeemUsingPoints, isConnected: walletConnected, isOnBaseChain, switchToBase, isSwitching, debug } = useRozoPoints();
+  const { usdcBalance, isLoading: usdcLoading, refreshBalance } = useUSDCBalance();
 
   const handleDisconnect = () => {
     connectors.map((connector) => disconnect({ connector }));
@@ -194,49 +196,39 @@ function ProfilePageContentInternal() {
                 </div>
               )}
 
-              {/* Current Balance */}
-              <div className="flex justify-between items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <span className="text-sm text-blue-700 dark:text-blue-300">
-                  Available Points
-                </span>
-                <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                  {walletConnected && isOnBaseChain && !pointsLoading ? points : "0"} ROZO
-                </span>
+              {/* Balances */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* USDC Balance */}
+                <div className="flex flex-col p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <span className="text-sm text-green-700 dark:text-green-300">
+                    USDC Balance
+                  </span>
+                  <span className="text-xl font-bold text-green-600 dark:text-green-400">
+                    {walletConnected && isOnBaseChain && !usdcLoading ? usdcBalance.toFixed(2) : "0.00"} USDC
+                  </span>
+                </div>
+
+                {/* ROZO Points Balance */}
+                <div className="flex flex-col p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <span className="text-sm text-blue-700 dark:text-blue-300">
+                    ROZO Points
+                  </span>
+                  <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                    {walletConnected && isOnBaseChain && !pointsLoading ? points : "0"} Points
+                  </span>
+                </div>
               </div>
 
-              {/* Welcome Bonus Claim Button */}
-              {walletConnected && isOnBaseChain && points === 0 && !pointsLoading && (
-                <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Gift className="h-5 w-5 text-green-600" />
-                      <div>
-                        <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                          Welcome Bonus Available
-                        </p>
-                        <p className="text-xs text-green-600 dark:text-green-400">
-                          Claim 10 ROZO points for new users
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={claimBonus}
-                      disabled={pointsLoading}
-                      size="sm"
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      {pointsLoading ? "Claiming..." : "Claim"}
-                    </Button>
-                  </div>
-                </div>
-              )}
+
+
+
 
 
               {/* Points Info */}
               <div className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 text-center">
                   {walletConnected 
-                    ? "Spend Crypto. Earn cashback."
+                    ? "100 ROZO points = 1 USDC. Earn points by making purchases at participating merchants."
                     : "Connect your wallet to view your ROZO points balance"
                   }
                 </p>
