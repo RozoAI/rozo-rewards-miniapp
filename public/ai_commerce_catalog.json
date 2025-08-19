@@ -1,8 +1,8 @@
 [
   {
     "domain": "bundle.lovable",
-    "price_in_usd": 1,
-    "destination": "0x000000000000000000000000000000000000000a",
+    "price_in_usd": 0.1,
+    "destination": 10,
     "name": "80% OFF Lovable",
     "category": "AI",
     "description": "$60 for 12 months. 80% OFF! Extra 10% Cashback!",

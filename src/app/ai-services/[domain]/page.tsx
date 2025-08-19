@@ -382,7 +382,7 @@ export default function AIServiceDetailPage() {
                         <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
                           <Tag className="h-4 w-4 text-blue-600" />
                         </div>
-                        <span className="font-medium text-gray-900 dark:text-gray-100">Redeem Points</span>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">Pay with Points</span>
                       </div>
                       <span className="text-lg font-bold text-blue-600">{service.price_in_usd! * 100} pts</span>
                     </div>

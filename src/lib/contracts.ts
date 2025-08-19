@@ -1,5 +1,5 @@
 // ROZO Points Contract Configuration
-export const ROZO_POINTS_CONTRACT_ADDRESS = "0x7A2CBbd6b82E9F981062c0b8c32e66689c02c22C";
+export const ROZO_POINTS_CONTRACT_ADDRESS = "0x1B1129D78C9481da0EEB0bBBf2A484C06371D9eF";
 
 // ABI for the CashbackRewards contract
 export const ROZO_POINTS_ABI = [
@@ -63,9 +63,9 @@ export const ROZO_POINTS_ABI = [
       },
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "merchant",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "merchantId",
+        "type": "uint256"
       },
       {
         "indexed": false,
@@ -100,9 +100,9 @@ export const ROZO_POINTS_ABI = [
       },
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "merchant",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "merchantId",
+        "type": "uint256"
       },
       {
         "indexed": false,
@@ -194,9 +194,9 @@ export const ROZO_POINTS_ABI = [
       },
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "merchant",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "merchantId",
+        "type": "uint256"
       },
       {
         "indexed": false,
@@ -215,31 +215,44 @@ export const ROZO_POINTS_ABI = [
     "type": "event"
   },
   {
+    "anonymous": false,
     "inputs": [
       {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      }
-    ],
-    "name": "canClaimWelcomeBonus",
-    "outputs": [
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "merchantId",
+        "type": "uint256"
+      },
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
+        "indexed": false,
+        "internalType": "address",
+        "name": "destination",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "cashbackBp",
+        "type": "uint256"
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "name": "MerchantUpdated",
+    "type": "event"
   },
   {
-    "inputs": [],
-    "name": "claimWelcomeBonus",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "feeBp",
+        "type": "uint256"
+      }
+    ],
+    "name": "ConfigUpdated",
+    "type": "event"
   },
+
   {
     "inputs": [],
     "name": "getContractUSDCBalance",
@@ -313,13 +326,18 @@ export const ROZO_POINTS_ABI = [
   {
     "inputs": [
       {
-        "internalType": "address",
+        "internalType": "uint256",
         "name": "",
-        "type": "address"
+        "type": "uint256"
       }
     ],
     "name": "merchants",
     "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "merchantId",
+        "type": "uint256"
+      },
       {
         "internalType": "address",
         "name": "destination",
@@ -361,9 +379,9 @@ export const ROZO_POINTS_ABI = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "merchant",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "merchantId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -379,9 +397,9 @@ export const ROZO_POINTS_ABI = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "merchant",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "merchantId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -423,9 +441,9 @@ export const ROZO_POINTS_ABI = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_merchant",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "_merchantId",
+        "type": "uint256"
       },
       {
         "internalType": "address",
@@ -482,9 +500,9 @@ export const ROZO_POINTS_ABI = [
         "type": "address"
       },
       {
-        "internalType": "address",
-        "name": "merchant",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "merchantId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",

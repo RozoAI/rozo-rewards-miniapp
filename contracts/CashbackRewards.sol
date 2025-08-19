@@ -10,6 +10,7 @@ contract CashbackRewards is Ownable {
     // global config
     uint256 public feeBp = 100; // platform fee in basis points (100 = 1%)
     uint256 public constant POINTS_PER_USDC = 100; // 100 points = 1 USDC
+    uint256 public constant UNIT = 1000000; // 1 USDC = 1000000 USDC units
 
     struct Merchant {
         uint256 merchantId; // e.g. 500 = 5%
@@ -24,13 +25,13 @@ contract CashbackRewards is Ownable {
 
     event MerchantUpdated(uint256 merchantId, address destination, uint256 cashbackBp);
     event ConfigUpdated(uint256 feeBp);
-    event Purchase(address indexed user, address indexed merchant, uint256 amount, uint256 netToMerchant, uint256 cashbackPoints);
-    event Redeem(address indexed user, address indexed merchant, uint256 amount, uint256 pointsUsed);
+    event Purchase(address indexed user, uint256 merchantId, uint256 amount, uint256 netToMerchant, uint256 cashbackPoints);
+    event Redeem(address indexed user, uint256 merchantId, uint256 amount, uint256 pointsUsed);
     event PointsRedeemed(address indexed user, uint256 pointsRedeemed, uint256 usdcAmount);
     event AdminWithdraw(address indexed admin, uint256 amount);
     event WelcomeBonusClaimed(address indexed user, uint256 points);
     event AdminCashbackAdded(address indexed user, uint256 pointsAdded);
-    event AdminRedeemPoints(address indexed user, address indexed merchant, uint256 itemPrice, uint256 pointsUsed);
+    event AdminRedeemPoints(address indexed user, uint256 merchantId, uint256 itemPrice, uint256 pointsUsed);
 
     constructor(address _usdc) Ownable(msg.sender) {
         usdc = IERC20(_usdc);
@@ -73,14 +74,14 @@ contract CashbackRewards is Ownable {
     }
 
     // Admin function to redeem points for a specific user
-    function adminRedeemPoints(address user, address merchant, uint256 itemPrice) external onlyOwner {
+    function adminRedeemPoints(address user, uint256 merchantId, uint256 itemPrice) external onlyOwner {
         require(user != address(0), "invalid user address");
-        require(merchant != address(0), "invalid merchant address");
+        require(merchantId > 0, "invalid merchant id");
         require(itemPrice > 0, "item price must be greater than 0");
         
         uint256 requiredPoints = itemPrice * POINTS_PER_USDC;
         require(pointsBalance[user] >= requiredPoints, "user has insufficient points");
-        Merchant memory m = merchants[merchant];
+        Merchant memory m = merchants[merchantId];
         require(m.active, "merchant not active");
 
         pointsBalance[user] -= requiredPoints;
@@ -88,14 +89,14 @@ contract CashbackRewards is Ownable {
         // pool pays merchant in USDC for the redeemed value
         require(usdc.transfer(m.destination, itemPrice), "redeem transfer failed");
 
-        emit AdminRedeemPoints(user, merchant, itemPrice, requiredPoints);
+        emit AdminRedeemPoints(user, merchantId, itemPrice, requiredPoints);
     }
 
     // ----------- User Methods ----------- //
 
     
-    function purchase(address merchant, uint256 amount) external {
-        Merchant memory m = merchants[merchant];
+    function purchase(uint256 merchantId, uint256 amount) external {
+        Merchant memory m = merchants[merchantId];
         require(m.active, "merchant not active");
 
         // pull USDC from user
@@ -110,18 +111,17 @@ contract CashbackRewards is Ownable {
         require(usdc.transfer(m.destination, netToMerchant), "merchant transfer failed");
 
         // credit cashback points to user (convert USDC to points)
-        uint256 UNIT = 1000000; // 1 USDC = 1000000 USDC units
         uint256 cashbackPoints = cashback * POINTS_PER_USDC / UNIT;
         pointsBalance[msg.sender] += cashbackPoints;
 
-        emit Purchase(msg.sender, merchant, amount, netToMerchant, cashbackPoints);
+        emit Purchase(msg.sender, merchantId, amount, netToMerchant, cashbackPoints);
     }
 
     // Redeem points (points offset purchase, deducted from pool)
-    function redeemWithPoints(address merchant, uint256 itemPrice) external {
+    function redeemWithPoints(uint256 merchantId, uint256 itemPrice) external {
         uint256 requiredPoints = itemPrice * POINTS_PER_USDC / UNIT;
         require(pointsBalance[msg.sender] >= requiredPoints, "not enough points");
-        Merchant memory m = merchants[merchant];
+        Merchant memory m = merchants[merchantId];
         require(m.active, "merchant not active");
 
         pointsBalance[msg.sender] -= requiredPoints;
@@ -129,7 +129,7 @@ contract CashbackRewards is Ownable {
         // pool pays merchant in USDC for the redeemed value
         require(usdc.transfer(m.destination, itemPrice), "redeem transfer failed");
 
-        emit Redeem(msg.sender, merchant, itemPrice, requiredPoints);
+        emit Redeem(msg.sender, merchantId, itemPrice, requiredPoints);
     }
 
     // view helper
