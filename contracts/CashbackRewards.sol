@@ -8,7 +8,7 @@ contract CashbackRewards is Ownable {
     IERC20 public usdc; // Stablecoin used (e.g., USDC on Base)
 
     // global config
-    uint256 public feeBp = 0; // platform fee in basis points (100 = 1%)
+    uint256 public feeBp = 100; // platform fee in basis points (100 = 1%)
     uint256 public constant POINTS_PER_USDC = 100; // 100 points = 1 USDC
 
     struct Merchant {
@@ -19,6 +19,7 @@ contract CashbackRewards is Ownable {
 
     mapping(address => Merchant) public merchants;
     mapping(address => uint256) public pointsBalance; // user -> points (100 points = 1 USDC unit)
+    mapping(address => bool) public hasClaimed; // track if user has claimed welcome bonus
 
     event MerchantUpdated(address indexed merchant, address destination, uint256 cashbackBp);
     event ConfigUpdated(uint256 feeBp);
@@ -26,6 +27,7 @@ contract CashbackRewards is Ownable {
     event Redeem(address indexed user, address indexed merchant, uint256 amount, uint256 pointsUsed);
     event PointsRedeemed(address indexed user, uint256 pointsRedeemed, uint256 usdcAmount);
     event AdminWithdraw(address indexed admin, uint256 amount);
+    event WelcomeBonusClaimed(address indexed user, uint256 points);
 
     constructor(address _usdc) Ownable(msg.sender) {
         usdc = IERC20(_usdc);
@@ -57,6 +59,19 @@ contract CashbackRewards is Ownable {
     }
 
     // ----------- User Methods ----------- //
+    
+    // Claim welcome bonus for new users (10 points)
+    function claimWelcomeBonus() external {
+        require(!hasClaimed[msg.sender], "already claimed");
+        require(pointsBalance[msg.sender] == 0, "not a new user");
+        
+        uint256 welcomeBonus = 10; // 10 points
+        pointsBalance[msg.sender] += welcomeBonus;
+        hasClaimed[msg.sender] = true;
+        
+        emit WelcomeBonusClaimed(msg.sender, welcomeBonus);
+    }
+    
     function purchase(address merchant, uint256 amount) external {
         Merchant memory m = merchants[merchant];
         require(m.active, "merchant not active");
@@ -122,5 +137,10 @@ contract CashbackRewards is Ownable {
     // view helper to get contract's USDC balance
     function getContractUSDCBalance() external view returns (uint256) {
         return usdc.balanceOf(address(this));
+    }
+    
+    // view helper to check if user can claim welcome bonus
+    function canClaimWelcomeBonus(address user) external view returns (bool) {
+        return !hasClaimed[user] && pointsBalance[user] == 0;
     }
 }

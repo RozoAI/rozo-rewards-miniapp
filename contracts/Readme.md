@@ -3,6 +3,15 @@
 ### Overview
 The **Rewards & Cashback Protocol** is a base smart contract designed to enable merchants to offer cashback rewards to users, while also supporting a platform fee model. It provides a simple mechanism for merchants to onboard, for users to accumulate and redeem points, and for administrators to configure global settings.
 
+
+### Deployment
+
+Contract address: 
+0xeA359F684b11074a0598A36E19391Ee0A2b11a7A
+
+Dev
+0x4bf7307C6f3a42d33C79ED527B76aFdc6B1A7664
+
 ---
 
 ### Key Features
