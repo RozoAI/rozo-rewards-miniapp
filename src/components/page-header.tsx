@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
-import { WalletComponents } from "./wallet-connect-button";
+import { WalletActions } from "./WalletActions";
 
 export function PageHeader({
   title,
@@ -38,7 +38,8 @@ export function PageHeader({
         {icon}
         <h1 className="text-lg sm:text-2xl font-bold">{title}</h1>
       </div>
-      <WalletComponents />
+      {/* <WalletComponents /> */}
+      <WalletActions />
     </div>
   );
 }

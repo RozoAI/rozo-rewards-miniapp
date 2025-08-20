@@ -1,13 +1,15 @@
 "use client";
 
+import { farcasterMiniApp as miniAppConnector } from "@farcaster/miniapp-wagmi-connector";
 import { getDefaultConfig, RozoPayProvider } from "@rozoai/intent-pay";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createConfig, WagmiProvider } from "wagmi";
 
 const config = createConfig(
   getDefaultConfig({
-    appName: "Rozo Rewards MiniApp",
-    appIcon: "https://rozo.ai/rozo-logo.png",
+    appName: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME as string,
+    appIcon: process.env.NEXT_PUBLIC_ICON_URL as string,
+    connectors: [miniAppConnector()],
   })
 );
 

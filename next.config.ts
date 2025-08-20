@@ -14,15 +14,15 @@ const nextConfig: NextConfig = {
     };
     return config;
   },
-  async redirects() {
-    return [
-      {
-        source: "/",
-        destination: "/ai-services",
-        permanent: false,
-      },
-    ];
-  },
+  // async redirects() {
+  //   return [
+  //     {
+  //       source: "/",
+  //       destination: "/ai-services",
+  //       permanent: false,
+  //     },
+  //   ];
+  // },
 };
 
 export default nextConfig;

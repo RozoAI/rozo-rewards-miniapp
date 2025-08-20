@@ -1,10 +1,9 @@
 import { BottomNavbar } from "@/components/bottom-navbar";
 import IntercomInitializer from "@/components/intercom";
 import { CreditProvider } from "@/contexts/CreditContext";
-import { MiniKitContextProvider } from "@/providers/MiniKitProvider";
-import { Web3Provider } from "@/providers/Web3Provider";
-// import "@coinbase/onchainkit/styles.css";
 import { generateOgMetadata } from "@/lib/og-image";
+import { FrameProvider } from "@/providers/FarcasterProvider";
+import { Web3Provider } from "@/providers/Web3Provider";
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -91,7 +90,7 @@ export default function RootLayout({
         suppressHydrationWarning={true}
       >
         <Web3Provider>
-          <MiniKitContextProvider>
+          <FrameProvider>
             <CreditProvider>
               <ThemeProvider
                 attribute="class"
@@ -110,7 +109,7 @@ export default function RootLayout({
                 </main>
               </ThemeProvider>
             </CreditProvider>
-          </MiniKitContextProvider>
+          </FrameProvider>
         </Web3Provider>
       </body>
     </html>
