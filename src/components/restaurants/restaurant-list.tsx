@@ -1,7 +1,11 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatDistance, getFirstTwoWordInitialsFromName } from "@/lib/utils";
+import {
+  cn,
+  formatDistance,
+  getFirstTwoWordInitialsFromName,
+} from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
 import { BadgePercent, MapPin } from "lucide-react";
 import Link from "next/link";
@@ -82,9 +86,10 @@ export const RestaurantList = React.memo(function RestaurantList({
 }) {
   return (
     <ul
-      className={
-        "divide-y rounded-md rounded-b-none border " + (className ?? "")
-      }
+      className={cn(
+        "divide-y sm:rounded-md rounded-b-none border-t sm:border",
+        className
+      )}
     >
       {locations.map((loc) => (
         <ListRow key={loc._id} location={loc} />

@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { Search, X } from "lucide-react";
 
 type ListSearchInputProps = {
@@ -18,7 +19,7 @@ export function ListSearchInput({
   className,
 }: ListSearchInputProps) {
   return (
-    <div className={"relative mb-4 px-4 " + (className ?? "")}>
+    <div className={cn("relative mb-4 px-4 sm:px-0", className)}>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <input

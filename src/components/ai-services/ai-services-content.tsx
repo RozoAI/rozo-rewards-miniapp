@@ -5,6 +5,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
 import * as React from "react";
+import data from "../../../public/ai_commerce_catalog.json";
 import { AiServicesList, CatalogItem } from "./ai-services-list";
 
 type CatalogResponse = CatalogItem[];
@@ -20,11 +21,13 @@ export function AiServicesContent({ className }: { className?: string }) {
 
     async function load() {
       try {
-        const res = await fetch("/ai_commerce_catalog.json");
-        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        const data: CatalogResponse = await res.json();
         if (!Array.isArray(data)) throw new Error("Invalid data shape");
-        if (isMounted) setItems(data);
+        if (isMounted) {
+          const filteredData = data.filter(
+            (item) => item.discount_rate && item.discount_rate !== 0
+          );
+          setItems(filteredData);
+        }
       } catch (err) {
         if (isMounted)
           setErrorMessage(err instanceof Error ? err.message : "Unknown error");
@@ -70,7 +73,7 @@ export function AiServicesContent({ className }: { className?: string }) {
           placeholder="Search AI services..."
         />
         <ul className={cn("divide-y rounded-md rounded-b-none")}>
-          {Array.from({ length: 6 }).map((_, idx) => (
+          {Array.from({ length: 12 }).map((_, idx) => (
             <li key={idx} className="flex items-start gap-3 px-4 py-4">
               <div className="size-12 sm:size-16 rounded-lg bg-muted animate-pulse ring-1 ring-border flex-shrink-0" />
               <div className="flex-1 space-y-2">

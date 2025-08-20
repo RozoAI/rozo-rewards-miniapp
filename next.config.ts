@@ -2,9 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   devIndicators: false,
-  experimental: {
-    esmExternals: "loose",
-  },
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
