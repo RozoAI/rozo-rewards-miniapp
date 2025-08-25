@@ -1,6 +1,5 @@
 "use client";
-import { connectorsForWallets } from "@rainbow-me/rainbowkit";
-import { coinbaseWallet } from "@rainbow-me/rainbowkit/wallets";
+import { farcasterMiniApp as miniAppConnector } from "@farcaster/miniapp-wagmi-connector";
 import { getDefaultConfig } from "@rozoai/intent-pay";
 import { useMemo } from "react";
 import { createConfig, http } from "wagmi";
@@ -15,34 +14,20 @@ export function useWagmiConfig() {
   }
 
   return useMemo(() => {
-    const connectors = connectorsForWallets(
-      [
-        {
-          groupName: "Recommended Wallet",
-          wallets: [coinbaseWallet],
-        },
-      ],
-      {
-        appName: "Rozo Rewards",
-        appIcon: "https://rozo.ai/rozo-logo.png",
-        appDescription: "Rozo Rewards MiniApp",
-        appUrl: "https://rewards.rozo.ai",
-        projectId,
-      }
-    );
-
     const wagmiConfig = createConfig({
       ...getDefaultConfig({
         appName: "Rozo Rewards",
         appIcon: "https://rozo.ai/rozo-logo.png",
+        appDescription: "Rozo Rewards MiniApp",
+        appUrl: "https://rewards.rozo.ai",
         chains: [base],
-        additionalConnectors: connectors,
-        // turn off injected provider discovery
         multiInjectedProviderDiscovery: false,
         ssr: true,
         transports: {
           [base.id]: http(),
         },
+        connectors: [miniAppConnector()],
+        syncConnectedChain: true,
       }),
     });
 

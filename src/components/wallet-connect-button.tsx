@@ -26,12 +26,6 @@ function WalletComponentsInternal() {
   // Ensure consistent rendering between server and client
   const displayAddress = accountAddress || "";
 
-  // useEffect(() => {
-  //   if (isInMiniApp) {
-  //     connect({ connector: farcasterFrame(), chainId: base.id });
-  //   }
-  // }, [isInMiniApp]);
-
   if (!isInMiniApp) {
     return null;
   }
