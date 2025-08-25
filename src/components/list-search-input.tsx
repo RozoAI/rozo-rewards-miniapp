@@ -28,6 +28,7 @@ export function ListSearchInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="w-full pl-10 pr-10 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent cursor-text"
+          autoFocus={false}
         />
         {value && (
           <button

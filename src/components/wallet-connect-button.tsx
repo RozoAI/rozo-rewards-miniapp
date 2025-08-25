@@ -5,14 +5,12 @@ import { useRozoAPI } from "@/hooks/useRozoAPI";
 import { formatAddress } from "@/lib/utils";
 import { useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { WalletProvider } from "@coinbase/onchainkit/wallet";
-import farcasterFrame from "@farcaster/miniapp-wagmi-connector";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { UserIcon } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAccount, useConnect } from "wagmi";
-import { base } from "wagmi/chains";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 
@@ -28,11 +26,11 @@ function WalletComponentsInternal() {
   // Ensure consistent rendering between server and client
   const displayAddress = accountAddress || "";
 
-  useEffect(() => {
-    if (isInMiniApp) {
-      connect({ connector: farcasterFrame(), chainId: base.id });
-    }
-  }, [isInMiniApp]);
+  // useEffect(() => {
+  //   if (isInMiniApp) {
+  //     connect({ connector: farcasterFrame(), chainId: base.id });
+  //   }
+  // }, [isInMiniApp]);
 
   if (!isInMiniApp) {
     return null;
