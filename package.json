@@ -18,11 +18,13 @@
     "@coinbase/coinbase-sdk": "^0.25.0",
     "@coinbase/onchainkit": "^0.38.19",
     "@farcaster/frame-sdk": "^0.1.8",
+    "@farcaster/miniapp-wagmi-connector": "^1.0.0",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-popover": "^1.1.14",
     "@radix-ui/react-scroll-area": "^1.2.9",
     "@radix-ui/react-slot": "^1.2.3",
+    "@rainbow-me/rainbowkit": "^2.2.8",
     "@rozoai/intent-common": "^0.0.18",
     "@rozoai/intent-pay": "^0.0.21",
     "@supabase/ssr": "^0.6.1",
@@ -46,7 +48,7 @@
     "react-leaflet": "5.0.0-rc.2",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
-    "viem": "^2.33.3",
+    "viem": "2.x",
     "wagmi": "^2.16.2"
   },
   "devDependencies": {

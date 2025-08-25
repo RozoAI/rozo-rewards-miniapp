@@ -82,6 +82,7 @@ export function GoogleMap({
               <SheetContent
                 side="bottom"
                 className="h-auto max-h-[60vh] rounded-t-3xl border-t-2 p-0"
+                onOpenAutoFocus={(e) => e.preventDefault()}
               >
                 <div className="flex flex-col">
                   {/* Handle bar */}

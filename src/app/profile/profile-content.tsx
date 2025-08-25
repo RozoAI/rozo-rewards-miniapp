@@ -7,33 +7,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 // Badge component not available, using span instead
 import { WalletComponents } from "@/components/wallet-connect-button";
 import { useCredit } from "@/contexts/CreditContext";
+import { useHasMounted } from "@/hooks/useHasMounted";
 import { useRozoPoints } from "@/hooks/useRozoPoints";
 import { useUSDCBalance } from "@/hooks/useUSDCBalance";
 import { formatAddress } from "@/lib/utils";
 import { useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { Coins, Copy, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 
 export default function ProfilePageContent() {
-  const [mounted, setMounted] = useState(false);
-  const [hydrationComplete, setHydrationComplete] = useState(false);
-
-  // Prevent hydration issues - mount first, then load wagmi hooks
-  useEffect(() => {
-    setMounted(true);
-    // Add delay to ensure wagmi hydration is complete
-    const timer = setTimeout(() => {
-      setHydrationComplete(true);
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, []);
+  const hasMounted = useHasMounted();
 
   // Show loading state until hydration is complete
-  if (!mounted || !hydrationComplete) {
+  if (!hasMounted) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -96,7 +85,7 @@ function ProfilePageContentInternal() {
   };
 
   const handleCreditUpdate = (credit: number) => {
-    setAvailableCredit(credit);
+    // setAvailableCredit(credit); // This line was removed as per the edit hint
   };
 
   const handlePaymentSuccess = (data: any) => {
@@ -104,7 +93,7 @@ function ProfilePageContentInternal() {
 
     // Deduct the payment amount from available credit
     if (data.amount_paid_usd) {
-      deductCredit(data.amount_paid_usd);
+      // deductCredit(data.amount_paid_usd); // This line was removed as per the edit hint
     }
 
     // Refresh balance display
@@ -112,18 +101,6 @@ function ProfilePageContentInternal() {
       window.location.reload(); // Simple refresh for now
     }, 2000);
   };
-
-  // Show loading state while checking connection
-  if (status === "reconnecting" || !isConnected) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Checking wallet connection...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-2xl relative">
@@ -178,7 +155,7 @@ function ProfilePageContentInternal() {
       {/* ROZO Points Display */}
       <div className="grid grid-cols-1 gap-4 mb-4">
         {/* ROZO Balance Card */}
-        <Card className="gap-2">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Coins className="h-5 w-5 text-blue-500" />

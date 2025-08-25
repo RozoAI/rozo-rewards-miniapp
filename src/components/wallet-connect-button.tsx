@@ -1,14 +1,18 @@
 "use client";
 
+import { useHasMounted } from "@/hooks/useHasMounted";
+import { useRozoAPI } from "@/hooks/useRozoAPI";
 import { formatAddress } from "@/lib/utils";
+import { useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { WalletProvider } from "@coinbase/onchainkit/wallet";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+import "@rainbow-me/rainbowkit/styles.css";
 import { UserIcon } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { useRozoAPI } from "@/hooks/useRozoAPI";
 
 // Internal component that contains wagmi hooks - only rendered after hydration
 function WalletComponentsInternal() {
@@ -16,20 +20,17 @@ function WalletComponentsInternal() {
   const { address: accountAddress, status } = useAccount();
   const { connectors, connect, status: connectStatus } = useConnect();
   const { isAuthenticated } = useRozoAPI();
-
-  // Wait for wagmi to stabilize before showing full UI
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setWagmiReady(true);
-    }, 100); // Small delay to let wagmi settle
-    
-    return () => clearTimeout(timer);
-  }, []);
+  const { openConnectModal } = useConnectModal();
+  const { isInMiniApp, isPending } = useIsInMiniApp();
 
   // Ensure consistent rendering between server and client
   const displayAddress = accountAddress || "";
 
-  if (!wagmiReady) {
+  if (!isInMiniApp) {
+    return null;
+  }
+
+  if (isPending) {
     return (
       <WalletProvider>
         <Button disabled>Initializing...</Button>
@@ -39,10 +40,8 @@ function WalletComponentsInternal() {
 
   return (
     <WalletProvider>
-      {status === "disconnected" ? (
-        <Button onClick={() => connect({ connector: connectors[0] })}>
-          Connect Wallet
-        </Button>
+      {status === "disconnected" && openConnectModal ? (
+        <Button onClick={openConnectModal}>Connect Wallet</Button>
       ) : connectStatus === "pending" ? (
         <Button disabled>Connecting...</Button>
       ) : (
@@ -57,7 +56,10 @@ function WalletComponentsInternal() {
 
             <span className="text-sm">{formatAddress(displayAddress)}</span>
             {isAuthenticated && (
-              <div className="w-2 h-2 bg-green-500 rounded-full ml-1" title="Rozo Authenticated" />
+              <div
+                className="w-2 h-2 bg-green-500 rounded-full ml-1"
+                title="Rozo Authenticated"
+              />
             )}
           </Link>
         </Button>
@@ -67,15 +69,10 @@ function WalletComponentsInternal() {
 }
 
 export function WalletComponents() {
-  const [mounted, setMounted] = useState(false);
-
-  // Ensure component is mounted on client side
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const hasMounted = useHasMounted();
 
   // Show loading state until mounted to prevent hydration mismatch
-  if (!mounted) {
+  if (!hasMounted) {
     return (
       <WalletProvider>
         <Button disabled>Loading...</Button>

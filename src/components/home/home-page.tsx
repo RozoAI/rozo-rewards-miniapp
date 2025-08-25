@@ -211,6 +211,7 @@ export default function HomePage() {
           <SheetContent
             side="bottom"
             className="h-[85vh] rounded-t-3xl border-t-2 p-0"
+            onOpenAutoFocus={(e) => e.preventDefault()}
           >
             <div className="flex flex-col h-full">
               {/* Handle bar */}
