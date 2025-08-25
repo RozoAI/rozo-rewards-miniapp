@@ -1,14 +1,10 @@
 "use client";
 import { connectorsForWallets } from "@rainbow-me/rainbowkit";
-import {
-  coinbaseWallet,
-  metaMaskWallet,
-  rainbowWallet,
-} from "@rainbow-me/rainbowkit/wallets";
+import { coinbaseWallet } from "@rainbow-me/rainbowkit/wallets";
 import { getDefaultConfig } from "@rozoai/intent-pay";
 import { useMemo } from "react";
 import { createConfig, http } from "wagmi";
-import { base, baseSepolia } from "wagmi/chains";
+import { base } from "wagmi/chains";
 
 export function useWagmiConfig() {
   const projectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID ?? "";
@@ -25,13 +21,9 @@ export function useWagmiConfig() {
           groupName: "Recommended Wallet",
           wallets: [coinbaseWallet],
         },
-        {
-          groupName: "Other Wallets",
-          wallets: [rainbowWallet, metaMaskWallet],
-        },
       ],
       {
-        appName: "Rozo Rewards MiniApp",
+        appName: "Rozo Rewards",
         appIcon: "https://rozo.ai/rozo-logo.png",
         appDescription: "Rozo Rewards MiniApp",
         appUrl: "https://rewards.rozo.ai",
@@ -41,16 +33,15 @@ export function useWagmiConfig() {
 
     const wagmiConfig = createConfig({
       ...getDefaultConfig({
-        appName: "Rozo Rewards MiniApp",
+        appName: "Rozo Rewards",
         appIcon: "https://rozo.ai/rozo-logo.png",
-        chains: [base, baseSepolia],
+        chains: [base],
         additionalConnectors: connectors,
         // turn off injected provider discovery
         multiInjectedProviderDiscovery: false,
         ssr: true,
         transports: {
           [base.id]: http(),
-          [baseSepolia.id]: http(),
         },
       }),
     });

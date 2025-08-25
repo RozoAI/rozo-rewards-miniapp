@@ -3,13 +3,16 @@
 import { useHasMounted } from "@/hooks/useHasMounted";
 import { useRozoAPI } from "@/hooks/useRozoAPI";
 import { formatAddress } from "@/lib/utils";
+import { useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { WalletProvider } from "@coinbase/onchainkit/wallet";
+import farcasterFrame from "@farcaster/miniapp-wagmi-connector";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { UserIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAccount, useConnect } from "wagmi";
+import { base } from "wagmi/chains";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 
@@ -20,20 +23,22 @@ function WalletComponentsInternal() {
   const { connectors, connect, status: connectStatus } = useConnect();
   const { isAuthenticated } = useRozoAPI();
   const { openConnectModal } = useConnectModal();
-
-  // Wait for wagmi to stabilize before showing full UI
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setWagmiReady(true);
-    }, 100); // Small delay to let wagmi settle
-
-    return () => clearTimeout(timer);
-  }, []);
+  const { isInMiniApp, isPending } = useIsInMiniApp();
 
   // Ensure consistent rendering between server and client
   const displayAddress = accountAddress || "";
 
-  if (!wagmiReady) {
+  useEffect(() => {
+    if (isInMiniApp) {
+      connect({ connector: farcasterFrame(), chainId: base.id });
+    }
+  }, [isInMiniApp]);
+
+  if (!isInMiniApp) {
+    return null;
+  }
+
+  if (isPending) {
     return (
       <WalletProvider>
         <Button disabled>Initializing...</Button>
