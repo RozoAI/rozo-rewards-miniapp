@@ -7,14 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 // Badge component not available, using span instead
 import { WalletComponents } from "@/components/wallet-connect-button";
 import { useCredit } from "@/contexts/CreditContext";
+import { useRozoPoints } from "@/hooks/useRozoPoints";
+import { useUSDCBalance } from "@/hooks/useUSDCBalance";
 import { formatAddress } from "@/lib/utils";
+import { useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { Coins, Copy, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { useRozoPoints } from "@/hooks/useRozoPoints";
-import { useUSDCBalance } from "@/hooks/useUSDCBalance";
 
 export default function ProfilePageContent() {
   const [mounted, setMounted] = useState(false);
@@ -54,8 +55,23 @@ function ProfilePageContentInternal() {
   const [rozoBalance, setRozoBalance] = useState<number>(0);
   const [showNSCafe, setShowNSCafe] = useState(false);
   const { availableCredit, setAvailableCredit, deductCredit } = useCredit();
-  const { points, isLoading: pointsLoading, purchaseWithUSDC, redeemUsingPoints, isConnected: walletConnected, isOnBaseChain, switchToBase, isSwitching, debug } = useRozoPoints();
-  const { usdcBalance, isLoading: usdcLoading, refreshBalance } = useUSDCBalance();
+  const {
+    points,
+    isLoading: pointsLoading,
+    purchaseWithUSDC,
+    redeemUsingPoints,
+    isConnected: walletConnected,
+    isOnBaseChain,
+    switchToBase,
+    isSwitching,
+    debug,
+  } = useRozoPoints();
+  const {
+    usdcBalance,
+    isLoading: usdcLoading,
+    refreshBalance,
+  } = useUSDCBalance();
+  const { isInMiniApp, isPending } = useIsInMiniApp();
 
   const handleDisconnect = () => {
     connectors.map((connector) => disconnect({ connector }));
@@ -151,7 +167,7 @@ function ProfilePageContentInternal() {
                     </Button>
                   </>
                 ) : (
-                  <WalletComponents />
+                  !isPending && isInMiniApp && <WalletComponents />
                 )}
               </div>
             </div>
@@ -204,7 +220,10 @@ function ProfilePageContentInternal() {
                     USDC Balance
                   </span>
                   <span className="text-xl font-bold text-green-600 dark:text-green-400">
-                    {walletConnected && isOnBaseChain && !usdcLoading ? usdcBalance.toFixed(2) : "0.00"} USDC
+                    {walletConnected && isOnBaseChain && !usdcLoading
+                      ? usdcBalance.toFixed(2)
+                      : "0.00"}{" "}
+                    USDC
                   </span>
                 </div>
 
@@ -214,23 +233,20 @@ function ProfilePageContentInternal() {
                     ROZO Points
                   </span>
                   <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                    {walletConnected && isOnBaseChain && !pointsLoading ? points : "0"} Points
+                    {walletConnected && isOnBaseChain && !pointsLoading
+                      ? points
+                      : "0"}{" "}
+                    Points
                   </span>
                 </div>
               </div>
 
-
-
-
-
-
               {/* Points Info */}
               <div className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 text-center">
-                  {walletConnected 
+                  {walletConnected
                     ? "Spend Crypto. Earn Cashback."
-                    : "Connect your wallet to view your ROZO points balance"
-                  }
+                    : "Connect your wallet to view your ROZO points balance"}
                 </p>
               </div>
             </div>

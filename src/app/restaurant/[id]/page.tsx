@@ -2,6 +2,7 @@
 
 import { GoogleMap } from "@/components/home/google-map";
 import { PageHeader } from "@/components/page-header";
+import { PriceInputModal } from "@/components/PriceInputModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
-import { RozoPayButton } from "@rozoai/intent-pay";
+import { RozoPayButton, useRozoPayUI } from "@rozoai/intent-pay";
 
 import {
   BadgePercent,
@@ -34,6 +35,7 @@ export default function RestaurantDetailPage() {
   const params = useParams();
   const router = useRouter();
   const restaurantId = params.id as string;
+  const { resetPayment } = useRozoPayUI();
 
   const [payment, setPayment] = useState<PaymentIntentProps>();
   const [restaurant, setRestaurant] = React.useState<Restaurant | null>(null);
@@ -41,6 +43,7 @@ export default function RestaurantDetailPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = React.useState(false);
   const [showRozoIntegration, setShowRozoIntegration] = React.useState(false);
+  const [showPriceModal, setShowPriceModal] = React.useState(false);
 
   React.useEffect(() => {
     async function loadRestaurant() {
@@ -57,6 +60,13 @@ export default function RestaurantDetailPage() {
         }
 
         setRestaurant(foundRestaurant as Restaurant);
+        resetPayment({
+          intent: `${foundRestaurant.name} - ${foundRestaurant.price}`,
+          toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
+          toChain: baseUSDC.chainId,
+          toToken: baseUSDC.token as `0x${string}`,
+          toUnits: foundRestaurant.price?.toString(),
+        });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
@@ -77,12 +87,29 @@ export default function RestaurantDetailPage() {
 
   const handlePayment = async () => {
     if (!restaurant) return;
+    setShowPriceModal(true);
+  };
+
+  const handleChangeAmount = () => {
+    setShowPriceModal(true);
+  };
+
+  const handlePriceConfirm = (amount: number) => {
+    if (!restaurant) return;
 
     setPayment({
       toAddress: (restaurant.payTo ??
         "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897") as `0x${string}`,
       toChain: baseUSDC.chainId,
       toToken: baseUSDC.token,
+      toUnits: amount.toString(),
+    });
+    resetPayment({
+      intent: `${restaurant.name} - ${amount}`,
+      toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
+      toChain: baseUSDC.chainId,
+      toToken: baseUSDC.token as `0x${string}`,
+      toUnits: amount.toString(),
     });
   };
 
@@ -281,8 +308,8 @@ export default function RestaurantDetailPage() {
 
             {!payment && !!restaurant.ns_id && (
               <Button
-                // onClick={handlePayment}
-                onClick={redirectToNS}
+                onClick={handlePayment}
+                // onClick={redirectToNS}
                 disabled={paymentLoading}
                 className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
                 size="lg"
@@ -302,60 +329,89 @@ export default function RestaurantDetailPage() {
               </Button>
             )}
 
-            {payment && !!restaurant.ns_id && (
-              <RozoPayButton.Custom
-                defaultOpen
-                closeOnSuccess
-                resetOnSuccess
-                appId={"rozoInvoice"}
-                toAddress={payment.toAddress as `0x${string}`}
-                toChain={Number(payment.toChain)}
-                {...(payment.toUnits && {
-                  toUnits: payment.toUnits,
-                })}
-                toToken={payment.toToken as `0x${string}`}
-                intent={`Pay for ${restaurant.name}`}
-                onPaymentStarted={() => {
-                  setLoading(true);
-                  setPaymentLoading(true);
-                }}
-                onPaymentBounced={() => {
-                  setLoading(false);
-                  setPaymentLoading(false);
-                }}
-                onPaymentCompleted={(args: PaymentCompletedEvent) => {
-                  toast.success(`Payment successful to ${restaurant.name}!`, {
-                    description:
-                      "Your payment has been processed successfully. Redirecting to receipt...",
-                    duration: 2000,
-                  });
-                  setPaymentLoading(false);
-                  setTimeout(() => {
-                    window.location.href = `https://invoice.rozo.ai/receipt?id=${args.payment.id}&back_url=${window.location.href}`;
-                  }, 2000);
-                }}
-              >
-                {({ show }) => (
+            {payment && (
+              <div className="space-y-3">
+                {/* Amount Display and Change Button */}
+                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border">
+                  <div>
+                    <p className="text-sm font-medium">Payment Amount</p>
+                    <p className="text-lg font-bold">${payment.toUnits}</p>
+                  </div>
                   <Button
-                    variant="default"
-                    className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
-                    onClick={show}
-                    disabled={loading}
-                    size="lg"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleChangeAmount}
+                    className="text-xs"
                   >
-                    {loading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                    )}
-                    Pay with Crypto
+                    Change Amount
                   </Button>
-                )}
-              </RozoPayButton.Custom>
+                </div>
+
+                {/* Payment Button */}
+                <RozoPayButton.Custom
+                  defaultOpen
+                  closeOnSuccess
+                  resetOnSuccess
+                  appId={"rozoRewards"}
+                  toAddress={payment.toAddress as `0x${string}`}
+                  toChain={Number(payment.toChain)}
+                  {...(payment.toUnits && {
+                    toUnits: payment.toUnits,
+                  })}
+                  toToken={payment.toToken as `0x${string}`}
+                  intent={`Pay for ${restaurant.name} - $${payment.toUnits}`}
+                  onPaymentStarted={() => {
+                    setLoading(true);
+                    setPaymentLoading(true);
+                  }}
+                  onPaymentBounced={() => {
+                    setLoading(false);
+                    setPaymentLoading(false);
+                  }}
+                  onPaymentCompleted={(args: PaymentCompletedEvent) => {
+                    toast.success(`Payment successful to ${restaurant.name}!`, {
+                      description:
+                        "Your payment has been processed successfully. Redirecting to receipt...",
+                      duration: 2000,
+                    });
+                    setPaymentLoading(false);
+                    setTimeout(() => {
+                      window.location.href = `https://invoice.rozo.ai/receipt?id=${args.payment.id}&back_url=${window.location.href}`;
+                    }, 2000);
+                  }}
+                >
+                  {({ show }) => (
+                    <Button
+                      variant="default"
+                      className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
+                      onClick={show}
+                      disabled={loading}
+                      size="lg"
+                    >
+                      {loading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                      )}
+                      Pay ${payment.toUnits} with Crypto
+                    </Button>
+                  )}
+                </RozoPayButton.Custom>
+              </div>
             )}
           </div>
         </CardContent>
       </Card>
+
+      {/* Price Input Modal */}
+      <PriceInputModal
+        open={showPriceModal}
+        onOpenChange={setShowPriceModal}
+        onConfirm={handlePriceConfirm}
+        title={payment ? "Change Payment Amount" : "Enter Payment Amount"}
+        description={`Enter the amount you want to pay to ${restaurant?.name}. Minimum amount is $0.10 USD.`}
+        defaultAmount={payment?.toUnits || ""}
+      />
     </div>
   );
 }

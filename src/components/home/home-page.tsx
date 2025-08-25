@@ -14,6 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { type Restaurant } from "@/types/restaurant";
+import { useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { ChevronUp, Loader2, MapPinIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FabActions } from "../fab-actions";
@@ -30,6 +31,7 @@ export default function HomePage() {
     "granted" | "denied" | "prompt" | "unknown" | "approximate" | "timeout"
   >("unknown");
   const [locationError, setLocationError] = useState<string | null>(null);
+  const { isInMiniApp, isPending } = useIsInMiniApp();
 
   // Detect Chrome on macOS
   const isChromeOnMacOS = () => {
@@ -219,7 +221,7 @@ export default function HomePage() {
               <SheetHeader className="px-4 pb-2">
                 <SheetTitle className="flex items-center justify-between gap-2">
                   <span className="text-xl">Restaurants Near You</span>
-                  <WalletComponents />
+                  {/* <WalletComponents /> */}
                 </SheetTitle>
                 <p className="text-sm text-gray-500 text-left">
                   {restaurants.length} places found
@@ -236,9 +238,11 @@ export default function HomePage() {
 
       <FabActions className="absolute" />
 
-      <div className="absolute top-4 left-4">
-        <WalletComponents />
-      </div>
+      {!isPending && isInMiniApp && (
+        <div className="absolute top-4 left-4">
+          <WalletComponents />
+        </div>
+      )}
     </div>
   );
 }

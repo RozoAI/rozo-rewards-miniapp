@@ -22,6 +22,7 @@ export type CatalogItem = {
   discount_rate: number;
   savings_usd: number;
   source: string;
+  sold_out?: boolean;
 };
 
 export type CatalogResponse = CatalogItem[];
@@ -85,7 +86,16 @@ function ListRow({ item }: { item: CatalogItem }) {
 
             {/* Badges */}
             <div className="flex items-center gap-2 flex-wrap mt-2">
-              {item.discount_rate > 0 && (
+              {item.sold_out && (
+                <Badge
+                  variant="outline"
+                  className="text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
+                >
+                  Sold Out
+                </Badge>
+              )}
+
+              {!item.sold_out && item.discount_rate > 0 && (
                 <Badge
                   variant="destructive"
                   className="text-xs font-semibold bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400 border-red-500/20"
@@ -94,7 +104,7 @@ function ListRow({ item }: { item: CatalogItem }) {
                 </Badge>
               )}
               {/* 
-              {hasCashback && (
+              {!item.sold_out && hasCashback && (
                 <Badge
                   variant="secondary"
                   className="text-xs font-semibold bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400 border-green-500/20"
@@ -103,7 +113,7 @@ function ListRow({ item }: { item: CatalogItem }) {
                 </Badge>
               )} */}
 
-              {hasBundle && item.duration_months > 0 && (
+              {!item.sold_out && hasBundle && item.duration_months > 0 && (
                 <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md flex items-center gap-1">
                   <Clock className="size-3" />
                   {item.duration_months} months

@@ -17,6 +17,7 @@ type CatalogItem = {
   discount_rate: number;
   savings_usd: number;
   source: string;
+  sold_out?: boolean;
 };
 
 type CatalogResponse = CatalogItem[];

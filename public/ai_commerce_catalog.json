@@ -13,7 +13,8 @@
     "cashback_rate": 10,
     "discount_rate": 80,
     "savings_usd": 192,
-    "source": "https://lovable.dev?via=rozoai"
+    "source": "https://lovable.dev?via=rozoai",
+    "sold_out": true
   },
   {
     "domain": "bundle.bolt",
@@ -29,7 +30,8 @@
     "cashback_rate": 10,
     "discount_rate": 80,
     "savings_usd": 180,
-    "source": "https://bolt.new?via=rozoai"
+    "source": "https://bolt.new?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "bundle.n8n",
@@ -45,7 +47,8 @@
     "cashback_rate": 10,
     "discount_rate": 80,
     "savings_usd": 180,
-    "source": "https://n8n.io?via=rozoai"
+    "source": "https://n8n.io?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "bundle.descript",
@@ -61,7 +64,8 @@
     "cashback_rate": 10,
     "discount_rate": 85,
     "savings_usd": 360,
-    "source": "https://descript.com?via=rozoai"
+    "source": "https://descript.com?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "bundle.warp",
@@ -77,7 +81,8 @@
     "cashback_rate": 10,
     "discount_rate": 80,
     "savings_usd": 150,
-    "source": "https://warp.dev?via=rozoai"
+    "source": "https://warp.dev?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "bundle.gamma",
@@ -93,7 +98,8 @@
     "cashback_rate": 10,
     "discount_rate": 80,
     "savings_usd": 135,
-    "source": "https://gamma.app?via=rozoai"
+    "source": "https://gamma.app?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "bundle.wispr",
@@ -109,7 +115,8 @@
     "cashback_rate": 10,
     "discount_rate": 80,
     "savings_usd": 135,
-    "source": "https://wispr.ai?via=rozoai"
+    "source": "https://wispr.ai?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "bundle.magicpatterns",
@@ -125,7 +132,8 @@
     "cashback_rate": 10,
     "discount_rate": 80,
     "savings_usd": 180,
-    "source": "https://magicpatterns.com?via=rozoai"
+    "source": "https://magicpatterns.com?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "bundle.granola",
@@ -141,7 +149,8 @@
     "cashback_rate": 10,
     "discount_rate": 80,
     "savings_usd": 180,
-    "source": "https://granola.so?via=rozoai"
+    "source": "https://granola.so?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "bundle.linear",
@@ -157,7 +166,8 @@
     "cashback_rate": 10,
     "discount_rate": 80,
     "savings_usd": 240,
-    "source": "https://linear.app?via=rozoai"
+    "source": "https://linear.app?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "bundle.superhuman",
@@ -173,7 +183,8 @@
     "cashback_rate": 10,
     "discount_rate": 80,
     "savings_usd": 270,
-    "source": "https://superhuman.com?via=rozoai"
+    "source": "https://superhuman.com?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "bundle.raycast",
@@ -189,7 +200,8 @@
     "cashback_rate": 10,
     "discount_rate": 80,
     "savings_usd": 100,
-    "source": "https://raycast.com?via=rozoai"
+    "source": "https://raycast.com?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "bundle.perplexity",
@@ -205,7 +217,8 @@
     "cashback_rate": 10,
     "discount_rate": 80,
     "savings_usd": 240,
-    "source": "https://perplexity.ai?via=rozoai"
+    "source": "https://perplexity.ai?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "bundle.chatprd",
@@ -221,7 +234,8 @@
     "cashback_rate": 10,
     "discount_rate": 80,
     "savings_usd": 180,
-    "source": "https://chatprd.com?via=rozoai"
+    "source": "https://chatprd.com?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "bundle.mobbin",
@@ -237,7 +251,8 @@
     "cashback_rate": 10,
     "discount_rate": 80,
     "savings_usd": 120,
-    "source": "https://mobbin.com?via=rozoai"
+    "source": "https://mobbin.com?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "lovable.dev",
@@ -253,7 +268,8 @@
     "cashback_rate": 10,
     "discount_rate": 0,
     "savings_usd": 0,
-    "source": "https://lovable.dev?via=rozoai"
+    "source": "https://lovable.dev?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "beehiiv.com",
@@ -269,7 +285,8 @@
     "cashback_rate": 40,
     "discount_rate": 0,
     "savings_usd": 0,
-    "source": "https://www.beehiiv.com?via=rozoai"
+    "source": "https://www.beehiiv.com?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "heygen.com",
@@ -285,7 +302,8 @@
     "cashback_rate": 15,
     "discount_rate": 0,
     "savings_usd": 0,
-    "source": "https://heygen.com/?sid=rewardful&via=rozoai"
+    "source": "https://heygen.com/?sid=rewardful&via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "maxai.co",
@@ -301,7 +319,8 @@
     "cashback_rate": 20,
     "discount_rate": 0,
     "savings_usd": 0,
-    "source": "https://www.maxai.co/?via=rozoai"
+    "source": "https://www.maxai.co/?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "taplio.com",
@@ -317,7 +336,8 @@
     "cashback_rate": 20,
     "discount_rate": 0,
     "savings_usd": 0,
-    "source": "https://taplio.com?via=rozoai"
+    "source": "https://taplio.com?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "create.xyz",
@@ -333,7 +353,8 @@
     "cashback_rate": 20,
     "discount_rate": 0,
     "savings_usd": 0,
-    "source": "https://www.create.xyz?via=rozoai"
+    "source": "https://www.create.xyz?via=rozoai",
+    "sold_out": false
   },
   {
     "domain": "riverside.fm",
@@ -349,6 +370,7 @@
     "cashback_rate": 5,
     "discount_rate": 0,
     "savings_usd": 0,
-    "source": "https://riverside.fm/?utm_campaign=campaign_1&utm_medium=affiliate&utm_source=rewardful&via=rozoai"
+    "source": "https://riverside.fm/?utm_campaign=campaign_1&utm_medium=affiliate&utm_source=rewardful&via=rozoai",
+    "sold_out": false
   }
 ]
