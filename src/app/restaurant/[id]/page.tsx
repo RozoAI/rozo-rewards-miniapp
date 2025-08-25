@@ -42,7 +42,6 @@ export default function RestaurantDetailPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = React.useState(false);
-  const [showRozoIntegration, setShowRozoIntegration] = React.useState(false);
   const [showPriceModal, setShowPriceModal] = React.useState(false);
 
   React.useEffect(() => {
@@ -105,31 +104,12 @@ export default function RestaurantDetailPage() {
       toUnits: amount.toString(),
     });
     resetPayment({
-      intent: `${restaurant.name} - ${amount}`,
+      intent: `Pay for ${restaurant.name} - $${amount}`,
       toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
       toChain: baseUSDC.chainId,
       toToken: baseUSDC.token as `0x${string}`,
       toUnits: amount.toString(),
     });
-  };
-
-  const openMaps = () => {
-    if (restaurant) {
-      const url = `https://maps.google.com/?q=${restaurant.lat},${restaurant.lon}`;
-      window.open(url, "_blank");
-    }
-  };
-
-  const handleRozoPaymentSuccess = (paymentData: any) => {
-    toast.success(`🎉 ROZO cashback earned at ${restaurant?.name}!`, {
-      description: `You earned ${paymentData.cashback_earned} ROZO pts`,
-      duration: 5000,
-    });
-
-    // Optionally refresh the page or update UI state
-    setTimeout(() => {
-      setShowRozoIntegration(false);
-    }, 3000);
   };
 
   if (loading) {
@@ -262,32 +242,6 @@ export default function RestaurantDetailPage() {
               }}
             />
           </div>
-
-          {/* Rozo Integration Toggle */}
-          {/* <div className="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg">
-            <div>
-              <p className="font-medium text-purple-800">🪙 ROZO Rewards Integration</p>
-              <p className="text-sm text-purple-600">Earn cashback on your purchase</p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowRozoIntegration(!showRozoIntegration)}
-              className="border-purple-300 text-purple-700 hover:bg-purple-100"
-            >
-              {showRozoIntegration ? 'Hide' : 'Show'} Demo
-            </Button>
-          </div> */}
-
-          {/* {restaurant.cashback_rate > 0 && (
-            <RozoPaymentIntegration
-              restaurantId={restaurant._id}
-              restaurantName={restaurant.name}
-              amount={0.10} // Demo $0.10 payment
-              cashbackRate={restaurant.cashback_rate || 10}
-              onPaymentSuccess={handleRozoPaymentSuccess}
-            />
-          )} */}
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 pt-2">
