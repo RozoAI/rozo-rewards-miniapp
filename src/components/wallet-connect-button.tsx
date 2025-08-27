@@ -9,26 +9,20 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { UserIcon } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 
 // Internal component that contains wagmi hooks - only rendered after hydration
 function WalletComponentsInternal() {
-  const [wagmiReady, setWagmiReady] = useState(false);
   const { address: accountAddress, status } = useAccount();
-  const { connectors, connect, status: connectStatus } = useConnect();
+  const { status: connectStatus } = useConnect();
   const { isAuthenticated } = useRozoAPI();
   const { openConnectModal } = useConnectModal();
-  const { isInMiniApp, isPending } = useIsInMiniApp();
+  const { isPending } = useIsInMiniApp();
 
   // Ensure consistent rendering between server and client
   const displayAddress = accountAddress || "";
-
-  if (!isInMiniApp) {
-    return null;
-  }
 
   if (isPending) {
     return (

@@ -239,7 +239,7 @@ export default function HomePage() {
 
       <FabActions className="absolute" />
 
-      {!isPending && isInMiniApp && (
+      {!isPending && (
         <div className="absolute top-4 left-4">
           <WalletComponents />
         </div>

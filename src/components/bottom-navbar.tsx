@@ -1,14 +1,14 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { Binoculars, StoreIcon, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAccount } from "wagmi";
 
 export function BottomNavbar() {
   const pathname = usePathname();
-  const { isInMiniApp, isPending } = useIsInMiniApp();
+  const { isConnected } = useAccount();
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -48,7 +48,7 @@ export function BottomNavbar() {
             Discovery
           </span>
         </Link>
-        {!isPending && isInMiniApp && (
+        {isConnected && (
           <Link
             href="/profile"
             className={cn(

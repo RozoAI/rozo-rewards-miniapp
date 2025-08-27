@@ -59,7 +59,7 @@ export function GoogleMap({
         fullscreenControl={false}
         zoomControlOptions={{
           position:
-            typeof google !== "undefined"
+            typeof google !== "undefined" && google.maps.ControlPosition
               ? google.maps.ControlPosition.TOP_RIGHT
               : undefined,
         }}

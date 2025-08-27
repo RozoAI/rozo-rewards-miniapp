@@ -161,7 +161,7 @@ function ProfilePageContentInternal() {
                     </Button>
                   </>
                 ) : (
-                  !isPending && isInMiniApp && <WalletComponents />
+                  !isPending && <WalletComponents />
                 )}
               </div>
             </div>

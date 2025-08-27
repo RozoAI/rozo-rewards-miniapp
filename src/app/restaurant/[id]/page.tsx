@@ -233,15 +233,19 @@ export default function RestaurantDetailPage() {
               >
                 {restaurant.name}
               </h2>
-              <div className="flex items-start gap-2 text-muted-foreground">
-                <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
-                <div className="text-sm leading-relaxed">
+              <Link
+                href={`https://maps.google.com/?q=${restaurant.lat},${restaurant.lon}`}
+                target="_blank"
+                className="flex items-start gap-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer group"
+              >
+                <MapPin className="h-4 w-4 mt-0.5 shrink-0 group-hover:text-blue-600 transition-colors" />
+                <div className="text-sm leading-relaxed group-hover:underline">
                   <p className="font-medium">{restaurant.address_line1}</p>
                   {restaurant.address_line2 && (
                     <p>{restaurant.address_line2}</p>
                   )}
                 </div>
-              </div>
+              </Link>
               {/* Price and Cashback Details */}
               <div className="flex items-center gap-3 pt-1">
                 {restaurant.price && (
@@ -266,21 +270,6 @@ export default function RestaurantDetailPage() {
         <CardContent className="space-y-2">
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 pt-2 mb-6">
-            <Button
-              asChild
-              variant="outline"
-              className="w-full h-11 sm:h-12 text-sm sm:text-base font-medium"
-              size="lg"
-            >
-              <Link
-                href={`https://maps.google.com/?q=${restaurant.lat},${restaurant.lon}`}
-                target="_blank"
-              >
-                <MapPin className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                Open in Maps
-              </Link>
-            </Button>
-
             {!!restaurant.ns_id && (
               <div className="space-y-3">
                 {/* Amount Input */}
@@ -306,9 +295,11 @@ export default function RestaurantDetailPage() {
                       className="pl-8 h-11 sm:h-12 text-sm sm:text-base"
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Minimum amount is $0.10 USD
-                  </p>
+                  {paymentAmount && parseFloat(paymentAmount) < 0.1 && (
+                    <p className="text-xs text-destructive">
+                      Minimum amount is $0.10 USD
+                    </p>
+                  )}
                 </div>
 
                 {/* Payment Button */}
@@ -321,9 +312,11 @@ export default function RestaurantDetailPage() {
                       "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897") as `0x${string}`
                   }
                   toChain={baseUSDC.chainId}
-                  {...(paymentAmount && {
-                    toUnits: paymentAmount,
-                  })}
+                  {...(paymentAmount && parseFloat(paymentAmount) > 0.1
+                    ? {
+                        toUnits: paymentAmount,
+                      }
+                    : {})}
                   toToken={baseUSDC.token as `0x${string}`}
                   intent={`Pay for ${restaurant.name} - $${paymentAmount}`}
                   onPaymentStarted={() => {
@@ -376,56 +369,58 @@ export default function RestaurantDetailPage() {
                 </RozoPayButton.Custom>
 
                 {/* Pay with Points Button */}
-                {points > 0 && (
-                  <Button
-                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
-                    size="lg"
-                    onClick={handlePayWithPoints}
-                    variant="outline"
-                    disabled={
-                      paymentLoading ||
-                      !paymentAmount ||
-                      parseFloat(paymentAmount) < 0.1 ||
-                      isNaN(parseFloat(paymentAmount)) ||
-                      points < parseFloat(paymentAmount)
-                    }
-                  >
-                    {paymentLoading ? (
-                      <>
-                        <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
-                        Processing Payment...
-                      </>
-                    ) : (
-                      <>
-                        {points >= parseFloat(paymentAmount || "0") ? (
-                          <>
-                            <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                            Pay with Points ($
-                            {new Intl.NumberFormat("en-US", {
-                              style: "decimal",
-                              minimumFractionDigits: 0,
-                              maximumFractionDigits: 0,
-                            }).format(points)}
-                            )
-                          </>
-                        ) : (
-                          <>
-                            <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                            {points >= parseFloat(paymentAmount || "0")
-                              ? "Insufficient Points"
-                              : "Pay with Points"}{" "}
-                            ($
-                            {new Intl.NumberFormat("en-US", {
-                              style: "decimal",
-                              minimumFractionDigits: 0,
-                              maximumFractionDigits: 0,
-                            }).format(points)}
-                            )
-                          </>
-                        )}
-                      </>
-                    )}
-                  </Button>
+                {points > 0 ? (
+                  <div className="space-y-2">
+                    <Button
+                      className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
+                      size="lg"
+                      onClick={handlePayWithPoints}
+                      variant="outline"
+                      disabled={
+                        paymentLoading ||
+                        !paymentAmount ||
+                        parseFloat(paymentAmount) < 0.1 ||
+                        isNaN(parseFloat(paymentAmount)) ||
+                        points < parseFloat(paymentAmount)
+                      }
+                    >
+                      {paymentLoading ? (
+                        <>
+                          <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
+                          Processing Payment...
+                        </>
+                      ) : (
+                        <>
+                          <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                          Pay with{" "}
+                          {new Intl.NumberFormat("en-US", {
+                            style: "decimal",
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0,
+                          }).format(
+                            isNaN(parseFloat(paymentAmount || "0"))
+                              ? 0
+                              : parseFloat(paymentAmount || "0") * 100
+                          )}{" "}
+                          Points
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center">
+                      Available Points:{" "}
+                      {new Intl.NumberFormat("en-US", {
+                        style: "decimal",
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }).format((points ?? 0) * 100)}{" "}
+                      pts
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center">
+                    No points available. Make a purchase to start earning
+                    rewards.
+                  </p>
                 )}
               </div>
             )}

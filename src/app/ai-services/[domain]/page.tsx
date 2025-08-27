@@ -389,47 +389,49 @@ export default function AIServiceDetailPage() {
             )}
 
             {/* Pay with Points Button */}
-            {!service.sold_out && points > 0 && (
-              <Button
-                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
-                size={"lg"}
-                onClick={handlePayWithPoints}
-                variant="outline"
-                disabled={paymentLoading || points < service.price_in_usd}
-              >
-                {paymentLoading ? (
-                  <>
-                    <Wallet className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
-                    Processing Payment...
-                  </>
-                ) : (
-                  <>
-                    {points >= service.price_in_usd ? (
-                      <>
-                        <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
-                        Pay with Points ($
-                        {new Intl.NumberFormat("en-US", {
-                          style: "decimal",
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                        }).format(points)}
-                        )
-                      </>
-                    ) : (
-                      <>
-                        <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
-                        Insufficient Points ($
-                        {new Intl.NumberFormat("en-US", {
-                          style: "decimal",
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                        }).format(points)}
-                        )
-                      </>
-                    )}
-                  </>
-                )}
-              </Button>
+            {!service.sold_out && points > 0 ? (
+              <div className="space-y-2">
+                <Button
+                  className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
+                  size={"lg"}
+                  onClick={handlePayWithPoints}
+                  variant="outline"
+                  disabled={paymentLoading || points < service.price_in_usd}
+                >
+                  {paymentLoading ? (
+                    <>
+                      <Wallet className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
+                      Processing Payment...
+                    </>
+                  ) : (
+                    <>
+                      <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
+                      Pay with{" "}
+                      {new Intl.NumberFormat("en-US", {
+                        style: "decimal",
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }).format(service.price_in_usd * 100)}{" "}
+                      Points
+                    </>
+                  )}
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  Available Points:{" "}
+                  {new Intl.NumberFormat("en-US", {
+                    style: "decimal",
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  }).format(points * 100)}{" "}
+                  pts
+                </p>
+              </div>
+            ) : (
+              !service.sold_out && (
+                <p className="text-sm text-muted-foreground text-center">
+                  No points available. Make a purchase to start earning rewards.
+                </p>
+              )
             )}
 
             {/* Sold Out State */}

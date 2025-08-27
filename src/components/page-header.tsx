@@ -40,7 +40,7 @@ export function PageHeader({
         {icon}
         <h1 className="text-lg sm:text-2xl font-bold">{title}</h1>
       </div>
-      {!isPending && isInMiniApp && <WalletComponents />}
+      {!isPending && <WalletComponents />}
     </div>
   );
 }
