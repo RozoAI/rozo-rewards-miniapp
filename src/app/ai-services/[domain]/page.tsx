@@ -6,6 +6,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
@@ -16,6 +21,7 @@ import {
   Coins,
   CreditCard,
   ExternalLink,
+  HelpCircle,
   Tag,
   Wallet,
 } from "lucide-react";
@@ -416,14 +422,23 @@ export default function AIServiceDetailPage() {
                     </>
                   )}
                 </Button>
-                <p className="text-xs text-muted-foreground text-center">
+                <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
                   Available Points:{" "}
                   {new Intl.NumberFormat("en-US", {
                     style: "decimal",
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0,
-                  }).format(points * 100)}{" "}
+                  }).format((points ?? 0) * 100)}{" "}
                   pts
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <HelpCircle className="h-3 w-3" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Explore all the benefits of Rozo. Rozo points are the
+                      rewards for your purchases.
+                    </TooltipContent>
+                  </Tooltip>
                 </p>
               </div>
             ) : (

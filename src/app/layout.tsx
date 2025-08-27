@@ -87,7 +87,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased !pr-0`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased !pr-0 relative`}
         suppressHydrationWarning={true}
       >
         <Web3Provider>

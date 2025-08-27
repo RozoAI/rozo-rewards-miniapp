@@ -1,6 +1,7 @@
 "use client";
 
 import { ContactSupport } from "@/components/contact-support";
+import { FabActions } from "@/components/fab-actions";
 import { PageHeader } from "@/components/page-header";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,13 +9,25 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPay, useRozoPayUI } from "@rozoai/intent-pay";
 
-import { BadgePercent, Coins, CreditCard, Loader2, MapPin } from "lucide-react";
+import {
+  BadgePercent,
+  Coins,
+  CreditCard,
+  HelpCircle,
+  Loader2,
+  MapPin,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useRef } from "react";
@@ -406,7 +419,7 @@ export default function RestaurantDetailPage() {
                         </>
                       )}
                     </Button>
-                    <p className="text-xs text-muted-foreground text-center">
+                    <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
                       Available Points:{" "}
                       {new Intl.NumberFormat("en-US", {
                         style: "decimal",
@@ -414,6 +427,15 @@ export default function RestaurantDetailPage() {
                         maximumFractionDigits: 0,
                       }).format((points ?? 0) * 100)}{" "}
                       pts
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <HelpCircle className="h-3 w-3" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Explore all the benefits of Rozo. Rozo points are the
+                          rewards for your purchases.
+                        </TooltipContent>
+                      </Tooltip>
                     </p>
                   </div>
                 ) : (
@@ -428,6 +450,7 @@ export default function RestaurantDetailPage() {
 
           {/* Contact & Support */}
           <ContactSupport />
+          <FabActions />
         </CardContent>
       </Card>
     </div>
