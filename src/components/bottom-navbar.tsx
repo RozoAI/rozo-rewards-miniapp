@@ -4,11 +4,9 @@ import { cn } from "@/lib/utils";
 import { Binoculars, StoreIcon, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAccount } from "wagmi";
 
 export function BottomNavbar() {
   const pathname = usePathname();
-  const { isConnected } = useAccount();
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -48,21 +46,19 @@ export function BottomNavbar() {
             Discovery
           </span>
         </Link>
-        {isConnected && (
-          <Link
-            href="/profile"
-            className={cn(
-              "flex flex-col items-center justify-center gap-1 transition-colors min-w-0",
-              isActive("/profile")
-                ? "text-primary dark:text-primary font-bold"
-                : "text-gray-500 hover:text-gray-900 focus:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 dark:focus:text-gray-50"
-            )}
-            prefetch={false}
-          >
-            <User className="h-5 w-5 sm:h-6 sm:w-6" />
-            <span className="text-xs font-medium">Profile</span>
-          </Link>
-        )}
+        <Link
+          href="/profile"
+          className={cn(
+            "flex flex-col items-center justify-center gap-1 transition-colors min-w-0",
+            isActive("/profile")
+              ? "text-primary dark:text-primary font-bold"
+              : "text-gray-500 hover:text-gray-900 focus:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 dark:focus:text-gray-50"
+          )}
+          prefetch={false}
+        >
+          <User className="h-5 w-5 sm:h-6 sm:w-6" />
+          <span className="text-xs font-medium">Profile</span>
+        </Link>
       </div>
     </nav>
   );

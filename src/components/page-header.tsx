@@ -1,11 +1,9 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
-import { WalletComponents } from "./wallet-connect-button";
 
 export function PageHeader({
   title,
@@ -17,7 +15,6 @@ export function PageHeader({
   isBackButton?: boolean;
 }) {
   const router = useRouter();
-  const { isInMiniApp, isPending } = useIsInMiniApp();
 
   return (
     <div
@@ -40,7 +37,7 @@ export function PageHeader({
         {icon}
         <h1 className="text-lg sm:text-2xl font-bold">{title}</h1>
       </div>
-      {!isPending && <WalletComponents />}
+      {/* <WalletComponents /> */}
     </div>
   );
 }

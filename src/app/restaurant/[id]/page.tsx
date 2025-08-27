@@ -7,12 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { CustomTooltip } from "@/components/ui/custom-tooltip";
 import { Input } from "@/components/ui/input";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
@@ -381,7 +377,7 @@ export default function RestaurantDetailPage() {
                 </RozoPayButton.Custom>
 
                 {/* Pay with Points Button */}
-                {points > 0 ? (
+                {points > 0 && (
                   <div className="space-y-2">
                     <Button
                       className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
@@ -419,30 +415,22 @@ export default function RestaurantDetailPage() {
                       )}
                     </Button>
                     <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-                      Available Points{" "}
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <HelpCircle className="h-3 w-3" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Explore all the benefits of Rozo. Rozo points are the
-                          rewards for your purchases.
-                        </TooltipContent>
-                      </Tooltip>
-                      :{" "}
+                      Available Points:{" "}
                       {new Intl.NumberFormat("en-US", {
                         style: "decimal",
                         minimumFractionDigits: 0,
                         maximumFractionDigits: 0,
                       }).format((points ?? 0) * 100)}{" "}
                       pts
+                      <CustomTooltip
+                        content="Explore all the benefits of Rozo. Rozo points are the rewards for your purchases."
+                        position="top"
+                        className="w-[12rem] sm:w-[20rem] ml-1.5"
+                      >
+                        <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
+                      </CustomTooltip>
                     </p>
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center">
-                    No points available. Make a purchase to start earning
-                    rewards.
-                  </p>
                 )}
               </div>
             )}

@@ -4,6 +4,7 @@ import { getDefaultConfig } from "@rozoai/intent-pay";
 import { useMemo } from "react";
 import { createConfig, http } from "wagmi";
 import { base } from "wagmi/chains";
+import { baseAccount, metaMask } from "wagmi/connectors";
 
 export function useWagmiConfig() {
   return useMemo(() => {
@@ -18,7 +19,7 @@ export function useWagmiConfig() {
         transports: {
           [base.id]: http(),
         },
-        connectors: [miniAppConnector()],
+        connectors: [miniAppConnector(), metaMask(), baseAccount()],
       }),
     });
 

@@ -11,7 +11,6 @@ import { useHasMounted } from "@/hooks/useHasMounted";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { useUSDCBalance } from "@/hooks/useUSDCBalance";
 import { formatAddress } from "@/lib/utils";
-import { useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { Coins, Copy, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -64,8 +63,6 @@ function ProfilePageContentInternal() {
   const [pointsLoading, setPointsLoading] = useState(false);
   const [points, setPoints] = useState(0);
 
-  const { isInMiniApp, isPending } = useIsInMiniApp();
-
   useEffect(() => {
     const fetchPoints = async () => {
       if (!address) return;
@@ -82,7 +79,7 @@ function ProfilePageContentInternal() {
   const handleDisconnect = () => {
     connectors.map((connector) => disconnect({ connector }));
     toast.success("Wallet disconnected");
-    router.push("/lifestyle");
+    // router.push("/lifestyle");
   };
 
   const copyAddress = () => {
@@ -161,7 +158,7 @@ function ProfilePageContentInternal() {
                     </Button>
                   </>
                 ) : (
-                  !isPending && <WalletComponents />
+                  <WalletComponents />
                 )}
               </div>
             </div>
@@ -246,7 +243,9 @@ function ProfilePageContentInternal() {
               <div className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 text-center">
                   {isConnected
-                    ? "Spend Crypto. Earn Cashback."
+                    ? points > 0 && !isLoading
+                      ? "Spend Crypto. Earn Cashback."
+                      : "No points available. Make a purchase to start earning rewards."
                     : "Connect your wallet to view your ROZO points balance"}
                 </p>
               </div>

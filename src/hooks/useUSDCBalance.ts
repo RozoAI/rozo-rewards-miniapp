@@ -1,8 +1,8 @@
-import { useAccount, useReadContract, useBalance } from 'wagmi';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
+import { useAccount, useBalance } from "wagmi";
 
 // USDC token address on Base
-const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 
 export function useUSDCBalance() {
   const { address, isConnected } = useAccount();
@@ -10,9 +10,14 @@ export function useUSDCBalance() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Get USDC balance
-  const { data: balance, refetch: refetchBalance, error: balanceError } = useBalance({
+  const {
+    data: balance,
+    refetch: refetchBalance,
+    error: balanceError,
+  } = useBalance({
     address: address,
     token: USDC_ADDRESS as `0x${string}`,
+    chainId: 8453,
     query: {
       enabled: !!address,
     },
@@ -28,6 +33,12 @@ export function useUSDCBalance() {
       setUsdcBalance(0);
     }
   }, [balance]);
+
+  useEffect(() => {
+    if (isConnected) {
+      refreshBalance();
+    }
+  }, [isConnected]);
 
   // Function to refresh balance
   const refreshBalance = async () => {
