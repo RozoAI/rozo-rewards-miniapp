@@ -8,13 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WalletComponents } from "@/components/wallet-connect-button";
 import { useCredit } from "@/contexts/CreditContext";
 import { useHasMounted } from "@/hooks/useHasMounted";
-import { useRozoPoints } from "@/hooks/useRozoPoints";
+import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { useUSDCBalance } from "@/hooks/useUSDCBalance";
 import { formatAddress } from "@/lib/utils";
 import { useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { Coins, Copy, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 
@@ -39,28 +39,51 @@ export default function ProfilePageContent() {
 function ProfilePageContentInternal() {
   const { address, isConnected, status } = useAccount();
   const { disconnect } = useDisconnect();
-  const { connectors } = useConnect();
+  const { connectors, connect } = useConnect();
   const router = useRouter();
   const [rozoBalance, setRozoBalance] = useState<number>(0);
   const [showNSCafe, setShowNSCafe] = useState(false);
   const { availableCredit, setAvailableCredit, deductCredit } = useCredit();
-  const {
-    points,
-    isLoading: pointsLoading,
-    purchaseWithUSDC,
-    redeemUsingPoints,
-    isConnected: walletConnected,
-    isOnBaseChain,
-    switchToBase,
-    isSwitching,
-    debug,
-  } = useRozoPoints();
+  const { getPoints } = useRozoPointAPI();
+  // const {
+  //   points,
+  //   isLoading: pointsLoading,
+  //   purchaseWithUSDC,
+  //   redeemUsingPoints,
+  //   isConnected: walletConnected,
+  //   isOnBaseChain,
+  //   switchToBase,
+  //   isSwitching,
+  //   debug,
+  // } = useRozoPoints();
   const {
     usdcBalance,
     isLoading: usdcLoading,
     refreshBalance,
   } = useUSDCBalance();
+  const [pointsLoading, setPointsLoading] = useState(false);
+  const [points, setPoints] = useState(0);
+
   const { isInMiniApp, isPending } = useIsInMiniApp();
+
+  useEffect(() => {
+    if (!isConnected) {
+      connect({ connector: connectors[2] });
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchPoints = async () => {
+      if (!address) return;
+
+      setPointsLoading(true);
+      const points = await getPoints(address);
+      setPoints(points);
+      setPointsLoading(false);
+    };
+
+    fetchPoints();
+  }, [isConnected, address]);
 
   const handleDisconnect = () => {
     connectors.map((connector) => disconnect({ connector }));
@@ -165,7 +188,7 @@ function ProfilePageContentInternal() {
           <CardContent>
             <div className="space-y-4">
               {/* Network Warning */}
-              {walletConnected && !isOnBaseChain && (
+              {/* {isConnected && (
                 <div className="p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
                   <div className="flex items-center gap-2">
                     <div className="flex-1">
@@ -187,7 +210,7 @@ function ProfilePageContentInternal() {
                     </Button>
                   </div>
                 </div>
-              )}
+              )} */}
 
               {/* Balances */}
               <div className="grid grid-cols-2 gap-4">
@@ -197,7 +220,7 @@ function ProfilePageContentInternal() {
                     USDC Balance
                   </span>
                   <span className="text-xl font-bold text-green-600 dark:text-green-400">
-                    {walletConnected && isOnBaseChain && !usdcLoading
+                    {isConnected && !usdcLoading
                       ? usdcBalance.toFixed(2)
                       : "0.00"}{" "}
                     USDC
@@ -210,10 +233,17 @@ function ProfilePageContentInternal() {
                     ROZO Points
                   </span>
                   <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                    {walletConnected && isOnBaseChain && !pointsLoading
-                      ? points
-                      : "0"}{" "}
+                    {isConnected && !pointsLoading
+                      ? `${new Intl.NumberFormat("en-US", {
+                          style: "decimal",
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        }).format(points)} `
+                      : "0 "}
                     Points
+                  </span>
+                  <span className="text-sm text-blue-700 dark:text-blue-300">
+                    equivalent to <b>${(points / 100).toFixed(2)}</b>
                   </span>
                 </div>
               </div>
@@ -221,7 +251,7 @@ function ProfilePageContentInternal() {
               {/* Points Info */}
               <div className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 text-center">
-                  {walletConnected
+                  {isConnected
                     ? "Spend Crypto. Earn Cashback."
                     : "Connect your wallet to view your ROZO points balance"}
                 </p>

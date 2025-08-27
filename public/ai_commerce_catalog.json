@@ -240,7 +240,7 @@
   {
     "domain": "bundle.mobbin",
     "name": "Mobbin",
-    "price_in_usd": 30,
+    "price_in_usd": 1,
     "original_value_usd": 150,
     "duration_months": 12,
     "destination": 10,

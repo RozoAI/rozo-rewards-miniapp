@@ -5,12 +5,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPayUI } from "@rozoai/intent-pay";
 import {
   ArrowLeft,
   Clock,
+  Coins,
   CreditCard,
   ExternalLink,
   HelpCircleIcon,
@@ -18,8 +20,9 @@ import {
   Wallet,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect } from "react";
 import { toast } from "sonner";
+import { useAccount } from "wagmi";
 import data from "../../../../public/ai_commerce_catalog.json";
 
 type CatalogItem = {
@@ -55,13 +58,17 @@ export default function AIServiceDetailPage() {
   const serviceDomain = params.domain as string;
 
   const { resetPayment } = useRozoPayUI();
+  const { getPoints, spendPoints } = useRozoPointAPI();
+  const { address, isConnected } = useAccount();
 
   const [service, setService] = React.useState<CatalogItem | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = React.useState(false);
+  const [points, setPoints] = React.useState(0);
+  const [pointsLoading, setPointsLoading] = React.useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function loadService() {
       try {
         const foundService = data.find((item) => item.domain === serviceDomain);
@@ -88,6 +95,46 @@ export default function AIServiceDetailPage() {
       loadService();
     }
   }, [serviceDomain]);
+
+  useEffect(() => {
+    const fetchPoints = async () => {
+      if (!address) return;
+
+      setPointsLoading(true);
+      const points = await getPoints(address);
+      setPoints(points);
+      setPointsLoading(false);
+    };
+    fetchPoints();
+  }, [isConnected, address]);
+
+  const handlePayWithPoints = async () => {
+    if (!address || !service) return;
+
+    setPaymentLoading(true);
+
+    const signature = await spendPoints({
+      from_address: address,
+      to_handle: service.domain,
+      amount_usd_cents: service.price_in_usd * 100,
+      amount_local: service.price_in_usd,
+      currency_local: "USD",
+      timestamp: Date.now(),
+      order_id: Date.now().toString(),
+      about: `Pay for ${service.name} - ${service.duration_months} months`,
+    });
+
+    if (signature) {
+      toast.success("Points spent successfully");
+      setTimeout(() => {
+        router.refresh();
+      }, 2000);
+    } else {
+      toast.error("Failed to spend points");
+    }
+
+    setPaymentLoading(false);
+  };
 
   const visitWebsite = () => {
     if (service) {
@@ -316,12 +363,12 @@ export default function AIServiceDetailPage() {
                     >
                       {paymentLoading ? (
                         <>
-                          <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
+                          <Wallet className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
                           Processing Payment...
                         </>
                       ) : (
                         <>
-                          <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                          <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
                           Pay with Crypto
                         </>
                       )}
@@ -329,6 +376,44 @@ export default function AIServiceDetailPage() {
                   </div>
                 )}
               </RozoPayButton.Custom>
+            )}
+
+            {/* Pay with Points Button */}
+            {!service.sold_out && points > 0 && (
+              <Button
+                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
+                size={"lg"}
+                onClick={handlePayWithPoints}
+                variant="outline"
+                disabled={paymentLoading || points < service.price_in_usd}
+              >
+                {paymentLoading ? (
+                  <>
+                    <Wallet className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
+                    Processing Payment...
+                  </>
+                ) : (
+                  <>
+                    {points >= service.price_in_usd ? (
+                      <>
+                        <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
+                        Pay with Points ($
+                        {new Intl.NumberFormat("en-US", {
+                          style: "decimal",
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        }).format(points)}
+                        )
+                      </>
+                    ) : (
+                      <>
+                        <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
+                        Insufficient Points
+                      </>
+                    )}
+                  </>
+                )}
+              </Button>
             )}
 
             {/* Sold Out State */}
@@ -341,7 +426,7 @@ export default function AIServiceDetailPage() {
             {/* Visit Website Button */}
             <Button
               onClick={visitWebsite}
-              variant="outline"
+              variant="ghost"
               className="w-full h-11 text-sm font-medium hover:bg-accent/50 transition-colors"
               size="lg"
             >
