@@ -44,7 +44,7 @@ function ProfilePageContentInternal() {
   const [rozoBalance, setRozoBalance] = useState<number>(0);
   const [showNSCafe, setShowNSCafe] = useState(false);
   const { availableCredit, setAvailableCredit, deductCredit } = useCredit();
-  const { getPoints } = useRozoPointAPI();
+  const { getPoints, isLoading } = useRozoPointAPI();
   // const {
   //   points,
   //   isLoading: pointsLoading,
@@ -233,7 +233,7 @@ function ProfilePageContentInternal() {
                     ROZO Points
                   </span>
                   <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                    {isConnected && !pointsLoading
+                    {isConnected && !isLoading
                       ? `${new Intl.NumberFormat("en-US", {
                           style: "decimal",
                           minimumFractionDigits: 0,
