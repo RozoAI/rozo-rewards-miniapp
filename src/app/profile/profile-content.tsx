@@ -67,12 +67,6 @@ function ProfilePageContentInternal() {
   const { isInMiniApp, isPending } = useIsInMiniApp();
 
   useEffect(() => {
-    if (!isConnected) {
-      connect({ connector: connectors[2] });
-    }
-  }, []);
-
-  useEffect(() => {
     const fetchPoints = async () => {
       if (!address) return;
 

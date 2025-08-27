@@ -44,7 +44,7 @@ export function useRozoPointAPI() {
     setError(null);
     try {
       const response = await fetch(
-        `https://auth0.rozo.ai/functions/v1/cashback?evm_address=0xAb560xA9Bc0f3f72EeC4B50CF085CbB885ECD1EfBec819`
+        `https://auth0.rozo.ai/functions/v1/cashback?evm_address=${address}`
       );
       const data: RozoPointsResponse = await response.json();
       return (data.balance.points || 0) * 100;
