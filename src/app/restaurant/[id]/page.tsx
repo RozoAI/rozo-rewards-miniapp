@@ -420,13 +420,7 @@ export default function RestaurantDetailPage() {
                       )}
                     </Button>
                     <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-                      Available Points:{" "}
-                      {new Intl.NumberFormat("en-US", {
-                        style: "decimal",
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      }).format((points ?? 0) * 100)}{" "}
-                      pts
+                      Available Points{" "}
                       <Tooltip>
                         <TooltipTrigger>
                           <HelpCircle className="h-3 w-3" />
@@ -436,6 +430,13 @@ export default function RestaurantDetailPage() {
                           rewards for your purchases.
                         </TooltipContent>
                       </Tooltip>
+                      :{" "}
+                      {new Intl.NumberFormat("en-US", {
+                        style: "decimal",
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }).format((points ?? 0) * 100)}{" "}
+                      pts
                     </p>
                   </div>
                 ) : (
