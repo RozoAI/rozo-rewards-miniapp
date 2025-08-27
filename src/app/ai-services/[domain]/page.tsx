@@ -1,7 +1,6 @@
 "use client";
 
 import { ContactSupport } from "@/components/contact-support";
-import { FabActions } from "@/components/fab-actions";
 import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -461,7 +460,6 @@ export default function AIServiceDetailPage() {
 
           {/* Contact & Support */}
           <ContactSupport />
-          <FabActions />
         </CardContent>
       </Card>
     </div>

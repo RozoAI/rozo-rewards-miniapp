@@ -1,3 +1,4 @@
+import { FabActions } from "@/components/fab-actions";
 import { createMiniAppMetadata } from "@/lib/miniapp-embed";
 import { Restaurant } from "@/types/restaurant";
 import type { Metadata } from "next";
@@ -89,5 +90,10 @@ export default function RestaurantDetailLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <div className="relative w-full">
+      {children}
+      <FabActions className="fixed" />
+    </div>
+  );
 }
