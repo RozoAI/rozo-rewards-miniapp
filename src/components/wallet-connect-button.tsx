@@ -3,7 +3,6 @@
 import { useHasMounted } from "@/hooks/useHasMounted";
 import { useRozoAPI } from "@/hooks/useRozoAPI";
 import { formatAddress } from "@/lib/utils";
-import { useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { WalletProvider } from "@coinbase/onchainkit/wallet";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
@@ -19,18 +18,9 @@ function WalletComponentsInternal() {
   const { status: connectStatus } = useConnect();
   const { isAuthenticated } = useRozoAPI();
   const { openConnectModal } = useConnectModal();
-  const { isPending } = useIsInMiniApp();
 
   // Ensure consistent rendering between server and client
   const displayAddress = accountAddress || "";
-
-  if (isPending) {
-    return (
-      <WalletProvider>
-        <Button disabled>Initializing...</Button>
-      </WalletProvider>
-    );
-  }
 
   return (
     <WalletProvider>
