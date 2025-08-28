@@ -139,7 +139,7 @@ export default function RestaurantDetailPage() {
 
     const signature = await spendPoints({
       from_address: address,
-      to_handle: restaurant.name.toLowerCase().replace(/\s+/g, ""),
+      to_handle: restaurant.handle || restaurant.name.toLowerCase().replace(/\s+/g, ""),
       amount_usd_cents: parseFloat(paymentAmount) * 100,
       amount_local: parseFloat(paymentAmount),
       currency_local: "USD",

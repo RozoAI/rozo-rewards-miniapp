@@ -3,6 +3,7 @@
     {
       "_id": "88c62be12697d882a8b03e60",
       "name": "NS Cafe",
+      "handle": "cafe",
       "formatted": "Lobby, Forest City Marina Hotel, Jalan Forest City - Lebuhraya Tanjung Pelepas, 1, Pulau Satu, 81550 Gelang Patah, Johor, Malaysia",
       "address_line1": "Forest City Marina Hotel",
       "address_line2": " Jalan Forest City",
@@ -21,6 +22,7 @@
     {
       "_id": "28c62be12697d882a8b03e60",
       "name": "Golden Sand Spa",
+      "handle": "spa",
       "formatted": "5% Cashback - Golden Sand Jinsha Spa",
       "address_line1": "Forest City Marina Hotel",
       "address_line2": " Jalan Forest City",
@@ -39,6 +41,7 @@
     {
       "_id": "38c62be12697d882a8b03e60",
       "name": "Meisan Restaurant",
+      "handle": "meisan",
       "formatted": "Chinese Cuisine 15% Cashback",
       "address_line1": "Forest City Marina Hotel",
       "address_line2": " Jalan Forest City",
@@ -57,6 +60,7 @@
     {
       "_id": "48c62be12697d882a8b03e60",
       "name": "Ride (Singapore <> Network School)",
+      "handle": "ride",
       "formatted": "248 RM for 1 Stop. 2 for 263 RM, 3 for 278 RM (7 Seats) Carol +60192551688",
       "address_line1": "Forest City Marina Hotel",
       "address_line2": " Jalan Forest City",
