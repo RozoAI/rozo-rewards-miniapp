@@ -211,10 +211,16 @@ function ProfilePageContentInternal() {
                     USDC Balance
                   </span>
                   <span className="text-xl font-bold text-green-600 dark:text-green-400">
-                    {isConnected && !usdcLoading
-                      ? usdcBalance.toFixed(2)
-                      : "0.00"}{" "}
-                    USDC
+                    {isConnected && !usdcLoading ? (
+                      `${usdcBalance.toFixed(2)} USDC`
+                    ) : isConnected ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-16 bg-green-200 dark:bg-green-800 rounded animate-pulse"></div>
+                        <span>USDC</span>
+                      </div>
+                    ) : (
+                      "0.00 USDC"
+                    )}
                   </span>
                 </div>
 
@@ -224,17 +230,36 @@ function ProfilePageContentInternal() {
                     ROZO Points
                   </span>
                   <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                    {isConnected && !isLoading
-                      ? `${new Intl.NumberFormat("en-US", {
-                          style: "decimal",
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                        }).format(points)} `
-                      : "0 "}
-                    Points
+                    {isConnected && !isLoading ? (
+                      `${new Intl.NumberFormat("en-US", {
+                        style: "decimal",
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }).format(points)} Points`
+                    ) : isConnected ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-20 bg-blue-200 dark:bg-blue-800 rounded animate-pulse"></div>
+                        <span>Points</span>
+                      </div>
+                    ) : (
+                      "0 Points"
+                    )}
                   </span>
                   <span className="text-sm text-blue-700 dark:text-blue-300">
-                    equivalent to <b>${(points / 100).toFixed(2)}</b>
+                    {isConnected && !isLoading ? (
+                      <>
+                        equivalent to <b>${(points / 100).toFixed(2)}</b>
+                      </>
+                    ) : isConnected ? (
+                      <div className="flex items-center gap-1">
+                        <span>equivalent to</span>
+                        <div className="h-4 w-12 bg-blue-200 dark:bg-blue-800 rounded animate-pulse"></div>
+                      </div>
+                    ) : (
+                      <>
+                        equivalent to <b>$0.00</b>
+                      </>
+                    )}
                   </span>
                 </div>
               </div>

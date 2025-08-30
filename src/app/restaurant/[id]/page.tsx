@@ -51,7 +51,7 @@ export default function RestaurantDetailPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = React.useState(false);
-  const [paymentAmount, setPaymentAmount] = React.useState<string>("0.00");
+  const [paymentAmount, setPaymentAmount] = React.useState<string>("");
   const [points, setPoints] = React.useState(0);
   const [pointsLoading, setPointsLoading] = React.useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
