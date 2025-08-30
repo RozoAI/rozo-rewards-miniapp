@@ -89,7 +89,7 @@ About: ${about}
 
   const spendPoints = async (
     payload: SpendPointsRequest
-  ): Promise<string | null> => {
+  ): Promise<SpendPointsResponse | null> => {
     setIsLoading(true);
     setError(null);
     try {
@@ -130,7 +130,7 @@ About: ${about}
         throw new Error(data.message);
       }
 
-      return data.data.signature || null;
+      return data;
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to spend points";

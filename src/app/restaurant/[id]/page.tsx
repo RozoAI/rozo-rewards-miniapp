@@ -8,6 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CustomTooltip } from "@/components/ui/custom-tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
@@ -22,6 +30,7 @@ import {
   HelpCircle,
   Loader2,
   MapPin,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -45,6 +54,8 @@ export default function RestaurantDetailPage() {
   const [paymentAmount, setPaymentAmount] = React.useState<string>("0.00");
   const [points, setPoints] = React.useState(0);
   const [pointsLoading, setPointsLoading] = React.useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
+  const [dialogLoading, setDialogLoading] = React.useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -62,10 +73,14 @@ export default function RestaurantDetailPage() {
         }
 
         setRestaurant(foundRestaurant as Restaurant);
-        const price = Number(foundRestaurant.price ?? 0);
-        setPaymentAmount(price.toFixed(2));
+
+        let price = 0;
+        if (foundRestaurant.price && !isNaN(Number(foundRestaurant.price))) {
+          price = Number(foundRestaurant.price);
+          setPaymentAmount(price.toFixed(2));
+        }
         resetPayment({
-          intent: `${foundRestaurant.name} - ${price}`,
+          intent: `${foundRestaurant.name} - ${price.toFixed(2)}`,
           toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
           toChain: baseUSDC.chainId,
           toToken: baseUSDC.token as `0x${string}`,
@@ -132,32 +147,47 @@ export default function RestaurantDetailPage() {
     }, 500);
   };
 
-  const handlePayWithPoints = async () => {
+  const handlePayWithPoints = () => {
+    setShowConfirmDialog(true);
+  };
+
+  const confirmPaymentWithPoints = async () => {
     if (!address || !restaurant || !paymentAmount) return;
 
-    setPaymentLoading(true);
+    setDialogLoading(true);
 
-    const signature = await spendPoints({
+    const paymentData = {
       from_address: address,
-      to_handle: restaurant.handle || restaurant.name.toLowerCase().replace(/\s+/g, ""),
+      to_handle:
+        restaurant.handle || restaurant.name.toLowerCase().replace(/\s+/g, ""),
       amount_usd_cents: parseFloat(paymentAmount) * 100,
       amount_local: parseFloat(paymentAmount),
       currency_local: "USD",
       timestamp: Date.now(),
       order_id: Date.now().toString(),
       about: `Pay for ${restaurant.name} - $${paymentAmount}`,
-    });
+    };
 
-    if (signature) {
-      toast.success("Points spent successfully");
-      setTimeout(() => {
-        router.refresh();
-      }, 2000);
+    const response = await spendPoints(paymentData);
+
+    if (response && response.status === "success") {
+      // Store payment data in sessionStorage for receipt page
+      const receiptData = {
+        ...response.data,
+        restaurant_name: restaurant.name,
+        restaurant_address: restaurant.address_line1,
+      };
+
+      sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
+
+      setShowConfirmDialog(false);
+
+      // Navigate to receipt page
+      router.push("/receipt");
     } else {
       toast.error("Failed to spend points");
+      setDialogLoading(false);
     }
-
-    setPaymentLoading(false);
   };
 
   if (loading) {
@@ -343,7 +373,9 @@ export default function RestaurantDetailPage() {
                     });
                     setPaymentLoading(false);
                     setTimeout(() => {
-                      window.location.href = `https://invoice.rozo.ai/receipt?id=${args.payment.id}&back_url=${window.location.href}`;
+                      window.location.href = `https://invoice.rozo.ai/receipt?id=${
+                        args.payment.externalId || args.paymentId
+                      }&back_url=${window.location.href}`;
                     }, 2000);
                   }}
                 >
@@ -385,34 +417,24 @@ export default function RestaurantDetailPage() {
                       onClick={handlePayWithPoints}
                       variant="outline"
                       disabled={
-                        paymentLoading ||
                         !paymentAmount ||
                         parseFloat(paymentAmount) < 0.1 ||
                         isNaN(parseFloat(paymentAmount)) ||
                         points < parseFloat(paymentAmount)
                       }
                     >
-                      {paymentLoading ? (
-                        <>
-                          <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
-                          Processing Payment...
-                        </>
-                      ) : (
-                        <>
-                          <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                          Pay with{" "}
-                          {new Intl.NumberFormat("en-US", {
-                            style: "decimal",
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0,
-                          }).format(
-                            isNaN(parseFloat(paymentAmount || "0"))
-                              ? 0
-                              : parseFloat(paymentAmount || "0") * 100
-                          )}{" "}
-                          Points
-                        </>
-                      )}
+                      <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                      Pay with{" "}
+                      {new Intl.NumberFormat("en-US", {
+                        style: "decimal",
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }).format(
+                        isNaN(parseFloat(paymentAmount || "0"))
+                          ? 0
+                          : parseFloat(paymentAmount || "0") * 100
+                      )}{" "}
+                      Points
                     </Button>
                     <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
                       Available Points:{" "}
@@ -440,6 +462,97 @@ export default function RestaurantDetailPage() {
           <ContactSupport />
         </CardContent>
       </Card>
+
+      {/* Pay with Points Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Payment with Points</DialogTitle>
+            <DialogDescription>
+              You are about to pay for{" "}
+              <span className="font-medium text-foreground">
+                {restaurant?.name}
+              </span>{" "}
+              using your Rozo Points.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Points to be used:
+                </span>
+                <span className="font-semibold text-foreground">
+                  {paymentAmount &&
+                    new Intl.NumberFormat("en-US", {
+                      style: "decimal",
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    }).format(parseFloat(paymentAmount) * 100)}{" "}
+                  pts
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Available Points:
+                </span>
+                <span className="font-medium text-muted-foreground">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "decimal",
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  }).format((points ?? 0) * 100)}{" "}
+                  pts
+                </span>
+              </div>
+              <div className="h-px bg-border my-2" />
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Remaining Points:
+                </span>
+                <span className="font-semibold text-foreground">
+                  {paymentAmount &&
+                    new Intl.NumberFormat("en-US", {
+                      style: "decimal",
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    }).format((points - parseFloat(paymentAmount)) * 100)}{" "}
+                  pts
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+              disabled={dialogLoading}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmPaymentWithPoints}
+              disabled={dialogLoading}
+              className="w-full sm:w-auto"
+            >
+              {dialogLoading ? (
+                <>
+                  <Wallet className="h-4 w-4 animate-pulse mr-2" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Coins className="h-4 w-4 mr-2" />
+                  Confirm Payment
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

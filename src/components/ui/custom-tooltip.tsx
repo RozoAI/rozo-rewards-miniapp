@@ -74,7 +74,7 @@ export function CustomTooltip({
 
   return (
     <div
-      className="relative inline-block z-[90]"
+      className="relative inline-block z-50"
       onMouseEnter={showTooltip}
       onMouseLeave={hideTooltip}
       onFocus={showTooltip}

@@ -6,8 +6,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-
 import { CustomTooltip } from "@/components/ui/custom-tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
@@ -70,6 +77,8 @@ export default function AIServiceDetailPage() {
   const [paymentLoading, setPaymentLoading] = React.useState(false);
   const [points, setPoints] = React.useState(0);
   const [pointsLoading, setPointsLoading] = React.useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
+  const [dialogLoading, setDialogLoading] = React.useState(false);
 
   useEffect(() => {
     async function loadService() {
@@ -111,12 +120,16 @@ export default function AIServiceDetailPage() {
     fetchPoints();
   }, [isConnected, address]);
 
-  const handlePayWithPoints = async () => {
+  const handlePayWithPoints = () => {
+    setShowConfirmDialog(true);
+  };
+
+  const confirmPaymentWithPoints = async () => {
     if (!address || !service) return;
 
-    setPaymentLoading(true);
+    setDialogLoading(true);
 
-    const signature = await spendPoints({
+    const paymentData = {
       from_address: address,
       to_handle: service.domain,
       amount_usd_cents: service.price_in_usd * 100,
@@ -125,18 +138,28 @@ export default function AIServiceDetailPage() {
       timestamp: Date.now(),
       order_id: Date.now().toString(),
       about: `Pay for ${service.name} - ${service.duration_months} months`,
-    });
+    };
 
-    if (signature) {
-      toast.success("Points spent successfully");
-      setTimeout(() => {
-        router.refresh();
-      }, 2000);
+    const response = await spendPoints(paymentData);
+
+    if (response && response.status === "success") {
+      // Store payment data in sessionStorage for receipt page
+      const receiptData = {
+        ...response.data,
+        service_name: service.name,
+        service_domain: service.domain,
+      };
+
+      sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
+
+      setShowConfirmDialog(false);
+
+      // Navigate to receipt page
+      router.push("/receipt");
     } else {
       toast.error("Failed to spend points");
+      setDialogLoading(false);
     }
-
-    setPaymentLoading(false);
   };
 
   const visitWebsite = () => {
@@ -362,7 +385,9 @@ export default function AIServiceDetailPage() {
                   });
                   setPaymentLoading(false);
                   setTimeout(() => {
-                    window.location.href = `https://invoice.rozo.ai/receipt?id=${args.payment.id}&back_url=${window.location.href}`;
+                    window.location.href = `https://invoice.rozo.ai/receipt?id=${
+                      args.payment.externalId || args.paymentId
+                    }&back_url=${window.location.href}`;
                   }, 2000);
                 }}
               >
@@ -399,27 +424,18 @@ export default function AIServiceDetailPage() {
                   size={"lg"}
                   onClick={handlePayWithPoints}
                   variant="outline"
-                  disabled={paymentLoading || points < service.price_in_usd}
+                  disabled={points < service.price_in_usd}
                 >
-                  {paymentLoading ? (
-                    <>
-                      <Wallet className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
-                      Processing Payment...
-                    </>
-                  ) : (
-                    <>
-                      <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
-                      Pay with{" "}
-                      {new Intl.NumberFormat("en-US", {
-                        style: "decimal",
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      }).format(service.price_in_usd * 100)}{" "}
-                      Points
-                    </>
-                  )}
+                  <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Pay with{" "}
+                  {new Intl.NumberFormat("en-US", {
+                    style: "decimal",
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  }).format(service.price_in_usd * 100)}{" "}
+                  Points
                 </Button>
-                <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+                <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
                   Available Points:{" "}
                   {new Intl.NumberFormat("en-US", {
                     style: "decimal",
@@ -434,7 +450,7 @@ export default function AIServiceDetailPage() {
                   >
                     <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
                   </CustomTooltip>
-                </p>
+                </div>
               </div>
             )}
 
@@ -450,6 +466,97 @@ export default function AIServiceDetailPage() {
           <ContactSupport />
         </CardContent>
       </Card>
+
+      {/* Pay with Points Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Payment with Points</DialogTitle>
+            <DialogDescription>
+              You are about to pay for{" "}
+              <span className="font-medium text-foreground">
+                {service?.name} ({service?.duration_months} months)
+              </span>{" "}
+              using your Rozo Points.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Points to be used:
+                </span>
+                <span className="font-semibold text-foreground">
+                  {service &&
+                    new Intl.NumberFormat("en-US", {
+                      style: "decimal",
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    }).format(service.price_in_usd * 100)}{" "}
+                  pts
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Available Points:
+                </span>
+                <span className="font-medium text-muted-foreground">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "decimal",
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  }).format((points ?? 0) * 100)}{" "}
+                  pts
+                </span>
+              </div>
+              <div className="h-px bg-border my-2" />
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Remaining Points:
+                </span>
+                <span className="font-semibold text-foreground">
+                  {service &&
+                    new Intl.NumberFormat("en-US", {
+                      style: "decimal",
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    }).format((points - service.price_in_usd) * 100)}{" "}
+                  pts
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+              disabled={dialogLoading}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmPaymentWithPoints}
+              disabled={dialogLoading}
+              className="w-full sm:w-auto"
+            >
+              {dialogLoading ? (
+                <>
+                  <Wallet className="h-4 w-4 animate-pulse mr-2" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Coins className="h-4 w-4 mr-2" />
+                  Confirm Payment
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
