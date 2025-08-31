@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
+import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPayUI } from "@rozoai/intent-pay";
 import {
@@ -26,6 +27,7 @@ import {
   CreditCard,
   ExternalLink,
   HelpCircle,
+  Share,
   Tag,
   Wallet,
 } from "lucide-react";
@@ -66,7 +68,9 @@ export default function AIServiceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const serviceDomain = params.domain as string;
+  const { isInMiniApp } = useIsInMiniApp();
 
+  const { composeCast } = useComposeCast();
   const { resetPayment } = useRozoPayUI();
   const { getPoints, spendPoints } = useRozoPointAPI();
   const { address, isConnected } = useAccount();
@@ -166,6 +170,30 @@ export default function AIServiceDetailPage() {
     if (service) {
       const url = service.source || `https://${service.domain}`;
       window.open(url, "_blank");
+    }
+  };
+
+  const handleShare = () => {
+    const text = `Check out ${service?.name} - ${service?.duration_months} months for $${service?.price_in_usd}! ${service?.description}.`;
+
+    if (isInMiniApp) {
+      composeCast({
+        text,
+        embeds: [window.location.href],
+      });
+    } else {
+      (async () => {
+        try {
+          const shareData: ShareData = {
+            title: text,
+            url: window.location.href,
+          };
+          await navigator.share(shareData);
+          console.log("Shared successfully");
+        } catch (err) {
+          console.error(`Error sharing: ${err}`);
+        }
+      })();
     }
   };
 
@@ -280,15 +308,16 @@ export default function AIServiceDetailPage() {
                 </div>
               </div>
 
-              {/* Visit Website Button */}
-              <Button
-                onClick={visitWebsite}
-                variant="ghost"
-                className="mb-auto"
-                size="icon"
-              >
-                <ExternalLink className="h-4 w-4" />
-              </Button>
+              <div className="flex items-start gap-2">
+                <Button onClick={handleShare} variant="default" size="sm">
+                  <Share className="h-4 w-4" />
+                  Share
+                </Button>
+                <Button onClick={visitWebsite} variant="secondary" size="sm">
+                  <ExternalLink className="h-4 w-4" />
+                  Visit
+                </Button>
+              </div>
             </div>
           </div>
         </CardHeader>

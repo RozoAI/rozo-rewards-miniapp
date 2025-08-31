@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
+import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPay, useRozoPayUI } from "@rozoai/intent-pay";
 
@@ -30,6 +31,7 @@ import {
   HelpCircle,
   Loader2,
   MapPin,
+  Share,
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
@@ -46,6 +48,8 @@ export default function RestaurantDetailPage() {
   const { paymentState } = useRozoPay();
   const { getPoints, spendPoints } = useRozoPointAPI();
   const { address, isConnected } = useAccount();
+  const { isInMiniApp } = useIsInMiniApp();
+  const { composeCast } = useComposeCast();
 
   const [restaurant, setRestaurant] = React.useState<Restaurant | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -190,6 +194,36 @@ export default function RestaurantDetailPage() {
     }
   };
 
+  const handleShare = () => {
+    const text = `Check out ${restaurant?.name} at ${
+      restaurant?.address_line1
+    }!${
+      restaurant?.cashback_rate
+        ? ` Get ${restaurant.cashback_rate}% cashback!`
+        : ""
+    }`;
+
+    if (isInMiniApp) {
+      composeCast({
+        text,
+        embeds: [window.location.href],
+      });
+    } else {
+      (async () => {
+        try {
+          const shareData: ShareData = {
+            title: text,
+            url: window.location.href,
+          };
+          await navigator.share(shareData);
+          console.log("Shared successfully");
+        } catch (err) {
+          console.error(`Error sharing: ${err}`);
+        }
+      })();
+    }
+  };
+
   if (loading) {
     return (
       <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
@@ -301,6 +335,13 @@ export default function RestaurantDetailPage() {
                   </Badge>
                 )}
               </div>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <Button onClick={handleShare} variant="default" size="sm">
+                <Share className="h-4 w-4" />
+                Share
+              </Button>
             </div>
           </div>
         </CardHeader>
