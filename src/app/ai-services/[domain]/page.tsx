@@ -309,13 +309,11 @@ export default function AIServiceDetailPage() {
               </div>
 
               <div className="flex items-start gap-2">
-                <Button onClick={handleShare} variant="default" size="sm">
+                <Button onClick={handleShare} variant="default" size="icon">
                   <Share className="h-4 w-4" />
-                  Share
                 </Button>
-                <Button onClick={visitWebsite} variant="secondary" size="sm">
+                <Button onClick={visitWebsite} variant="secondary" size="icon">
                   <ExternalLink className="h-4 w-4" />
-                  Visit
                 </Button>
               </div>
             </div>

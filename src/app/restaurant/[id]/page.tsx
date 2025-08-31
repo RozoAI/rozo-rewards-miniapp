@@ -338,9 +338,8 @@ export default function RestaurantDetailPage() {
             </div>
 
             <div className="flex items-start gap-2">
-              <Button onClick={handleShare} variant="default" size="sm">
+              <Button onClick={handleShare} variant="default" size="icon">
                 <Share className="h-4 w-4" />
-                Share
               </Button>
             </div>
           </div>
