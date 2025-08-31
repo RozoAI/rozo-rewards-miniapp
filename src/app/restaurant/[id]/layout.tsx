@@ -50,9 +50,6 @@ export async function generateMetadata({
     ? `${addressParts}${priceInfo}${cashbackInfo}`
     : "View restaurant details, address and pay with crypto.";
 
-  const urlPath = `/restaurant/${id}`;
-  const fullUrl = `${process.env.NEXT_PUBLIC_URL}${urlPath}`;
-
   return createMiniAppMetadata(
     {
       imageUrl:
@@ -63,13 +60,13 @@ export async function generateMetadata({
         ? `🍽️ Visit ${restaurant.name}`
         : "🍽️ View Restaurant",
       name: restaurant ? restaurant.name : "Restaurant Details",
-      url: fullUrl,
+      url: `${process.env.NEXT_PUBLIC_URL}/restaurant/${id}`,
     },
     {
       title,
       description,
       alternates: {
-        canonical: urlPath,
+        canonical: `/restaurant/${id}`,
       },
       other: restaurant
         ? {
