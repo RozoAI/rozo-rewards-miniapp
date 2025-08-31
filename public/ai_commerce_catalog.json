@@ -1,20 +1,20 @@
 [
   {
     "domain": "bundle.lovable",
-    "name": "Lovable",
-    "price_in_usd": 60,
-    "original_value_usd": 252,
+    "name": "Lovable 50% Coupon",
+    "price_in_usd": 24,
+    "original_value_usd": 120,
     "duration_months": 12,
     "destination": 10,
     "category": "AI",
-    "description": "Build something Lovable. Create apps and websites by chatting with AI",
+    "description": "Create apps and websites by chatting with AI.",
     "offer_description": "Annual subscription bundle at discounted rate",
     "logo_url": "https://lovable.dev/favicon.ico",
     "cashback_rate": 10,
     "discount_rate": 80,
-    "savings_usd": 192,
+    "savings_usd": 96,
     "source": "https://lovable.dev?via=rozoai",
-    "sold_out": true
+    "sold_out": false
   },
   {
     "domain": "bundle.bolt",
@@ -67,6 +67,24 @@
     "source": "https://descript.com?via=rozoai",
     "sold_out": false
   },
+  {
+    "domain": "bundle.fellou",
+    "name": "Fellou (Invitation Code)",
+    "price_in_usd": 10,
+    "original_value_usd": 20,
+    "duration_months": 1,
+    "destination": 10,
+    "category": "AI",
+    "description": "AI Agentic Browser for Deep Search & Automation ",
+    "offer_description": "AI Agentic Browser for Deep Search & Automation",
+    "logo_url": "https://fellou.ai/favicon.ico",
+    "cashback_rate": 10,
+    "discount_rate": 50,
+    "savings_usd": 10,
+    "source": "https://fellou.ai/?via=rozoai",
+    "sold_out": false
+  },
+
   {
     "domain": "bundle.warp",
     "name": "Warp",
