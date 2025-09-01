@@ -93,6 +93,8 @@ About: ${about}
     setIsLoading(true);
     setError(null);
     try {
+
+
       // Get the message to sign
       const message = getSignMessage(
         payload.from_address,
@@ -109,7 +111,7 @@ About: ${about}
         to_handle: payload.to_handle,
         amount_usd_cents: payload.amount_usd_cents,
         amount_local: payload.amount_local,
-        currency_local: "USD",
+        currency_local: payload.currency_local,
         timestamp,
         order_id: timestamp.toString(),
         about: payload.about,

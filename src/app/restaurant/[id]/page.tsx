@@ -626,16 +626,6 @@ export default function RestaurantDetailPage() {
                   pts
                 </span>
               </div>
-              {isRMCurrency && getExchangeRate() && (
-                <>
-                  <div className="h-px bg-border my-2" />
-                  <div className="flex justify-center">
-                    <span className="text-xs text-muted-foreground">
-                      Exchange rate: 1 RM = {getExchangeRate()} USD
-                    </span>
-                  </div>
-                </>
-              )}
             </div>
           </div>
 
