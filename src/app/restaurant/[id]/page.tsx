@@ -404,7 +404,7 @@ export default function RestaurantDetailPage() {
                     placeholder="0.00"
                     value={paymentAmount}
                     onChange={(e) => handleAmountChange(e.target.value)}
-                    className={`pl-12 h-11 sm:h-12 text-sm sm:text-base`}
+                    className={`pl-12 h-11 sm:h-12 text-sm sm:text-base [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-moz-appearance]:textfield`}
                   />
                 </div>
                 {paymentAmount &&
