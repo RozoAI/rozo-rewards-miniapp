@@ -528,7 +528,7 @@ export default function RestaurantDetailPage() {
                     )}{" "}
                     Points
                   </Button>
-                  <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+                  <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
                     Available Points:{" "}
                     {new Intl.NumberFormat("en-US", {
                       style: "decimal",
@@ -543,7 +543,7 @@ export default function RestaurantDetailPage() {
                     >
                       <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
                     </CustomTooltip>
-                  </p>
+                  </div>
                 </div>
               )}
             </div>
