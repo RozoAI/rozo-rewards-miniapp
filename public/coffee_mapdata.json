@@ -81,6 +81,26 @@
       "price": "$$"
     },
     {
+      "_id": "18c62be12697d882a8b03e60",
+      "name": "Rozo Studio",
+      "handle": "zen",
+      "currency": "RM",
+      "formatted": "Rozo Studio",
+      "address_line1": "Pulau Satu 8, 81550 Gelang Patah",
+      "address_line2": " Jalan Forest City",
+      "lat": 1.3411,
+      "lon": 103.5874,
+      "payTo": "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
+      "createdAt": "2025-08-09T12:21:20.572Z",
+      "updatedAt": "2025-08-09T12:21:20.572Z",
+      "__v": 0,
+      "logo_url": "https://www.rozo.ai/rozo-logo.png",
+      "cashback_rate": 10,
+      "is_ns": true,
+      "ns_id": "zen",
+      "price": "$"
+    },
+    {
       "_id": "01c62be12697d882a8b03e60",
       "name": "Subtle Island",
       "formatted": "Contact: +85253481417",
