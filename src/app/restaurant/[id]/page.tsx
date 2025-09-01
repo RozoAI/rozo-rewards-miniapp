@@ -83,12 +83,24 @@ export default function RestaurantDetailPage() {
           price = Number(foundRestaurant.price);
           setPaymentAmount(price.toFixed(2));
         }
+
+        const displayCurrency =
+          foundRestaurant.currency === "RM"
+            ? "RM"
+            : foundRestaurant.currency || "USD";
+        const usdAmount =
+          foundRestaurant.currency === "RM"
+            ? (price / 4.2).toFixed(2)
+            : price.toString();
+
         resetPayment({
-          intent: `${foundRestaurant.name} - ${price.toFixed(2)}`,
+          intent: `${foundRestaurant.name} - ${displayCurrency} ${price.toFixed(
+            2
+          )}`,
           toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
           toChain: baseUSDC.chainId,
           toToken: baseUSDC.token as `0x${string}`,
-          toUnits: price.toString(),
+          toUnits: usdAmount,
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
@@ -139,12 +151,19 @@ export default function RestaurantDetailPage() {
 
     // Set a new timer
     debounceTimerRef.current = setTimeout(() => {
+      const displayCurrency =
+        restaurant.currency === "RM" ? "RM" : restaurant.currency || "USD";
+      const usdAmount =
+        restaurant.currency === "RM"
+          ? (parseFloat(value) / rmToUsdRate).toFixed(2)
+          : value;
+
       resetPayment({
-        intent: `Pay for ${restaurant.name} - $${value}`,
+        intent: `Pay for ${restaurant.name} - ${displayCurrency} ${value}`,
         toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
         toChain: baseUSDC.chainId,
         toToken: baseUSDC.token as `0x${string}`,
-        toUnits: value, // Keep the original value instead of converting to number
+        toUnits: usdAmount, // Use USD amount for payment processing
       });
       setIsDebouncing(false);
       debounceTimerRef.current = null;
@@ -160,16 +179,19 @@ export default function RestaurantDetailPage() {
 
     setDialogLoading(true);
 
+    const usdAmount = convertToUSD(paymentAmount);
+    const displayCurrency = getDisplayCurrency();
+
     const paymentData = {
       from_address: address,
       to_handle:
         restaurant.handle || restaurant.name.toLowerCase().replace(/\s+/g, ""),
-      amount_usd_cents: parseFloat(paymentAmount) * 100,
+      amount_usd_cents: parseFloat(usdAmount) * 100,
       amount_local: parseFloat(paymentAmount),
-      currency_local: "USD",
+      currency_local: displayCurrency,
       timestamp: Date.now(),
       order_id: Date.now().toString(),
-      about: `Pay for ${restaurant.name} - $${paymentAmount}`,
+      about: `Pay for ${restaurant.name} - ${displayCurrency} ${paymentAmount}`,
     };
 
     const response = await spendPoints(paymentData);
@@ -279,6 +301,22 @@ export default function RestaurantDetailPage() {
   }
 
   const initials = getFirstTwoWordInitialsFromName(restaurant.name);
+  const currency = restaurant.currency || "USD";
+
+  // Currency conversion utilities
+  const rmToUsdRate = 4.2;
+  const minRMAmount = rmToUsdRate * 0.1;
+  const isRMCurrency = currency === "RM";
+
+  const convertToUSD = (amount: string) => {
+    if (!isRMCurrency) return amount;
+    const numAmount = parseFloat(amount);
+    return isNaN(numAmount) ? "0.00" : (numAmount / rmToUsdRate).toFixed(2);
+  };
+
+  const getDisplayCurrency = () => (isRMCurrency ? "RM" : currency);
+  const getExchangeRate = () =>
+    isRMCurrency ? (1 / rmToUsdRate).toFixed(2) : null;
 
   return (
     <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
@@ -348,78 +386,93 @@ export default function RestaurantDetailPage() {
         <CardContent className="space-y-2">
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 pt-2 mb-6">
-            {!!restaurant.ns_id && (
-              <div className="space-y-3">
-                {/* Amount Input */}
-                <div className="space-y-2">
-                  <label
-                    htmlFor="payment-amount"
-                    className="text-sm font-medium"
-                  >
-                    Payment Amount
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      $
-                    </span>
-                    <Input
-                      id="payment-amount"
-                      type="number"
-                      step="0.01"
-                      min="0.10"
-                      placeholder="0.00"
-                      value={paymentAmount}
-                      onChange={(e) => handleAmountChange(e.target.value)}
-                      className="pl-8 h-11 sm:h-12 text-sm sm:text-base"
-                    />
-                  </div>
-                  {paymentAmount && parseFloat(paymentAmount) < 0.1 && (
+            <div className="space-y-3">
+              {/* Amount Input */}
+              <div className="space-y-2">
+                <label htmlFor="payment-amount" className="text-sm font-medium">
+                  Payment Amount
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    {getDisplayCurrency()}
+                  </span>
+                  <Input
+                    id="payment-amount"
+                    type="number"
+                    step="0.01"
+                    min={isRMCurrency ? minRMAmount.toFixed(2) : "0.10"}
+                    placeholder="0.00"
+                    value={paymentAmount}
+                    onChange={(e) => handleAmountChange(e.target.value)}
+                    className={`pl-12 h-11 sm:h-12 text-sm sm:text-base`}
+                  />
+                </div>
+                {paymentAmount &&
+                  parseFloat(paymentAmount) <
+                    (isRMCurrency ? minRMAmount : 0.1) && (
                     <p className="text-xs text-destructive">
-                      Minimum amount is $0.10 USD
+                      Minimum amount is{" "}
+                      {isRMCurrency
+                        ? `RM ${minRMAmount.toFixed(2)}`
+                        : "$0.10 USD"}
                     </p>
                   )}
-                </div>
+                {isRMCurrency && getExchangeRate() && (
+                  <p className="text-xs text-muted-foreground">
+                    <span className="text-muted-foreground font-medium">
+                      Exchange rate: 1 RM = {getExchangeRate()} USD
+                    </span>
+                  </p>
+                )}
+              </div>
 
-                {/* Payment Button */}
-                <RozoPayButton.Custom
-                  closeOnSuccess
-                  resetOnSuccess
-                  appId={`rozoRewards-${restaurant.handle || ''}`}
-                  toAddress={
-                    (restaurant.payTo ??
-                      "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897") as `0x${string}`
-                  }
-                  toChain={baseUSDC.chainId}
-                  {...(paymentAmount && parseFloat(paymentAmount) > 0.1
-                    ? {
-                        toUnits: paymentAmount,
-                      }
-                    : {})}
-                  toToken={baseUSDC.token as `0x${string}`}
-                  intent={`Pay for ${restaurant.name} - $${paymentAmount}`}
-                  onPaymentStarted={() => {
-                    setLoading(true);
-                    setPaymentLoading(true);
-                  }}
-                  onPaymentBounced={() => {
-                    setLoading(false);
-                    setPaymentLoading(false);
-                  }}
-                  onPaymentCompleted={(args: PaymentCompletedEvent) => {
-                    toast.success(`Payment successful to ${restaurant.name}!`, {
-                      description:
-                        "Your payment has been processed successfully. Redirecting to receipt...",
-                      duration: 2000,
-                    });
-                    setPaymentLoading(false);
-                    setTimeout(() => {
-                      window.location.href = `https://invoice.rozo.ai/receipt?id=${
-                        args.payment.externalId || args.paymentId
-                      }&back_url=${window.location.href}`;
-                    }, 2000);
-                  }}
-                >
-                  {({ show }) => (
+              {/* Payment Button */}
+              <RozoPayButton.Custom
+                closeOnSuccess
+                resetOnSuccess
+                appId={`rozoRewards-${restaurant.handle || ''}`}
+                toAddress={
+                  (restaurant.payTo ??
+                    "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897") as `0x${string}`
+                }
+                toChain={baseUSDC.chainId}
+                {...(paymentAmount &&
+                parseFloat(paymentAmount) > (isRMCurrency ? minRMAmount : 0.1)
+                  ? {
+                      toUnits: convertToUSD(paymentAmount),
+                    }
+                  : {})}
+                toToken={baseUSDC.token as `0x${string}`}
+                intent={`Pay for ${
+                  restaurant.name
+                } - ${getDisplayCurrency()} ${paymentAmount}`}
+                onPaymentStarted={() => {
+                  setLoading(true);
+                  setPaymentLoading(true);
+                }}
+                onPaymentBounced={() => {
+                  setLoading(false);
+                  setPaymentLoading(false);
+                }}
+                onPaymentCompleted={(args: PaymentCompletedEvent) => {
+                  toast.success(`Payment successful to ${restaurant.name}!`, {
+                    description:
+                      "Your payment has been processed successfully. Redirecting to receipt...",
+                    duration: 2000,
+                  });
+                  setPaymentLoading(false);
+                  setTimeout(() => {
+                    window.location.href = `https://invoice.rozo.ai/receipt?id=${
+                      args.payment.externalId || args.paymentId
+                    }&back_url=${window.location.href}`;
+                  }, 2000);
+                }}
+              >
+                {({ show }) => {
+                  const usdAmount = convertToUSD(paymentAmount);
+                  const minAmount = isRMCurrency ? minRMAmount : 0.1;
+
+                  return (
                     <Button
                       variant="default"
                       className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
@@ -428,7 +481,7 @@ export default function RestaurantDetailPage() {
                         isDebouncing ||
                         loading ||
                         !paymentAmount ||
-                        parseFloat(paymentAmount) < 0.1 ||
+                        parseFloat(paymentAmount) < minAmount ||
                         isNaN(parseFloat(paymentAmount)) ||
                         paymentState !== "preview"
                       }
@@ -439,63 +492,61 @@ export default function RestaurantDetailPage() {
                       ) : (
                         <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                       )}
-                      Pay $
-                      {isNaN(parseFloat(paymentAmount))
-                        ? "0.00"
-                        : paymentAmount}{" "}
+                      Pay ${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount}{" "}
                       with Crypto
                     </Button>
-                  )}
-                </RozoPayButton.Custom>
+                  );
+                }}
+              </RozoPayButton.Custom>
 
-                {/* Pay with Points Button */}
-                {points > 0 && (
-                  <div className="space-y-2">
-                    <Button
-                      className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
-                      size="lg"
-                      onClick={handlePayWithPoints}
-                      variant="outline"
-                      disabled={
-                        !paymentAmount ||
-                        parseFloat(paymentAmount) < 0.1 ||
-                        isNaN(parseFloat(paymentAmount)) ||
-                        points < parseFloat(paymentAmount)
-                      }
+              {/* Pay with Points Button */}
+              {points > 0 && (
+                <div className="space-y-2">
+                  <Button
+                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
+                    size="lg"
+                    onClick={handlePayWithPoints}
+                    variant="outline"
+                    disabled={
+                      !paymentAmount ||
+                      parseFloat(paymentAmount) <
+                        (isRMCurrency ? minRMAmount : 0.1) ||
+                      isNaN(parseFloat(paymentAmount)) ||
+                      points < parseFloat(convertToUSD(paymentAmount))
+                    }
+                  >
+                    <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                    Pay with{" "}
+                    {new Intl.NumberFormat("en-US", {
+                      style: "decimal",
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    }).format(
+                      isNaN(parseFloat(convertToUSD(paymentAmount || "0")))
+                        ? 0
+                        : parseFloat(convertToUSD(paymentAmount || "0")) * 100
+                    )}{" "}
+                    Points
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+                    Available Points:{" "}
+                    {new Intl.NumberFormat("en-US", {
+                      style: "decimal",
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    }).format((points ?? 0) * 100)}{" "}
+                    pts
+                    <CustomTooltip
+                      content="Explore all the benefits of Rozo. Rozo points are the rewards for your purchases."
+                      position="top"
+                      className="w-[12rem] sm:w-[20rem] ml-1.5"
                     >
-                      <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                      Pay with{" "}
-                      {new Intl.NumberFormat("en-US", {
-                        style: "decimal",
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      }).format(
-                        isNaN(parseFloat(paymentAmount || "0"))
-                          ? 0
-                          : parseFloat(paymentAmount || "0") * 100
-                      )}{" "}
-                      Points
-                    </Button>
-                    <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-                      Available Points:{" "}
-                      {new Intl.NumberFormat("en-US", {
-                        style: "decimal",
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      }).format((points ?? 0) * 100)}{" "}
-                      pts
-                      <CustomTooltip
-                        content="Explore all the benefits of Rozo. Rozo points are the rewards for your purchases."
-                        position="top"
-                        className="w-[12rem] sm:w-[20rem] ml-1.5"
-                      >
-                        <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
-                      </CustomTooltip>
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
+                      <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
+                    </CustomTooltip>
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Contact & Support */}
@@ -519,6 +570,16 @@ export default function RestaurantDetailPage() {
 
           <div className="space-y-4 py-4">
             <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+              {isRMCurrency && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">
+                    Amount ({getDisplayCurrency()}):
+                  </span>
+                  <span className="font-medium text-foreground">
+                    {getDisplayCurrency()} {paymentAmount}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
                   Points to be used:
@@ -529,7 +590,9 @@ export default function RestaurantDetailPage() {
                       style: "decimal",
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0,
-                    }).format(parseFloat(paymentAmount) * 100)}{" "}
+                    }).format(
+                      parseFloat(convertToUSD(paymentAmount)) * 100
+                    )}{" "}
                   pts
                 </span>
               </div>
@@ -557,10 +620,22 @@ export default function RestaurantDetailPage() {
                       style: "decimal",
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0,
-                    }).format((points - parseFloat(paymentAmount)) * 100)}{" "}
+                    }).format(
+                      (points - parseFloat(convertToUSD(paymentAmount))) * 100
+                    )}{" "}
                   pts
                 </span>
               </div>
+              {isRMCurrency && getExchangeRate() && (
+                <>
+                  <div className="h-px bg-border my-2" />
+                  <div className="flex justify-center">
+                    <span className="text-xs text-muted-foreground">
+                      Exchange rate: 1 RM = {getExchangeRate()} USD
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

@@ -140,14 +140,14 @@ export default function ReceiptContent() {
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Points:</span>
               <span className="font-semibold">
-                {paymentData.amount_local * 100} pts
+                {paymentData.amount_usd_cents} pts
               </span>
             </div>
 
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">USD Equivalent:</span>
               <span className="font-semibold">
-                $ {paymentData.amount_local.toFixed(2)}
+                $ {(paymentData.amount_usd_cents / 100).toFixed(2)}
               </span>
             </div>
 

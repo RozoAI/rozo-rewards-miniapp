@@ -17,4 +17,5 @@ export type Restaurant = {
   distance?: number;
   ns_id?: string;
   is_ns?: boolean;
+  currency?: string;
 };
