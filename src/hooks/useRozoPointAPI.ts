@@ -108,8 +108,14 @@ About: ${about}
       const body: SpendPointsRequest = {
         from_address: payload.from_address,
         to_handle: payload.to_handle,
-        amount_usd_cents: Number(payload.amount_usd_cents.toFixed(2)),
-        amount_local: Number(payload.amount_local.toFixed(2)),
+        amount_usd_cents:
+          payload.amount_usd_cents % 1 === 0
+            ? Math.floor(payload.amount_usd_cents)
+            : Number(payload.amount_usd_cents.toFixed(2)),
+        amount_local:
+          payload.amount_local % 1 === 0
+            ? Math.floor(payload.amount_local)
+            : Number(payload.amount_local.toFixed(2)),
         currency_local: payload.currency_local,
         timestamp,
         order_id: timestamp.toString(),
