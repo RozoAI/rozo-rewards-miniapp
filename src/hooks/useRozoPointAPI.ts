@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import { useState } from "react";
 
 interface RozoPointsResponse {
@@ -104,6 +105,11 @@ About: ${about}
         payload.about
       );
 
+      // Get signature from wallet
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const signature = await signer.signMessage(message);
+
       const timestamp = Date.now();
       const body: SpendPointsRequest = {
         from_address: payload.from_address,
@@ -120,7 +126,7 @@ About: ${about}
         timestamp,
         order_id: timestamp.toString(),
         about: payload.about,
-        signature: message,
+        signature,
       };
 
       const response = await fetch("https://api.rozo.ai/v1/cashbacksign", {
@@ -139,6 +145,7 @@ About: ${about}
 
       return data;
     } catch (err) {
+      console.log("err", err);
       const message =
         err instanceof Error ? err.message : "Failed to spend points";
       setError(message);

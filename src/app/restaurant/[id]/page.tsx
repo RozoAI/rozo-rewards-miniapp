@@ -196,7 +196,7 @@ export default function RestaurantDetailPage() {
       order_id: Date.now().toString(),
       about: `Pay for ${restaurant.name} - ${displayCurrency} ${paymentAmount}`,
     };
-
+    router.prefetch("/receipt");
     const response = await spendPoints(paymentData);
 
     if (response && response.status === "success") {
@@ -210,7 +210,7 @@ export default function RestaurantDetailPage() {
       sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
 
       setShowConfirmDialog(false);
-
+      toast.success("Points spent successfully");
       // Navigate to receipt page
       router.push("/receipt");
     } else {
