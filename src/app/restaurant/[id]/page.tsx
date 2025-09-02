@@ -372,192 +372,197 @@ export default function RestaurantDetailPage() {
 
         <CardContent className="space-y-2">
           {/* Action Buttons */}
-          <div className="flex flex-col gap-3 pt-2 mb-6">
-            <div className="space-y-3">
-              {/* Amount Input */}
-              <div className="space-y-2">
-                <label htmlFor="payment-amount" className="text-sm font-medium">
-                  Payment Amount
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    {getDisplayCurrency(restaurant?.currency)}
-                  </span>
-                  <Input
-                    id="payment-amount"
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    placeholder="0.00"
-                    value={paymentAmount}
-                    onChange={(e) => handleAmountChange(e.target.value)}
-                    className={`pl-12 h-11 sm:h-12 text-sm sm:text-base [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-moz-appearance]:textfield`}
-                  />
+          {restaurant.is_live && (
+            <div className="flex flex-col gap-3 pt-2 mb-6">
+              <div className="space-y-3">
+                {/* Amount Input */}
+                <div className="space-y-2">
+                  <label
+                    htmlFor="payment-amount"
+                    className="text-sm font-medium"
+                  >
+                    Payment Amount
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      {getDisplayCurrency(restaurant?.currency)}
+                    </span>
+                    <Input
+                      id="payment-amount"
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      placeholder="0.00"
+                      value={paymentAmount}
+                      onChange={(e) => handleAmountChange(e.target.value)}
+                      className={`pl-12 h-11 sm:h-12 text-sm sm:text-base [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-moz-appearance]:textfield`}
+                    />
+                  </div>
+
+                  {getDisplayCurrency(restaurant?.currency) !== "USD" && (
+                    <p className="text-xs text-muted-foreground">
+                      <span className="text-muted-foreground font-medium">
+                        Exchange rate: 1{" "}
+                        {getDisplayCurrency(restaurant?.currency)} ={" "}
+                        {(
+                          1 /
+                          (EXCHANGE_RATES[
+                            getDisplayCurrency(restaurant?.currency)
+                          ] || 1)
+                        ).toFixed(2)}{" "}
+                        USD
+                      </span>
+                    </p>
+                  )}
                 </div>
 
-                {getDisplayCurrency(restaurant?.currency) !== "USD" && (
-                  <p className="text-xs text-muted-foreground">
-                    <span className="text-muted-foreground font-medium">
-                      Exchange rate: 1{" "}
-                      {getDisplayCurrency(restaurant?.currency)} ={" "}
-                      {(
-                        1 /
-                        (EXCHANGE_RATES[
+                {/* Payment Button */}
+                <RozoPayButton.Custom
+                  resetOnSuccess
+                  appId={`rozoRewards-${restaurant.handle || ""}`}
+                  toAddress={
+                    (restaurant.payTo ??
+                      "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897") as `0x${string}`
+                  }
+                  toChain={baseUSDC.chainId}
+                  {...(paymentAmount && parseFloat(paymentAmount) > 0
+                    ? {
+                        toUnits: convertToUSD(
+                          paymentAmount,
                           getDisplayCurrency(restaurant?.currency)
-                        ] || 1)
-                      ).toFixed(2)}{" "}
-                      USD
-                    </span>
-                  </p>
-                )}
-              </div>
+                        ),
+                      }
+                    : {})}
+                  toToken={baseUSDC.token as `0x${string}`}
+                  intent={`Pay for ${restaurant.name} - ${getDisplayCurrency(
+                    restaurant?.currency
+                  )} ${paymentAmount}`}
+                  metadata={{
+                    amount_local: paymentAmount,
+                    currency_local: getDisplayCurrency(restaurant?.currency),
+                  }}
+                  onPaymentStarted={() => {
+                    setLoading(true);
+                    setPaymentLoading(true);
+                  }}
+                  onPaymentBounced={() => {
+                    setLoading(false);
+                    setPaymentLoading(false);
+                  }}
+                  onPaymentCompleted={(args: PaymentCompletedEvent) => {
+                    toast.success(`Payment successful to ${restaurant.name}!`, {
+                      description:
+                        "Your payment has been processed successfully. Redirecting to receipt...",
+                      duration: 2000,
+                    });
+                    setPaymentLoading(false);
+                    // setTimeout(() => {
+                    //   window.location.href = `https://invoice.rozo.ai/receipt?id=${
+                    //     args.payment.externalId || args.paymentId
+                    //   }&back_url=${window.location.href}`;
+                    // }, 2000);
+                  }}
+                >
+                  {({ show }) => {
+                    const usdAmount = convertToUSD(
+                      paymentAmount,
+                      getDisplayCurrency(restaurant?.currency)
+                    );
 
-              {/* Payment Button */}
-              <RozoPayButton.Custom
-                resetOnSuccess
-                appId={`rozoRewards-${restaurant.handle || ""}`}
-                toAddress={
-                  (restaurant.payTo ??
-                    "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897") as `0x${string}`
-                }
-                toChain={baseUSDC.chainId}
-                {...(paymentAmount && parseFloat(paymentAmount) > 0
-                  ? {
-                      toUnits: convertToUSD(
-                        paymentAmount,
-                        getDisplayCurrency(restaurant?.currency)
-                      ),
-                    }
-                  : {})}
-                toToken={baseUSDC.token as `0x${string}`}
-                intent={`Pay for ${restaurant.name} - ${getDisplayCurrency(
-                  restaurant?.currency
-                )} ${paymentAmount}`}
-                metadata={{
-                  amount_local: paymentAmount,
-                  currency_local: getDisplayCurrency(restaurant?.currency),
-                }}
-                onPaymentStarted={() => {
-                  setLoading(true);
-                  setPaymentLoading(true);
-                }}
-                onPaymentBounced={() => {
-                  setLoading(false);
-                  setPaymentLoading(false);
-                }}
-                onPaymentCompleted={(args: PaymentCompletedEvent) => {
-                  toast.success(`Payment successful to ${restaurant.name}!`, {
-                    description:
-                      "Your payment has been processed successfully. Redirecting to receipt...",
-                    duration: 2000,
-                  });
-                  setPaymentLoading(false);
-                  // setTimeout(() => {
-                  //   window.location.href = `https://invoice.rozo.ai/receipt?id=${
-                  //     args.payment.externalId || args.paymentId
-                  //   }&back_url=${window.location.href}`;
-                  // }, 2000);
-                }}
-              >
-                {({ show }) => {
-                  const usdAmount = convertToUSD(
-                    paymentAmount,
-                    getDisplayCurrency(restaurant?.currency)
-                  );
+                    return (
+                      <Button
+                        variant="default"
+                        className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
+                        onClick={show}
+                        disabled={
+                          isDebouncing ||
+                          loading ||
+                          !paymentAmount ||
+                          parseFloat(paymentAmount) <= 0 ||
+                          isNaN(parseFloat(paymentAmount)) ||
+                          paymentState !== "preview"
+                        }
+                        size="lg"
+                      >
+                        {loading ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                        )}
+                        Pay ${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount}{" "}
+                        with Crypto
+                      </Button>
+                    );
+                  }}
+                </RozoPayButton.Custom>
 
-                  return (
+                {/* Pay with Points Button */}
+                {points > 0 && (
+                  <div className="space-y-2">
                     <Button
-                      variant="default"
-                      className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
-                      onClick={show}
+                      className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
+                      size="lg"
+                      onClick={handlePayWithPoints}
+                      variant="outline"
                       disabled={
-                        isDebouncing ||
-                        loading ||
                         !paymentAmount ||
                         parseFloat(paymentAmount) <= 0 ||
                         isNaN(parseFloat(paymentAmount)) ||
-                        paymentState !== "preview"
+                        points <
+                          parseFloat(
+                            convertToUSD(
+                              paymentAmount,
+                              getDisplayCurrency(restaurant?.currency)
+                            )
+                          )
                       }
-                      size="lg"
                     >
-                      {loading ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                      )}
-                      Pay ${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount}{" "}
-                      with Crypto
-                    </Button>
-                  );
-                }}
-              </RozoPayButton.Custom>
-
-              {/* Pay with Points Button */}
-              {points > 0 && (
-                <div className="space-y-2">
-                  <Button
-                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
-                    size="lg"
-                    onClick={handlePayWithPoints}
-                    variant="outline"
-                    disabled={
-                      !paymentAmount ||
-                      parseFloat(paymentAmount) <= 0 ||
-                      isNaN(parseFloat(paymentAmount)) ||
-                      points <
-                        parseFloat(
-                          convertToUSD(
-                            paymentAmount,
-                            getDisplayCurrency(restaurant?.currency)
-                          )
-                        )
-                    }
-                  >
-                    <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                    Pay with{" "}
-                    {new Intl.NumberFormat("en-US", {
-                      style: "decimal",
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                    }).format(
-                      isNaN(
-                        parseFloat(
-                          convertToUSD(
-                            paymentAmount || "0",
-                            getDisplayCurrency(restaurant?.currency)
-                          )
-                        )
-                      )
-                        ? 0
-                        : parseFloat(
+                      <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                      Pay with{" "}
+                      {new Intl.NumberFormat("en-US", {
+                        style: "decimal",
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }).format(
+                        isNaN(
+                          parseFloat(
                             convertToUSD(
                               paymentAmount || "0",
                               getDisplayCurrency(restaurant?.currency)
                             )
-                          ) * 100
-                    )}{" "}
-                    Points
-                  </Button>
-                  <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-                    Available Points:{" "}
-                    {new Intl.NumberFormat("en-US", {
-                      style: "decimal",
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                    }).format((points ?? 0) * 100)}{" "}
-                    pts
-                    <CustomTooltip
-                      content="Explore all the benefits of Rozo. Rozo points are the rewards for your purchases."
-                      position="top"
-                      className="w-[12rem] sm:w-[20rem] ml-1.5"
-                    >
-                      <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
-                    </CustomTooltip>
+                          )
+                        )
+                          ? 0
+                          : parseFloat(
+                              convertToUSD(
+                                paymentAmount || "0",
+                                getDisplayCurrency(restaurant?.currency)
+                              )
+                            ) * 100
+                      )}{" "}
+                      Points
+                    </Button>
+                    <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+                      Available Points:{" "}
+                      {new Intl.NumberFormat("en-US", {
+                        style: "decimal",
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }).format((points ?? 0) * 100)}{" "}
+                      pts
+                      <CustomTooltip
+                        content="Explore all the benefits of Rozo. Rozo points are the rewards for your purchases."
+                        position="top"
+                        className="w-[12rem] sm:w-[20rem] ml-1.5"
+                      >
+                        <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
+                      </CustomTooltip>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Contact & Support */}
           <ContactSupport />

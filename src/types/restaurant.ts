@@ -16,6 +16,6 @@ export type Restaurant = {
   price?: string;
   distance?: number;
   ns_id?: string;
-  is_ns?: boolean;
+  is_live?: boolean;
   currency?: string;
 };

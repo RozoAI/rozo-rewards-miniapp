@@ -16,7 +16,7 @@
       "__v": 0,
       "logo_url": "https://ns.com/favicon.ico",
       "cashback_rate": 1,
-      "is_ns": true,
+      "is_live": true,
       "ns_id": "cafe",
       "price": "$"
     },
@@ -36,7 +36,7 @@
       "__v": 0,
       "logo_url": "https://mugglespublicweb.s3.ap-southeast-1.amazonaws.com/icons/spa.png",
       "cashback_rate": 5,
-      "is_ns": true,
+      "is_live": true,
       "ns_id": "spa",
       "price": "$$"
     },
@@ -56,7 +56,7 @@
       "__v": 0,
       "logo_url": "https://mugglespublicweb.s3.ap-southeast-1.amazonaws.com/merchants/meisan.png",
       "cashback_rate": 15,
-      "is_ns": true,
+      "is_live": true,
       "ns_id": "meisan",
       "price": "$$"
     },
@@ -76,7 +76,7 @@
       "__v": 0,
       "logo_url": "https://cdn1.npcdn.net/images/1694139822288-Limousine-Service_BUTTON.webp?md5id=cec819fa603e0b3f17e6aeaf4a6e6890&new_width=1600&new_height=1600&size=max&type=8&w=1697996365&off_wm=1&from=png",
       "cashback_rate": 1,
-      "is_ns": true,
+      "is_live": true,
       "ns_id": "ride",
       "price": "$$"
     },
@@ -96,7 +96,7 @@
       "__v": 0,
       "logo_url": "https://www.rozo.ai/rozo-logo.png",
       "cashback_rate": 10,
-      "is_ns": true,
+      "is_live": true,
       "ns_id": "zen",
       "price": "$"
     },
@@ -114,7 +114,7 @@
       "__v": 0,
       "logo_url": "https://lh3.googleusercontent.com/gps-cs-s/AC9h4npHOBfiJTBHAtQLJTOiiWmUjc3yEDzOaF3A22YresJ-BDp_ys7SAcg2BMLYWeFtqMriaafvWG2AH6pyw4UtrtNwVsafskv6NhbNpvb4L29UUdkhTzhUx8dbY8ZvdyN0U1tzDAvsGA=w408-h306-k-no",
       "cashback_rate": 0,
-      "is_ns": false,
+      "is_live": false,
       "price": "$$"
     },
     {
@@ -131,7 +131,7 @@
       "__v": 0,
       "logo_url": "https://lh3.googleusercontent.com/p/AF1QipP_l7tCYRlVXAkHjhbXQI_SagmFn7pLn726hI73=w408-h611-k-no",
       "cashback_rate": 0,
-      "is_ns": false,
+      "is_live": false,
       "price": "$"
     },
     {
@@ -148,7 +148,7 @@
       "__v": 0,
       "logo_url": "https://lh3.googleusercontent.com/gps-cs-s/AC9h4noyBYO0UcMC7iuTTJ8Ki3cgAYbVhc6JggZ7Lk26PV6iR55F1_6ZIpSI5iS8lwwnmsXlv09EkrGMzNigigwYBOao4HMfLib2L3oj4nDND1HAGjqXB_TEDMGloQsCBtFrQevmUitm=w426-h240-k-no",
       "cashback_rate": 0,
-      "is_ns": false,
+      "is_live": false,
       "price": "$$"
     },
     {
@@ -157,7 +157,7 @@
       "formatted": "✨❤️Great spot for drinks and tasty food with a chill vibe! ",
       "address_line1": "14/F, Manning House, 38-48 Queen's Road Central",
       "address_line2": "Central, Hong Kong",
-      "lat": 22.2820,
+      "lat": 22.282,
       "lon": 114.1512,
       "payTo": "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
       "createdAt": "2025-08-29T12:21:20.572Z",
@@ -165,7 +165,7 @@
       "__v": 0,
       "logo_url": "https://lh3.googleusercontent.com/p/AF1QipOhl6dPgDat4S9cpM8Xcc2t0lGFWXWF39adQRkF=w408-h510-k-no",
       "cashback_rate": 0,
-      "is_ns": false,
+      "is_live": false,
       "price": "$$$"
     },
 
@@ -183,7 +183,7 @@
       "__v": 0,
       "logo_url": "https://lh3.googleusercontent.com/gps-cs-s/AC9h4nr2_w5tkg7lir9CVbWYKbpcePzukxP6T0LSpjpYdyFeApJxBZJOku0tY357rxZz6Mm6RA6-1gi77pMEo1oK9pCkF2dEaESSVnwP_jILQXBQxtR8lgtO1lwTk_mkvuLObft4wf4R=w408-h306-k-no",
       "cashback_rate": 0,
-      "is_ns": false,
+      "is_live": false,
       "price": "$$"
     },
     {
@@ -200,7 +200,7 @@
       "__v": 0,
       "logo_url": "https://lh3.googleusercontent.com/p/AF1QipO-7ojTdLRCVhrpMTCojv22RlG7REwFL7MJGz4_=w408-h272-k-no",
       "cashback_rate": 0,
-      "is_ns": false,
+      "is_live": false,
       "price": "$$"
     },
     {
@@ -217,7 +217,7 @@
       "__v": 0,
       "logo_url": "https://lh3.googleusercontent.com/p/AF1QipO-7ojTdLRCVhrpMTCojv22RlG7REwFL7MJGz4_=w408-h272-k-no",
       "cashback_rate": 0,
-      "is_ns": false,
+      "is_live": false,
       "price": "$$"
     },
 
@@ -235,7 +235,7 @@
       "__v": 0,
       "logo_url": null,
       "cashback_rate": 0,
-      "is_ns": false,
+      "is_live": false,
       "price": "$$"
     },
     {
@@ -252,7 +252,7 @@
       "__v": 0,
       "logo_url": null,
       "cashback_rate": 0,
-      "is_ns": false,
+      "is_live": false,
       "price": "$"
     },
     {
@@ -261,15 +261,15 @@
       "formatted": "Steakhouse on Sukhumvit Soi 39, reportedly accepts Bitcoin by traveler reports",
       "address_line1": "39 Soi Sukhumvit 39, Khlong Tan Nuea, Watthana",
       "address_line2": "Bangkok 10110, Thailand",
-      "lat": 13.7390,
-      "lon": 100.5710,
+      "lat": 13.739,
+      "lon": 100.571,
       "payTo": null,
       "createdAt": "2025-08-30T00:00:00.000Z",
       "updatedAt": "2025-08-30T00:00:00.000Z",
       "__v": 0,
       "logo_url": null,
       "cashback_rate": 0,
-      "is_ns": false,
+      "is_live": false,
       "price": "$$$"
     },
 
@@ -287,7 +287,7 @@
       "__v": 0,
       "logo_url": null,
       "cashback_rate": 0,
-      "is_ns": false,
+      "is_live": false,
       "price": "$$"
     },
     {
@@ -304,10 +304,9 @@
       "__v": 0,
       "logo_url": null,
       "cashback_rate": 0,
-      "is_ns": false,
+      "is_live": false,
       "price": "$$$"
     },
-
 
     {
       "_id": "vn-surfpoint-001",
@@ -323,10 +322,9 @@
       "__v": 0,
       "logo_url": null,
       "cashback_rate": 0,
-      "is_ns": false,
+      "is_live": false,
       "price": "$$"
     },
-
 
     {
       "_id": "e802cafc-72be-48b5-b02f-9361c13c7a9e",
