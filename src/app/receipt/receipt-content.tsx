@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check } from "lucide-react";
+import { getDisplayCurrency } from "@/lib/utils";
+import { ArrowLeftIcon, Check } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -126,28 +127,46 @@ export default function ReceiptContent() {
         <div className="text-center space-y-2">
           <h2 className="text-2xl font-bold">Payment Successful!</h2>
           <p className="text-muted-foreground max-w-sm mx-auto">
-            You have successfully paid USD {paymentData.amount_local.toFixed(2)}{" "}
+            You have successfully paid{" "}
+            <span className="font-semibold">
+              {getDisplayCurrency(paymentData.currency_local)}{" "}
+              {paymentData.amount_local.toFixed(2)}
+            </span>{" "}
             to{" "}
-            {paymentData.service_name ||
-              paymentData.restaurant_name ||
-              paymentData.to_handle}
+            <span className="font-semibold">
+              {paymentData.service_name ||
+                paymentData.restaurant_name ||
+                paymentData.to_handle}
+            </span>
           </p>
         </div>
 
         {/* Payment Details Card */}
         <Card className="w-full max-w-sm bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800 py-0">
           <CardContent className="p-6 space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Points:</span>
-              <span className="font-semibold">
-                {paymentData.amount_usd_cents} pts
-              </span>
-            </div>
+            {getDisplayCurrency(paymentData.currency_local) !== "USD" && (
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">
+                  Amount ({getDisplayCurrency(paymentData.currency_local)}):
+                </span>
+                <span className="font-semibold">
+                  {getDisplayCurrency(paymentData.currency_local)}{" "}
+                  {paymentData.amount_local.toFixed(2)}
+                </span>
+              </div>
+            )}
 
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">USD Equivalent:</span>
               <span className="font-semibold">
                 $ {(paymentData.amount_usd_cents / 100).toFixed(2)}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Points Used:</span>
+              <span className="font-semibold">
+                {paymentData.amount_usd_cents} pts
               </span>
             </div>
 
@@ -176,14 +195,14 @@ export default function ReceiptContent() {
           </CardContent>
         </Card>
 
-        {/* Back to Home Button */}
         <Button
           variant="outline"
           onClick={handleBackToHome}
           className="w-full max-w-sm"
           size="lg"
         >
-          Back to Home
+          <ArrowLeftIcon className="size-4" />
+          Back
         </Button>
       </div>
     </div>

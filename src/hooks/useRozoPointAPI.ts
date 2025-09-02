@@ -16,6 +16,7 @@ interface SpendPointsRequest {
   order_id: string;
   about: string;
   signature?: string;
+  message?: string;
 }
 
 interface SpendPointsResponse {
@@ -93,8 +94,6 @@ About: ${about}
     setIsLoading(true);
     setError(null);
     try {
-
-
       // Get the message to sign
       const message = getSignMessage(
         payload.from_address,
@@ -109,8 +108,8 @@ About: ${about}
       const body: SpendPointsRequest = {
         from_address: payload.from_address,
         to_handle: payload.to_handle,
-        amount_usd_cents: payload.amount_usd_cents,
-        amount_local: payload.amount_local,
+        amount_usd_cents: Number(payload.amount_usd_cents.toFixed(2)),
+        amount_local: Number(payload.amount_local.toFixed(2)),
         currency_local: payload.currency_local,
         timestamp,
         order_id: timestamp.toString(),

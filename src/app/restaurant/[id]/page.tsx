@@ -18,7 +18,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
-import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
+import {
+  convertToUSD,
+  EXCHANGE_RATES,
+  getDisplayCurrency,
+  getFirstTwoWordInitialsFromName,
+} from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
 import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
@@ -76,6 +81,8 @@ export default function RestaurantDetailPage() {
           throw new Error("Lifestyle not found");
         }
 
+        console.log("foundRestaurant", foundRestaurant);
+
         setRestaurant(foundRestaurant as Restaurant);
 
         let price = 0;
@@ -84,14 +91,8 @@ export default function RestaurantDetailPage() {
           setPaymentAmount(price.toFixed(2));
         }
 
-        const displayCurrency =
-          foundRestaurant.currency === "RM"
-            ? "RM"
-            : foundRestaurant.currency || "USD";
-        const usdAmount =
-          foundRestaurant.currency === "RM"
-            ? (price / 4.2).toFixed(2)
-            : price.toString();
+        const displayCurrency = foundRestaurant.currency || "USD";
+        const usdAmount = convertToUSD(price.toFixed(2), displayCurrency);
 
         resetPayment({
           intent: `${foundRestaurant.name} - ${displayCurrency} ${price.toFixed(
@@ -135,8 +136,6 @@ export default function RestaurantDetailPage() {
     };
   }, []);
 
-  console.log("paymentState", paymentState);
-
   const [isDebouncing, setIsDebouncing] = React.useState(false);
 
   const handleAmountChange = (value: string) => {
@@ -151,12 +150,8 @@ export default function RestaurantDetailPage() {
 
     // Set a new timer
     debounceTimerRef.current = setTimeout(() => {
-      const displayCurrency =
-        restaurant.currency === "RM" ? "RM" : restaurant.currency || "USD";
-      const usdAmount =
-        restaurant.currency === "RM"
-          ? (parseFloat(value) / rmToUsdRate).toFixed(2)
-          : value;
+      const displayCurrency = getDisplayCurrency(restaurant.currency);
+      const usdAmount = convertToUSD(value, displayCurrency);
 
       resetPayment({
         intent: `Pay for ${restaurant.name} - ${displayCurrency} ${value}`,
@@ -179,8 +174,8 @@ export default function RestaurantDetailPage() {
 
     setDialogLoading(true);
 
-    const usdAmount = convertToUSD(paymentAmount);
-    const displayCurrency = getDisplayCurrency();
+    const displayCurrency = getDisplayCurrency(restaurant?.currency);
+    const usdAmount = convertToUSD(paymentAmount, displayCurrency);
 
     const paymentData = {
       from_address: address,
@@ -301,22 +296,6 @@ export default function RestaurantDetailPage() {
   }
 
   const initials = getFirstTwoWordInitialsFromName(restaurant.name);
-  const currency = restaurant.currency || "USD";
-
-  // Currency conversion utilities
-  const rmToUsdRate = 4.2;
-  const minRMAmount = rmToUsdRate * 0.1;
-  const isRMCurrency = currency === "RM";
-
-  const convertToUSD = (amount: string) => {
-    if (!isRMCurrency) return amount;
-    const numAmount = parseFloat(amount);
-    return isNaN(numAmount) ? "0.00" : (numAmount / rmToUsdRate).toFixed(2);
-  };
-
-  const getDisplayCurrency = () => (isRMCurrency ? "RM" : currency);
-  const getExchangeRate = () =>
-    isRMCurrency ? (1 / rmToUsdRate).toFixed(2) : null;
 
   return (
     <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
@@ -394,33 +373,32 @@ export default function RestaurantDetailPage() {
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    {getDisplayCurrency()}
+                    {getDisplayCurrency(restaurant?.currency)}
                   </span>
                   <Input
                     id="payment-amount"
                     type="number"
                     step="0.01"
-                    min={isRMCurrency ? minRMAmount.toFixed(2) : "0.10"}
+                    min="0.01"
                     placeholder="0.00"
                     value={paymentAmount}
                     onChange={(e) => handleAmountChange(e.target.value)}
                     className={`pl-12 h-11 sm:h-12 text-sm sm:text-base [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-moz-appearance]:textfield`}
                   />
                 </div>
-                {paymentAmount &&
-                  parseFloat(paymentAmount) <
-                    (isRMCurrency ? minRMAmount : 0.1) && (
-                    <p className="text-xs text-destructive">
-                      Minimum amount is{" "}
-                      {isRMCurrency
-                        ? `RM ${minRMAmount.toFixed(2)}`
-                        : "$0.10 USD"}
-                    </p>
-                  )}
-                {isRMCurrency && getExchangeRate() && (
+
+                {getDisplayCurrency(restaurant?.currency) !== "USD" && (
                   <p className="text-xs text-muted-foreground">
                     <span className="text-muted-foreground font-medium">
-                      Exchange rate: 1 RM = {getExchangeRate()} USD
+                      Exchange rate: 1{" "}
+                      {getDisplayCurrency(restaurant?.currency)} ={" "}
+                      {(
+                        1 /
+                        (EXCHANGE_RATES[
+                          getDisplayCurrency(restaurant?.currency)
+                        ] || 1)
+                      ).toFixed(2)}{" "}
+                      USD
                     </span>
                   </p>
                 )}
@@ -430,22 +408,24 @@ export default function RestaurantDetailPage() {
               <RozoPayButton.Custom
                 closeOnSuccess
                 resetOnSuccess
-                appId={`rozoRewards-${restaurant.handle || ''}`}
+                appId={`rozoRewards-${restaurant.handle || ""}`}
                 toAddress={
                   (restaurant.payTo ??
                     "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897") as `0x${string}`
                 }
                 toChain={baseUSDC.chainId}
-                {...(paymentAmount &&
-                parseFloat(paymentAmount) > (isRMCurrency ? minRMAmount : 0.1)
+                {...(paymentAmount && parseFloat(paymentAmount) > 0
                   ? {
-                      toUnits: convertToUSD(paymentAmount),
+                      toUnits: convertToUSD(
+                        paymentAmount,
+                        getDisplayCurrency(restaurant?.currency)
+                      ),
                     }
                   : {})}
                 toToken={baseUSDC.token as `0x${string}`}
-                intent={`Pay for ${
-                  restaurant.name
-                } - ${getDisplayCurrency()} ${paymentAmount}`}
+                intent={`Pay for ${restaurant.name} - ${getDisplayCurrency(
+                  restaurant?.currency
+                )} ${paymentAmount}`}
                 onPaymentStarted={() => {
                   setLoading(true);
                   setPaymentLoading(true);
@@ -469,8 +449,10 @@ export default function RestaurantDetailPage() {
                 }}
               >
                 {({ show }) => {
-                  const usdAmount = convertToUSD(paymentAmount);
-                  const minAmount = isRMCurrency ? minRMAmount : 0.1;
+                  const usdAmount = convertToUSD(
+                    paymentAmount,
+                    getDisplayCurrency(restaurant?.currency)
+                  );
 
                   return (
                     <Button
@@ -481,7 +463,7 @@ export default function RestaurantDetailPage() {
                         isDebouncing ||
                         loading ||
                         !paymentAmount ||
-                        parseFloat(paymentAmount) < minAmount ||
+                        parseFloat(paymentAmount) <= 0 ||
                         isNaN(parseFloat(paymentAmount)) ||
                         paymentState !== "preview"
                       }
@@ -509,10 +491,15 @@ export default function RestaurantDetailPage() {
                     variant="outline"
                     disabled={
                       !paymentAmount ||
-                      parseFloat(paymentAmount) <
-                        (isRMCurrency ? minRMAmount : 0.1) ||
+                      parseFloat(paymentAmount) <= 0 ||
                       isNaN(parseFloat(paymentAmount)) ||
-                      points < parseFloat(convertToUSD(paymentAmount))
+                      points <
+                        parseFloat(
+                          convertToUSD(
+                            paymentAmount,
+                            getDisplayCurrency(restaurant?.currency)
+                          )
+                        )
                     }
                   >
                     <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
@@ -522,9 +509,21 @@ export default function RestaurantDetailPage() {
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0,
                     }).format(
-                      isNaN(parseFloat(convertToUSD(paymentAmount || "0")))
+                      isNaN(
+                        parseFloat(
+                          convertToUSD(
+                            paymentAmount || "0",
+                            getDisplayCurrency(restaurant?.currency)
+                          )
+                        )
+                      )
                         ? 0
-                        : parseFloat(convertToUSD(paymentAmount || "0")) * 100
+                        : parseFloat(
+                            convertToUSD(
+                              paymentAmount || "0",
+                              getDisplayCurrency(restaurant?.currency)
+                            )
+                          ) * 100
                     )}{" "}
                     Points
                   </Button>
@@ -570,15 +569,29 @@ export default function RestaurantDetailPage() {
 
           <div className="space-y-4 py-4">
             <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-              {isRMCurrency && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">
-                    Amount ({getDisplayCurrency()}):
-                  </span>
-                  <span className="font-medium text-foreground">
-                    {getDisplayCurrency()} {paymentAmount}
-                  </span>
-                </div>
+              {getDisplayCurrency(restaurant?.currency) !== "USD" && (
+                <>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">
+                      Amount ({getDisplayCurrency(restaurant?.currency)}):
+                    </span>
+                    <span className="font-medium text-foreground">
+                      {getDisplayCurrency(restaurant?.currency)} {paymentAmount}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">
+                      USD Equivalent:
+                    </span>
+                    <span className="font-medium text-foreground">
+                      ${" "}
+                      {convertToUSD(
+                        paymentAmount,
+                        getDisplayCurrency(restaurant?.currency)
+                      )}
+                    </span>
+                  </div>
+                </>
               )}
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
@@ -591,7 +604,12 @@ export default function RestaurantDetailPage() {
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0,
                     }).format(
-                      parseFloat(convertToUSD(paymentAmount)) * 100
+                      parseFloat(
+                        convertToUSD(
+                          paymentAmount,
+                          getDisplayCurrency(restaurant?.currency)
+                        )
+                      ) * 100
                     )}{" "}
                   pts
                 </span>
@@ -621,7 +639,14 @@ export default function RestaurantDetailPage() {
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0,
                     }).format(
-                      (points - parseFloat(convertToUSD(paymentAmount))) * 100
+                      (points -
+                        parseFloat(
+                          convertToUSD(
+                            paymentAmount,
+                            getDisplayCurrency(restaurant?.currency)
+                          )
+                        )) *
+                        100
                     )}{" "}
                   pts
                 </span>
