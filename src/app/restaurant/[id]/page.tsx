@@ -66,6 +66,7 @@ export default function RestaurantDetailPage() {
   const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
   const [dialogLoading, setDialogLoading] = React.useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastResetAmountRef = useRef<string>("");
 
   useEffect(() => {
     async function loadRestaurant() {
@@ -103,6 +104,9 @@ export default function RestaurantDetailPage() {
           toToken: baseUSDC.token as `0x${string}`,
           toUnits: usdAmount,
         });
+
+        // Store initial amount to prevent unnecessary resets
+        lastResetAmountRef.current = price.toFixed(2);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
@@ -159,6 +163,10 @@ export default function RestaurantDetailPage() {
         toChain: baseUSDC.chainId,
         toToken: baseUSDC.token as `0x${string}`,
         toUnits: usdAmount, // Use USD amount for payment processing
+        metadata: {
+          amount_local: value,
+          currency_local: displayCurrency,
+        },
       });
       setIsDebouncing(false);
       debounceTimerRef.current = null;
@@ -425,6 +433,10 @@ export default function RestaurantDetailPage() {
                 intent={`Pay for ${restaurant.name} - ${getDisplayCurrency(
                   restaurant?.currency
                 )} ${paymentAmount}`}
+                metadata={{
+                  amount_local: paymentAmount,
+                  currency_local: getDisplayCurrency(restaurant?.currency),
+                }}
                 onPaymentStarted={() => {
                   setLoading(true);
                   setPaymentLoading(true);
