@@ -388,9 +388,8 @@ export default function AIServiceDetailPage() {
             {/* Intent SDK for non mini app */}
             {!service.sold_out && (
               <RozoPayButton.Custom
-                closeOnSuccess
                 resetOnSuccess
-                appId={`rozoRewards-${service.domain || ''}`}
+                appId={`rozoRewards-${service.domain || ""}`}
                 intent={`Pay for ${service.name} - ${service.duration_months} months`}
                 toAddress="0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897"
                 toChain={8453}
@@ -411,11 +410,11 @@ export default function AIServiceDetailPage() {
                     duration: 2000,
                   });
                   setPaymentLoading(false);
-                  setTimeout(() => {
-                    window.location.href = `https://invoice.rozo.ai/receipt?id=${
-                      args.payment.externalId || args.paymentId
-                    }&back_url=${window.location.href}`;
-                  }, 2000);
+                  // setTimeout(() => {
+                  //   window.location.href = `https://invoice.rozo.ai/receipt?id=${
+                  //     args.payment.externalId || args.paymentId
+                  //   }&back_url=${window.location.href}`;
+                  // }, 2000);
                 }}
               >
                 {({ show }) => (

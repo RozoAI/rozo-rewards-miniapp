@@ -406,7 +406,6 @@ export default function RestaurantDetailPage() {
 
               {/* Payment Button */}
               <RozoPayButton.Custom
-                closeOnSuccess
                 resetOnSuccess
                 appId={`rozoRewards-${restaurant.handle || ""}`}
                 toAddress={
@@ -441,11 +440,11 @@ export default function RestaurantDetailPage() {
                     duration: 2000,
                   });
                   setPaymentLoading(false);
-                  setTimeout(() => {
-                    window.location.href = `https://invoice.rozo.ai/receipt?id=${
-                      args.payment.externalId || args.paymentId
-                    }&back_url=${window.location.href}`;
-                  }, 2000);
+                  // setTimeout(() => {
+                  //   window.location.href = `https://invoice.rozo.ai/receipt?id=${
+                  //     args.payment.externalId || args.paymentId
+                  //   }&back_url=${window.location.href}`;
+                  // }, 2000);
                 }}
               >
                 {({ show }) => {

@@ -72,7 +72,7 @@ export function convertToUSD(
   const numAmount = parseFloat(amountLocal);
   if (isNaN(numAmount)) return "0.00";
 
-  const rate = EXCHANGE_RATES[currencyLocal] || 1.0;
+  const rate = EXCHANGE_RATES[currencyLocal] || 1.0; // Default to USD
   return (numAmount / rate).toFixed(2);
 }
 
