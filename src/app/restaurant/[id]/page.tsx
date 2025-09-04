@@ -41,7 +41,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 
@@ -67,6 +67,13 @@ export default function RestaurantDetailPage() {
   const [dialogLoading, setDialogLoading] = React.useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastResetAmountRef = useRef<string>("");
+
+  const metadata = useMemo(() => {
+    return {
+      amount_local: paymentAmount,
+      currency_local: getDisplayCurrency(restaurant?.currency),
+    };
+  }, [paymentAmount, restaurant?.currency]);
 
   useEffect(() => {
     async function loadRestaurant() {
@@ -437,10 +444,7 @@ export default function RestaurantDetailPage() {
                   intent={`Pay for ${restaurant.name} - ${getDisplayCurrency(
                     restaurant?.currency
                   )} ${paymentAmount}`}
-                  metadata={{
-                    amount_local: paymentAmount,
-                    currency_local: getDisplayCurrency(restaurant?.currency),
-                  }}
+                  metadata={metadata}
                   onPaymentStarted={() => {
                     setLoading(true);
                     setPaymentLoading(true);
