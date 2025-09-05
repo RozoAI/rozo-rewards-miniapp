@@ -27,7 +27,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@rainbow-me/rainbowkit": "^2.2.8",
     "@rozoai/intent-common": "0.0.19",
-    "@rozoai/intent-pay": "0.0.24-beta.9",
+    "@rozoai/intent-pay": "0.0.24-beta.10",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.54.0",
     "@tanstack/react-query": "^5.84.2",

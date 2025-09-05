@@ -45,8 +45,8 @@ importers:
         specifier: 0.0.19
         version: 0.0.19(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)
       '@rozoai/intent-pay':
-        specifier: 0.0.24-beta.9
-        version: 0.0.24-beta.9(07ef071149049b96ee70d8b2b5bc7812)
+        specifier: 0.0.24-beta.10
+        version: 0.0.24-beta.10(07ef071149049b96ee70d8b2b5bc7812)
       '@supabase/ssr':
         specifier: ^0.6.1
         version: 0.6.1(@supabase/supabase-js@2.56.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
@@ -1528,8 +1528,8 @@ packages:
   '@rozoai/intent-common@0.0.20-beta.1':
     resolution: {integrity: sha512-3TWCTcPWJJtODw3kSlQvl/tpsGP9EzhATHF6y7WK/8RppxIxhS7MosXt9xvgA7zKszhsW/iPa3OS0YoJVXGz5Q==}
 
-  '@rozoai/intent-pay@0.0.24-beta.9':
-    resolution: {integrity: sha512-rEFXOPK1ZKDKQB/8iZN937QsZn3xFpC8VmNR9tFqdvaNTY9HTp+AJtcG5sCXkkypp25RjoZAhmDE0XYTqAckeg==}
+  '@rozoai/intent-pay@0.0.24-beta.10':
+    resolution: {integrity: sha512-28EauYtcVIquVK2t7xTxYWjXIjSZphEg3nM2w1/dl1vRIKiVdaM7Wt17rDtovkT68o33dhMvHl0N9eKAtoqJEg==}
     engines: {node: '>=12.4'}
     peerDependencies:
       '@tanstack/react-query': '>=5.0.0'
@@ -8462,7 +8462,7 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@rozoai/intent-pay@0.0.24-beta.9(07ef071149049b96ee70d8b2b5bc7812)':
+  '@rozoai/intent-pay@0.0.24-beta.10(07ef071149049b96ee70d8b2b5bc7812)':
     dependencies:
       '@albedo-link/intent': 0.13.0
       '@creit.tech/stellar-wallets-kit': 1.9.1(12cad001aeea0926948d4feececf11ab)
