@@ -1,16 +1,11 @@
 "use client";
 import { farcasterMiniApp as miniAppConnector } from "@farcaster/miniapp-wagmi-connector";
 import { connectorsForWallets } from "@rainbow-me/rainbowkit";
-import {
-  coinbaseWallet,
-  metaMaskWallet,
-  phantomWallet,
-} from "@rainbow-me/rainbowkit/wallets";
+import { metaMaskWallet } from "@rainbow-me/rainbowkit/wallets";
 import { getDefaultConfig } from "@rozoai/intent-pay";
 import { useMemo } from "react";
 import { createConfig, http } from "wagmi";
 import { base } from "wagmi/chains";
-import { baseAccount } from "wagmi/connectors";
 
 export function useWagmiConfig() {
   if (!process.env.NEXT_PUBLIC_WC_PROJECT_ID) {
@@ -22,7 +17,7 @@ export function useWagmiConfig() {
       [
         {
           groupName: "Recommended",
-          wallets: [metaMaskWallet, coinbaseWallet, phantomWallet],
+          wallets: [metaMaskWallet],
         },
       ],
       {
@@ -37,12 +32,11 @@ export function useWagmiConfig() {
         appIcon: "https://rozo.ai/rozo-logo.png",
         appDescription: "Rozo Rewards MiniApp",
         appUrl: "https://rewards.rozo.ai",
-        chains: [base],
         ssr: true,
         transports: {
           [base.id]: http(),
         },
-        connectors: [miniAppConnector(), baseAccount(), ...connectors],
+        connectors: [miniAppConnector(), ...connectors],
       }),
     });
 
