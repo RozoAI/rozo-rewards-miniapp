@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
-import { ChevronRight, Clock } from "lucide-react";
+import { ChevronRight, Clock } from "lucide-rea\ct";
 import Link from "next/link";
 import * as React from "react";
 
@@ -32,10 +32,16 @@ function ListRow({ item }: { item: CatalogItem }) {
   const hasBundle = item.original_value_usd > 0;
   const hasCashback = item.cashback_rate > 0;
 
+  // Check if this is an external link (Rozo Banana)
+  const isExternalLink = item.domain === "banana.rozo.ai";
+  const linkHref = isExternalLink ? item.source : `/ai-services/${encodeURIComponent(item.domain)}`;
+  
   return (
     <li>
       <Link
-        href={`/ai-services/${encodeURIComponent(item.domain)}`}
+        href={linkHref}
+        target={isExternalLink ? "_blank" : undefined}
+        rel={isExternalLink ? "noopener noreferrer" : undefined}
         className="block px-3 py-4 sm:px-4 sm:py-5 border-b last:border-b-0 hover:bg-accent/50 active:bg-accent/70 transition-colors duration-200 group"
       >
         <div className="flex items-start gap-3 sm:gap-4">

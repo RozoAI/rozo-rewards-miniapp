@@ -26,7 +26,27 @@ export function AiServicesContent({ className }: { className?: string }) {
           const filteredData = data.filter(
             (item) => item.discount_rate && item.discount_rate !== 0
           );
-          setItems(filteredData);
+          
+          // Add Rozo Banana as the first item
+          const rozoBananaItem: CatalogItem = {
+            domain: "banana.rozo.ai",
+            name: "Rozo Banana",
+            price_in_usd: 0.5,
+            original_value_usd: 1,
+            duration_months: 0,
+            destination: 0,
+            category: "AI",
+            description: "Unlock the creativity with Nano Banana x Base x402",
+            offer_description: "AI-powered creative tools and services",
+            logo_url: "banana.jpg",
+            cashback_rate: 0,
+            discount_rate: 0,
+            savings_usd: 0,
+            source: "https://banana.rozo.ai/",
+            sold_out: false
+          };
+          
+          setItems([rozoBananaItem, ...filteredData]);
         }
       } catch (err) {
         if (isMounted)
