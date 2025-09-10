@@ -1,22 +1,21 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 
 export async function GET(req: NextRequest) {
   try {
-    const geistRegular = await readFile(
-      join(process.cwd(), "public/Geist-Regular.ttf")
+    const fetchGeistRegular = await fetch(
+      new URL("/Geist-Regular.ttf", process.env.NEXT_PUBLIC_URL)
     );
-    const geistSemiBold = await readFile(
-      join(process.cwd(), "public/Geist-SemiBold.ttf")
+    const fetchGeistBold = await fetch(
+      new URL("/Geist-Bold.ttf", process.env.NEXT_PUBLIC_URL)
     );
-    const geistBold = await readFile(
-      join(process.cwd(), "public/Geist-Bold.ttf")
+    const fetchGeistExtraBold = await fetch(
+      new URL("/Geist-ExtraBold.ttf", process.env.NEXT_PUBLIC_URL)
     );
-    const geistExtrabold = await readFile(
-      join(process.cwd(), "public/Geist-Extrabold.ttf")
-    );
+
+    const geistBold = await fetchGeistBold.arrayBuffer();
+    const geistRegular = await fetchGeistRegular.arrayBuffer();
+    const geistExtrabold = await fetchGeistExtraBold.arrayBuffer();
 
     const { searchParams } = req.nextUrl;
 
@@ -188,11 +187,6 @@ export async function GET(req: NextRequest) {
           {
             name: "Geist Regular",
             data: geistRegular,
-            style: "normal",
-          },
-          {
-            name: "Geist SemiBold",
-            data: geistSemiBold,
             style: "normal",
           },
           {
