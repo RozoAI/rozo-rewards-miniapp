@@ -208,19 +208,89 @@ export async function GET(req: NextRequest) {
       (
         <div
           style={{
-            height: "100%",
-            width: "100%",
+            width: "1200px",
+            height: "630px",
+            backgroundColor: "#f9fafb",
+            backgroundImage:
+              "linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%)",
+            padding: "32px",
             display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            color: "white",
-            fontSize: "48px",
-            fontWeight: "bold",
+            fontFamily: "Geist Regular",
           }}
         >
-          Rozo Rewards
+          <div
+            style={{
+              width: "100%",
+              display: "flex",
+            }}
+          >
+            {/* Left Content */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                width: "50%",
+                height: "100%",
+              }}
+            >
+              {/* Main Heading */}
+              <h1
+                style={{
+                  fontSize: "76px",
+                  fontWeight: 900,
+                  fontFamily: "Geist Bold",
+                  color: "#333",
+                  marginBottom: "16px",
+                }}
+              >
+                Rozo Rewards
+              </h1>
+
+              {/* Brand Logo */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  fontSize: "16px",
+                  marginTop: "auto",
+                }}
+              >
+                <img
+                  src={`${process.env.NEXT_PUBLIC_URL}/logo.png`}
+                  alt="Rozo Rewards Logo"
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    marginRight: "12px",
+                  }}
+                />
+                rewards.rozo.ai
+              </div>
+            </div>
+
+            {/* Right Content - Product Card */}
+            <div
+              style={{
+                display: "flex",
+                width: "50%",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <img
+                src={`${process.env.NEXT_PUBLIC_URL}/rozo-white.png`}
+                width={320}
+                height={320}
+                style={{
+                  width: "320px",
+                  height: "320px",
+                  objectFit: "cover",
+                  borderRadius: "24px",
+                  transform: "rotate(12deg)",
+                }}
+              />
+            </div>
+          </div>
         </div>
       ),
       { width: 1200, height: 630 }
