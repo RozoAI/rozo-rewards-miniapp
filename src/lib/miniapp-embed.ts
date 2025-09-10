@@ -12,7 +12,7 @@ export interface MiniAppEmbedConfig {
   splashBackgroundColor?: string;
 }
 
-export function generateMiniAppEmbed(config: MiniAppEmbedConfig): string {
+function generateMiniAppEmbed(config: MiniAppEmbedConfig): string {
   const embed = {
     version: config.version || "1",
     imageUrl: config.imageUrl,
@@ -65,10 +65,17 @@ export function createMiniAppMetadata(
       "Earn rewards at your favorite restaurants") as string,
     ogImageParams: {
       type: "lifestyle",
-      title: (additionalMetadata.title || "Rozo Rewards") as string,
-      subtitle: (additionalMetadata.description ||
+      title: (additionalMetadata.openGraph?.title || "Rozo Rewards") as string,
+      subtitle: (additionalMetadata.openGraph?.description ||
         process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
         "Earn rewards at your favorite restaurants") as string,
+      image: config.imageUrl,
+      price: (additionalMetadata.other?.["price:amount"] as string) || "",
+      originalPrice:
+        (additionalMetadata.other?.["price:original"] as string) || "",
+      cashbackRate:
+        (additionalMetadata.other?.["restaurant:cashback_rate"] as string) ||
+        "",
     },
   });
 

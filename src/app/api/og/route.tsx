@@ -1,151 +1,215 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
-
-// Use Edge Runtime for faster cold starts
-export const runtime = "edge";
-
-// Define our supported page types
-type PageType = "homepage" | "lifestyle";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 export async function GET(req: NextRequest) {
   try {
+    const geistRegular = await readFile(
+      join(process.cwd(), "public/Geist-Regular.ttf")
+    );
+    const geistSemiBold = await readFile(
+      join(process.cwd(), "public/Geist-SemiBold.ttf")
+    );
+    const geistBold = await readFile(
+      join(process.cwd(), "public/Geist-Bold.ttf")
+    );
+    const geistExtrabold = await readFile(
+      join(process.cwd(), "public/Geist-Extrabold.ttf")
+    );
+
     const { searchParams } = req.nextUrl;
 
     // Extract parameters with defaults
-    const type = (searchParams.get("type") as PageType) || "homepage";
-    const title = searchParams.get("title") || "Welcome";
+    const title = searchParams.get("title") || "Rozo Rewards";
     const subtitle = searchParams.get("subtitle") || "";
-
-    // Define styles based on page type
-    const getTypeStyles = (pageType: PageType) => {
-      const baseStyles = {
-        homepage: {
-          bg: "#0a0a0a",
-          badge: "🏠 Homepage",
-        },
-        lifestyle: {
-          bg: "#0a0a0a",
-          badge: "🍽️ Lifestyle",
-        },
-      };
-      return baseStyles[pageType] || baseStyles.homepage;
-    };
-
-    const styles = getTypeStyles(type);
+    const price = searchParams.get("price") || "";
+    const originalPrice = searchParams.get("originalPrice") || "";
+    const image = searchParams.get("image") || "";
+    const cashbackRate = searchParams.get("cashbackRate") || "";
 
     return new ImageResponse(
       (
         <div
           style={{
-            height: "100%",
-            width: "100%",
+            width: "1200px",
+            height: "630px",
+            backgroundColor: "#f9fafb",
+            backgroundImage:
+              "linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%)",
+            padding: "32px",
             display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            background: styles.bg,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            padding: "60px",
-            // fontFamily: '"Inter", system-ui, sans-serif',
+            fontFamily: "Geist Regular",
           }}
         >
-          {/* Content */}
-          <div style={{ display: "flex", flexDirection: "column", zIndex: 1 }}>
-            {/* Badge */}
+          <div
+            style={{
+              width: "100%",
+              display: "flex",
+            }}
+          >
+            {/* Left Content */}
             <div
               style={{
-                background: "rgba(255, 255, 255, 0.2)",
-                backdropFilter: "blur(10px)",
-                borderRadius: "25px",
-                padding: "12px 24px",
-                fontSize: "24px",
-                fontWeight: "600",
-                color: "white",
-                marginBottom: "40px",
-                border: "1px solid rgba(255, 255, 255, 0.3)",
+                display: "flex",
+                flexDirection: "column",
+                width: "50%",
+                height: "100%",
               }}
             >
-              {styles.badge}
-            </div>
-
-            {/* Main Title */}
-            <div
-              style={{
-                fontSize: title.length > 50 ? "56px" : "72px",
-                fontWeight: "800",
-                color: "white",
-                lineHeight: "1.1",
-                textShadow: "0 4px 8px rgba(0, 0, 0, 0.3)",
-                marginBottom: subtitle ? "20px" : "0",
-                maxWidth: "1000px",
-              }}
-            >
-              {title}
-            </div>
-
-            {/* Subtitle */}
-            {subtitle && (
-              <div
+              {/* Main Heading */}
+              <h1
                 style={{
-                  fontSize: "36px",
-                  fontWeight: "400",
-                  color: "rgba(255, 255, 255, 0.9)",
-                  lineHeight: "1.3",
-                  maxWidth: "900px",
-                  textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                  fontSize: "76px",
+                  fontWeight: 900,
+                  fontFamily: "Geist Bold",
+                  color: "#333",
+                  marginBottom: "16px",
+                }}
+              >
+                {title}
+              </h1>
+              <p
+                style={{
+                  fontSize: "20px",
+                  fontFamily: "Geist Regular",
+                  color: "#374151",
+                  marginBottom: "32px",
+                  maxWidth: "384px",
                 }}
               >
                 {subtitle}
-              </div>
-            )}
-          </div>
+              </p>
 
-          {/* Bottom branding/domain */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              fontSize: "24px",
-              color: "rgba(255, 255, 255, 0.8)",
-              zIndex: 1,
-            }}
-          >
-            <img
-              src={`${process.env.NEXT_PUBLIC_URL}/logo-white.png`}
-              alt="Rozo Rewards Logo"
+              {/* Pricing */}
+              {(price || originalPrice) && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "baseline",
+                    marginBottom: "32px",
+                  }}
+                >
+                  {price && (
+                    <span
+                      style={{
+                        fontSize: "60px",
+                        fontWeight: 900,
+                        fontFamily: "Geist Extrabold",
+                        color: "#000000",
+                        marginRight: "12px",
+                      }}
+                    >
+                      ${price}
+                    </span>
+                  )}
+                  {originalPrice && (
+                    <span
+                      style={{
+                        fontSize: "24px",
+                        fontFamily: "Geist Regular",
+                        color: "#6b7280",
+                        textDecoration: "line-through",
+                      }}
+                    >
+                      ${originalPrice}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Cashback Rate */}
+              {/* {cashbackRate && (
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: "48px",
+                    fontWeight: 900,
+                    fontFamily: "Geist Bold",
+                    color: "#000000",
+                    marginRight: "12px",
+                  }}
+                >
+                  Cashback {cashbackRate}%
+                </div>
+              )} */}
+
+              {/* Brand Logo */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  fontSize: "16px",
+                  marginTop: "auto",
+                }}
+              >
+                <img
+                  src={`${process.env.NEXT_PUBLIC_URL}/logo.png`}
+                  alt="Rozo Rewards Logo"
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    marginRight: "12px",
+                  }}
+                />
+                Rozo Rewards - rewards.rozo.ai
+              </div>
+            </div>
+
+            {/* Right Content - Product Card */}
+            <div
               style={{
-                width: "32px",
-                height: "32px",
-                marginRight: "12px",
+                display: "flex",
+                width: "50%",
+                justifyContent: "center",
+                alignItems: "center",
               }}
-            />
-            Rozo Rewards - rewards.rozo.ai
+            >
+              <img
+                src={image}
+                width={320}
+                height={320}
+                style={{
+                  width: "320px",
+                  height: "320px",
+                  objectFit: "cover",
+                  borderRadius: "24px",
+                  transform: "rotate(12deg)",
+                }}
+              />
+            </div>
           </div>
         </div>
       ),
       {
         width: 1200,
         height: 630,
-        // Add fonts for better typography (optional but recommended)
-        // fonts: [
-        //   {
-        //     name: "Inter",
-        //     data: await fetch(
-        //       new URL(
-        //         "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap"
-        //       )
-        //     ).then((res) => res.arrayBuffer()),
-        //     style: "normal",
-        //     weight: 400,
-        //   },
-        // ],
+        fonts: [
+          {
+            name: "Geist Regular",
+            data: geistRegular,
+            style: "normal",
+          },
+          {
+            name: "Geist SemiBold",
+            data: geistSemiBold,
+            style: "normal",
+          },
+          {
+            name: "Geist Bold",
+            data: geistBold,
+            style: "normal",
+          },
+          {
+            name: "Geist Extrabold",
+            data: geistExtrabold,
+            style: "normal",
+          },
+        ],
       }
     );
   } catch (error) {
     console.error("Error generating OG image:", error);
-
-    // Return a fallback image on error
     return new ImageResponse(
       (
         <div

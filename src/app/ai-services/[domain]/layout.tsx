@@ -67,7 +67,7 @@ export async function generateMetadata({
   // Enhanced title based on service type
   const title =
     service.original_value_usd > 0
-      ? `${service.name} — Save $${service.savings_usd} (${service.discount_rate}% OFF)`
+      ? `${service.name} — Only $${service.price_in_usd} for ${service.duration_months} months`
       : `${service.name} — ${service.cashback_rate}% Cashback`;
 
   // Enhanced description with pricing details
@@ -76,7 +76,7 @@ export async function generateMetadata({
       ? ` Get it for just $${service.price_in_usd} (was $${service.original_value_usd}). Save $${service.savings_usd} with ${service.discount_rate}% off + ${service.cashback_rate}% cashback.`
       : ` Get ${service.cashback_rate}% cashback when you purchase through Rozo AI.`;
 
-  const description = `${service.description}${bundleInfo}`;
+  const description = `${service.description}. ${bundleInfo}`;
 
   // Enhanced button title
   const buttonTitle =
@@ -92,7 +92,7 @@ export async function generateMetadata({
       imageUrl:
         service.logo_url ||
         process.env.NEXT_PUBLIC_APP_HERO_IMAGE ||
-        "/logo.png",
+        `${process.env.NEXT_PUBLIC_URL}/logo.png`,
       buttonTitle,
       name: service.name,
       url: fullUrl,
@@ -102,6 +102,10 @@ export async function generateMetadata({
       description,
       alternates: {
         canonical: urlPath,
+      },
+      openGraph: {
+        title: service.name,
+        description: service.description,
       },
       other: service
         ? {

@@ -6,6 +6,7 @@ export const metadata: Metadata = createMiniAppMetadata(
   {
     ...embedConfigs.profile,
     url: `${process.env.NEXT_PUBLIC_URL}/profile`,
+    imageUrl: `${process.env.NEXT_PUBLIC_URL}/rozo-white.png`,
   },
   {
     title: "Profile | Rozo Rewards",

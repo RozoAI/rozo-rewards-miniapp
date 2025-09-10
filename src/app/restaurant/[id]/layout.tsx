@@ -2,6 +2,7 @@ import { FabActions } from "@/components/fab-actions";
 import { createMiniAppMetadata } from "@/lib/miniapp-embed";
 import { Restaurant } from "@/types/restaurant";
 import type { Metadata } from "next";
+import data from "../../../../public/coffee_mapdata.json";
 
 type CoffeeMapResponse = {
   locations: Restaurant[];
@@ -9,16 +10,16 @@ type CoffeeMapResponse = {
 };
 
 async function getRestaurant(id: string): Promise<Restaurant | null> {
-  const base = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
+  // const base = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
   try {
-    const res = await fetch(`${base}/coffee_mapdata.json`, {
-      // Allow caching but keep it reasonably fresh
-      next: { revalidate: 300 },
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as CoffeeMapResponse;
+    // const res = await fetch(`${base}/coffee_mapdata.json`, {
+    //   // Allow caching but keep it reasonably fresh
+    //   next: { revalidate: 300 },
+    // });
+    // if (!res.ok) return null;
+    // const data = (await res.json()) as CoffeeMapResponse;
     if (!data || !Array.isArray(data.locations)) return null;
-    return data.locations.find((l) => l._id === id) ?? null;
+    return (data.locations as any).find((l: any) => l._id === id) ?? null;
   } catch {
     return null;
   }
@@ -65,6 +66,10 @@ export async function generateMetadata({
     {
       title,
       description,
+      openGraph: {
+        title: restaurant?.name,
+        description,
+      },
       alternates: {
         canonical: `/restaurant/${id}`,
       },

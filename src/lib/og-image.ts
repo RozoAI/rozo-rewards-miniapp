@@ -5,7 +5,10 @@ export interface OgImageParams {
   type?: PageType;
   title: string;
   subtitle?: string;
-  image?: string; // filename relative to public folder
+  image?: string;
+  price?: string;
+  originalPrice?: string;
+  cashbackRate?: string;
 }
 
 /**
@@ -17,6 +20,10 @@ export function getOgImageUrl({
   type = "homepage",
   title,
   subtitle,
+  image,
+  price,
+  originalPrice,
+  cashbackRate,
 }: OgImageParams): string {
   const baseUrl = process.env.NEXT_PUBLIC_URL || "https://rewards.rozo.ai";
   const endpoint = `${baseUrl}/api/og`;
@@ -24,6 +31,10 @@ export function getOgImageUrl({
   const params = new URLSearchParams({
     type: type.toString(),
     title: title.trim(),
+    image: image?.trim() || "",
+    price: price?.trim() || "",
+    originalPrice: originalPrice?.trim() || "",
+    cashbackRate: cashbackRate?.trim() || "",
   });
 
   if (subtitle?.trim()) {
