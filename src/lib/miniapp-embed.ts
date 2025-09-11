@@ -4,6 +4,7 @@ import { generateOgMetadata } from "./og-image";
 export interface MiniAppEmbedConfig {
   version?: string;
   imageUrl: string;
+  bannerUrl?: string;
   buttonTitle: string;
   actionType?: "launch_frame" | "view_token";
   name?: string;
@@ -15,7 +16,7 @@ export interface MiniAppEmbedConfig {
 function generateMiniAppEmbed(config: MiniAppEmbedConfig): string {
   const embed = {
     version: config.version || "1",
-    imageUrl: config.imageUrl,
+    imageUrl: config.bannerUrl || config.imageUrl,
     button: {
       title: config.buttonTitle,
       action: {

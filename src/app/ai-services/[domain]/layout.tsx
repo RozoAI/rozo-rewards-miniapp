@@ -81,7 +81,7 @@ export async function generateMetadata({
   // Enhanced button title
   const buttonTitle =
     service.original_value_usd > 0
-      ? `💰 Save $${service.savings_usd} on ${service.name}`
+      ? `💰 Only $${service.price_in_usd} for ${service.name}`
       : `✨ Get ${service.cashback_rate}% Cashback on ${service.name}`;
 
   const urlPath = `/ai-services/${domain}`;
@@ -93,6 +93,7 @@ export async function generateMetadata({
         service.logo_url ||
         process.env.NEXT_PUBLIC_APP_HERO_IMAGE ||
         `${process.env.NEXT_PUBLIC_URL}/logo.png`,
+      bannerUrl: `${process.env.NEXT_PUBLIC_URL}/banner.png`,
       buttonTitle,
       name: service.name,
       url: fullUrl,

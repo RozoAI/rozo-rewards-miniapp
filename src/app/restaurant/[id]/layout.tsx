@@ -57,6 +57,7 @@ export async function generateMetadata({
         restaurant?.logo_url ||
         process.env.NEXT_PUBLIC_APP_HERO_IMAGE ||
         "/logo.png",
+      bannerUrl: `${process.env.NEXT_PUBLIC_URL}/banner.png`,
       buttonTitle: restaurant
         ? `🍽️ Visit ${restaurant.name}`
         : "🍽️ View Restaurant",

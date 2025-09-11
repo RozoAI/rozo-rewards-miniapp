@@ -9,6 +9,7 @@ export const metadata: Metadata = createMiniAppMetadata(
     ...embedConfigs.aiServices,
     url: `${process.env.NEXT_PUBLIC_URL}/ai-services`,
     imageUrl: `${process.env.NEXT_PUBLIC_URL}/rozo-white.png`,
+    bannerUrl: `${process.env.NEXT_PUBLIC_URL}/banner.png`,
   },
   {
     title: "Discovery | Rozo",
