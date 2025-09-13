@@ -14,7 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { type Restaurant } from "@/types/restaurant";
-import { ChevronUp, Loader2, MapPinIcon } from "lucide-react";
+import { ChevronUp, MapPinIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FabActions } from "../fab-actions";
 import { Button } from "../ui/button";
@@ -51,63 +51,70 @@ export default function HomePage() {
   };
 
   const requestLocationAccess = async (forceGPS = false) => {
-    // If Chrome on macOS and not forcing GPS, skip geolocation
-    if (isChromeOnMacOS() && !forceGPS) {
-      console.warn(
-        "Detected Chrome on macOS — using IP fallback due to Core Location bug"
-      );
-      const ipLocation = await fallbackToIPLocation();
-      setUserLocation(ipLocation);
-      setLocationPermission("approximate");
-      setLocationError("Using approximate location due to browser limitation.");
-      return;
-    }
+    try {
+      // If Chrome on macOS and not forcing GPS, skip geolocation
+      if (isChromeOnMacOS() && !forceGPS) {
+        console.warn(
+          "Detected Chrome on macOS — using IP fallback due to Core Location bug"
+        );
+        const ipLocation = await fallbackToIPLocation();
+        setUserLocation(ipLocation);
+        setLocationPermission("approximate");
+        setLocationError(
+          "Using approximate location due to browser limitation."
+        );
+        return;
+      }
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-          setLocationPermission("granted");
-          setLocationError(null);
-        },
-        async (error) => {
-          console.error("Error getting user location:", error);
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            setUserLocation({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            });
+            setLocationPermission("granted");
+            setLocationError(null);
+          },
+          async (error) => {
+            console.error("Error getting user location:", error);
 
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              setLocationPermission("denied");
-              setLocationError(
-                "Location access denied. Please enable location permissions in your browser settings."
-              );
-              break;
-            case error.POSITION_UNAVAILABLE:
-              setLocationPermission("approximate");
-              setLocationError(
-                "Location information is unavailable. Using approximate location."
-              );
-              const ipLocation = await fallbackToIPLocation();
-              setUserLocation(ipLocation);
-              return;
-            case error.TIMEOUT:
-              setLocationPermission("timeout");
-              setLocationError("Location request timed out.");
-              break;
-            default:
-              setLocationPermission("unknown");
-              setLocationError(
-                "An unknown error occurred while retrieving location."
-              );
-              break;
+            switch (error.code) {
+              case error.PERMISSION_DENIED:
+                setLocationPermission("denied");
+                setLocationError(
+                  "Location access denied. Please enable location permissions in your browser settings."
+                );
+                break;
+              case error.POSITION_UNAVAILABLE:
+                setLocationPermission("approximate");
+                setLocationError(
+                  "Location information is unavailable. Using approximate location."
+                );
+                const ipLocation = await fallbackToIPLocation();
+                setUserLocation(ipLocation);
+                return;
+              case error.TIMEOUT:
+                setLocationPermission("timeout");
+                setLocationError("Location request timed out.");
+                break;
+              default:
+                setLocationPermission("unknown");
+                setLocationError(
+                  "An unknown error occurred while retrieving location."
+                );
+                break;
+            }
+
+            // Final fallback: San Francisco
+            setUserLocation({ lat: 37.7749, lng: -122.4194 });
           }
-
-          // Final fallback: San Francisco
-          setUserLocation({ lat: 37.7749, lng: -122.4194 });
-        }
-      );
-    } else {
+        );
+      } else {
+        setLocationError("Geolocation is not supported by this browser.");
+        setUserLocation({ lat: 37.7749, lng: -122.4194 });
+      }
+    } catch (error) {
       setLocationError("Geolocation is not supported by this browser.");
       setUserLocation({ lat: 37.7749, lng: -122.4194 });
     }
@@ -131,17 +138,6 @@ export default function HomePage() {
       setUserLocation({ lat: 37.7749, lng: -122.4194 });
     }
   }, []);
-
-  // Use user location or fallback
-  const defaultCenter = userLocation;
-
-  if (!defaultCenter) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
-      </div>
-    );
-  }
 
   return (
     <div className="relative h-screen w-full">
@@ -172,9 +168,9 @@ export default function HomePage() {
       )}
 
       {/* Full screen map */}
-      {locationPermission === "granted" && (
+      {userLocation && locationPermission === "granted" && (
         <GoogleMap
-          defaultCenter={defaultCenter}
+          defaultCenter={userLocation}
           restaurants={restaurants}
           selectedLocation={userLocation}
         />
@@ -227,7 +223,7 @@ export default function HomePage() {
                 </p>
               </SheetHeader>
 
-              <ScrollArea className="flex-1 py-3 h-[calc(100%-100px)] px-4">
+              <ScrollArea className="flex-1 py-3 h-[calc(100%-100px)]">
                 <RestaurantsContent className="mt-2" />
               </ScrollArea>
             </div>
