@@ -389,7 +389,7 @@ export default function AIServiceDetailPage() {
             {!service.sold_out && (
               <RozoPayButton.Custom
                 resetOnSuccess
-                appId={`rozoRewards-${service.domain || ""}`}
+                appId="rozoRewardsBNBStellarMP"
                 intent={`Pay for ${service.name} - ${service.duration_months} months`}
                 toAddress="0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897"
                 toChain={8453}
