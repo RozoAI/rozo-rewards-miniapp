@@ -4,6 +4,7 @@ import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 import { coinbaseWallet, metaMaskWallet } from "@rainbow-me/rainbowkit/wallets";
 import { getDefaultConfig } from "@rozoai/intent-pay";
 import { useMemo } from "react";
+import { base, bsc } from "viem/chains";
 import { createConfig } from "wagmi";
 
 export function useWagmiConfig() {
@@ -32,7 +33,8 @@ export function useWagmiConfig() {
         appDescription: "Rozo Rewards MiniApp",
         appUrl: "https://rewards.rozo.ai",
         ssr: true,
-        connectors: [miniAppConnector(), ...connectors],
+        connectors: [miniAppConnector()],
+        chains: [base, bsc],
       }),
     });
 
