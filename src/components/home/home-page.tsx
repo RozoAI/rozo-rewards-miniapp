@@ -14,7 +14,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { type Restaurant } from "@/types/restaurant";
-import { useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { ChevronUp, Loader2, MapPinIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FabActions } from "../fab-actions";
@@ -31,7 +30,6 @@ export default function HomePage() {
     "granted" | "denied" | "prompt" | "unknown" | "approximate" | "timeout"
   >("unknown");
   const [locationError, setLocationError] = useState<string | null>(null);
-  const { isInMiniApp, isPending } = useIsInMiniApp();
 
   // Detect Chrome on macOS
   const isChromeOnMacOS = () => {
