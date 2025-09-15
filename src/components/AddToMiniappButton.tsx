@@ -118,6 +118,13 @@ export const AddToMiniappButton = forwardRef<
       } catch (error) {
         console.error("Error adding to miniapp:", error);
 
+        // Handle RejectedByUser error specifically - don't treat as failure
+        if (error instanceof Error && error.name === "RejectedByUser") {
+          console.log("User rejected adding to miniapp");
+          // Don't call onError for user rejection, just reset state
+          return;
+        }
+
         const errorMessage =
           error instanceof Error ? error : new Error("Failed to add miniapp");
 

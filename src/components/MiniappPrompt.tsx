@@ -26,6 +26,7 @@ export function MiniappPrompt() {
 
   const handleError = (error: Error) => {
     console.error("Failed to add miniapp:", error);
+    // Don't dismiss for actual errors - user might want to try again
     // Could show a toast notification here
   };
 
@@ -43,7 +44,7 @@ export function MiniappPrompt() {
             onError={handleError}
             variant="outline"
             size="sm"
-            className="bg-white text-black hover:bg-gray-100 border-white shrink-0"
+            className="bg-white text-black dark:text-white hover:bg-gray-100 border-white shrink-0"
           >
             Add
           </AddToMiniappButton>
