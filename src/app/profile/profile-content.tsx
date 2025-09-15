@@ -1,6 +1,7 @@
 "use client";
 
 import { FabActions } from "@/components/fab-actions";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 // Badge component not available, using span instead
@@ -10,12 +11,10 @@ import { useHasMounted } from "@/hooks/useHasMounted";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { useUSDCBalance } from "@/hooks/useUSDCBalance";
 import { formatAddress } from "@/lib/utils";
-import { Avatar as OnchainkitAvatar } from "@coinbase/onchainkit/identity";
 import { Coins, Copy, Loader2, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { base } from "viem/chains";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 
 export default function ProfilePageContent() {
@@ -123,24 +122,15 @@ function ProfilePageContentInternal() {
         <CardHeader className="gap-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              {/* <Avatar className="h-16 w-16">
+              <Avatar className="h-16 w-16">
                 <AvatarImage
                   src={`https://avatar.tobi.sh/${address}`}
                   alt="Profile"
                 />
                 <AvatarFallback className="text-lg">
-                  <OnchainkitAvatar
-                    address={address}
-                    className="h-16 w-16"
-                    chain={base}
-                  />
+                  {address ? address.slice(2, 4).toUpperCase() : "--"}
                 </AvatarFallback>
-              </Avatar> */}
-              <OnchainkitAvatar
-                address={address}
-                className="h-16 w-16"
-                chain={base}
-              />
+              </Avatar>
               <div className="flex flex-col gap-2">
                 {status === "connected" ? (
                   <>

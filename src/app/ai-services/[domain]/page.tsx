@@ -179,7 +179,6 @@ export default function AIServiceDetailPage() {
     if (isInMiniApp) {
       composeCast({
         text,
-        embeds: [window.location.href],
       });
     } else {
       (async () => {
