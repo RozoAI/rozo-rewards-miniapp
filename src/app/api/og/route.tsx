@@ -3,19 +3,20 @@ import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
   try {
-    const fetchGeistRegular = await fetch(
-      new URL("/Geist-Regular.ttf", process.env.NEXT_PUBLIC_URL)
-    );
-    const fetchGeistBold = await fetch(
-      new URL("/Geist-Bold.ttf", process.env.NEXT_PUBLIC_URL)
-    );
-    const fetchGeistExtraBold = await fetch(
-      new URL("/Geist-ExtraBold.ttf", process.env.NEXT_PUBLIC_URL)
-    );
+    const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
 
-    const geistBold = await fetchGeistBold.arrayBuffer();
-    const geistRegular = await fetchGeistRegular.arrayBuffer();
-    const geistExtrabold = await fetchGeistExtraBold.arrayBuffer();
+    // Load only essential fonts for speed
+    const [geistRegularRes, geistBlackRes] = await Promise.all([
+      fetch(new URL("/Geist-Regular.ttf", baseUrl)),
+      fetch(new URL("/Geist-Black.ttf", baseUrl)),
+    ]);
+
+    const geistRegular = geistRegularRes.ok
+      ? await geistRegularRes.arrayBuffer()
+      : null;
+    const geistBlack = geistBlackRes.ok
+      ? await geistBlackRes.arrayBuffer()
+      : null;
 
     const { searchParams } = req.nextUrl;
 
@@ -24,8 +25,17 @@ export async function GET(req: NextRequest) {
     const subtitle = searchParams.get("subtitle") || "";
     const price = searchParams.get("price") || "";
     const originalPrice = searchParams.get("originalPrice") || "";
-    const image = searchParams.get("image") || "";
-    const cashbackRate = searchParams.get("cashbackRate") || "";
+
+    // Simple image validation - exclude icons
+    const rawImage = searchParams.get("image") || "";
+    const isValidImage =
+      rawImage &&
+      (rawImage.includes(".jpg") ||
+        rawImage.includes(".png") ||
+        rawImage.includes(".webp")) &&
+      !rawImage.includes("icon") &&
+      !rawImage.includes("favicon");
+    const finalImage = isValidImage ? rawImage : `${baseUrl}/rozo-white.png`;
 
     return new ImageResponse(
       (
@@ -61,7 +71,7 @@ export async function GET(req: NextRequest) {
                 style={{
                   fontSize: "76px",
                   fontWeight: 900,
-                  fontFamily: "Geist Bold",
+                  fontFamily: "Geist Black",
                   color: "#333",
                   marginBottom: "16px",
                 }}
@@ -94,7 +104,7 @@ export async function GET(req: NextRequest) {
                       style={{
                         fontSize: "60px",
                         fontWeight: 900,
-                        fontFamily: "Geist Extrabold",
+                        fontFamily: "Geist Black",
                         color: "#000000",
                         marginRight: "12px",
                       }}
@@ -143,7 +153,7 @@ export async function GET(req: NextRequest) {
                 }}
               >
                 <img
-                  src={`${process.env.NEXT_PUBLIC_URL}/logo.png`}
+                  src={`${baseUrl}/logo.png`}
                   alt="Rozo Rewards Logo"
                   style={{
                     width: "32px",
@@ -165,7 +175,7 @@ export async function GET(req: NextRequest) {
               }}
             >
               <img
-                src={image}
+                src={finalImage}
                 width={320}
                 height={320}
                 style={{
@@ -184,21 +194,24 @@ export async function GET(req: NextRequest) {
         width: 1200,
         height: 630,
         fonts: [
-          {
-            name: "Geist Regular",
-            data: geistRegular,
-            style: "normal",
-          },
-          {
-            name: "Geist Bold",
-            data: geistBold,
-            style: "normal",
-          },
-          {
-            name: "Geist Extrabold",
-            data: geistExtrabold,
-            style: "normal",
-          },
+          ...(geistRegular
+            ? [
+                {
+                  name: "Geist Regular",
+                  data: geistRegular,
+                  style: "normal" as const,
+                },
+              ]
+            : []),
+          ...(geistBlack
+            ? [
+                {
+                  name: "Geist Black",
+                  data: geistBlack,
+                  style: "normal" as const,
+                },
+              ]
+            : []),
         ],
       }
     );
@@ -238,7 +251,7 @@ export async function GET(req: NextRequest) {
                 style={{
                   fontSize: "76px",
                   fontWeight: 900,
-                  fontFamily: "Geist Bold",
+                  fontFamily: "Geist Black",
                   color: "#333",
                   marginBottom: "16px",
                 }}
@@ -256,7 +269,9 @@ export async function GET(req: NextRequest) {
                 }}
               >
                 <img
-                  src={`${process.env.NEXT_PUBLIC_URL}/logo.png`}
+                  src={`${
+                    process.env.NEXT_PUBLIC_URL || "http://localhost:3000"
+                  }/logo.png`}
                   alt="Rozo Rewards Logo"
                   style={{
                     width: "32px",
@@ -278,7 +293,9 @@ export async function GET(req: NextRequest) {
               }}
             >
               <img
-                src={`${process.env.NEXT_PUBLIC_URL}/rozo-white.png`}
+                src={`${
+                  process.env.NEXT_PUBLIC_URL || "http://localhost:3000"
+                }/rozo-white.png`}
                 width={320}
                 height={320}
                 style={{
