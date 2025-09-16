@@ -3,19 +3,7 @@ import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
   try {
-    const fetchGeistRegular = await fetch(
-      new URL("/Geist-Regular.ttf", process.env.NEXT_PUBLIC_URL)
-    );
-    const fetchGeistBold = await fetch(
-      new URL("/Geist-Bold.ttf", process.env.NEXT_PUBLIC_URL)
-    );
-    const fetchGeistExtraBold = await fetch(
-      new URL("/Geist-ExtraBold.ttf", process.env.NEXT_PUBLIC_URL)
-    );
-
-    const geistBold = await fetchGeistBold.arrayBuffer();
-    const geistRegular = await fetchGeistRegular.arrayBuffer();
-    const geistExtrabold = await fetchGeistExtraBold.arrayBuffer();
+    const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
 
     const { searchParams } = req.nextUrl;
 
@@ -24,8 +12,17 @@ export async function GET(req: NextRequest) {
     const subtitle = searchParams.get("subtitle") || "";
     const price = searchParams.get("price") || "";
     const originalPrice = searchParams.get("originalPrice") || "";
-    const image = searchParams.get("image") || "";
-    const cashbackRate = searchParams.get("cashbackRate") || "";
+
+    // Simple image validation - exclude icons
+    const rawImage = searchParams.get("image") || "";
+    const isValidImage =
+      rawImage &&
+      (rawImage.includes(".jpg") ||
+        rawImage.includes(".png") ||
+        rawImage.includes(".webp")) &&
+      !rawImage.includes("icon") &&
+      !rawImage.includes("favicon");
+    const finalImage = isValidImage ? rawImage : `${baseUrl}/rozo-white.png`;
 
     return new ImageResponse(
       (
@@ -38,7 +35,7 @@ export async function GET(req: NextRequest) {
               "linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%)",
             padding: "32px",
             display: "flex",
-            fontFamily: "Geist Regular",
+            fontFamily: "Arial, sans-serif",
           }}
         >
           <div
@@ -61,7 +58,7 @@ export async function GET(req: NextRequest) {
                 style={{
                   fontSize: "76px",
                   fontWeight: 900,
-                  fontFamily: "Geist Bold",
+                  fontFamily: "Arial Black, Arial, sans-serif",
                   color: "#333",
                   marginBottom: "16px",
                 }}
@@ -71,7 +68,7 @@ export async function GET(req: NextRequest) {
               <p
                 style={{
                   fontSize: "20px",
-                  fontFamily: "Geist Regular",
+                  fontFamily: "Arial, sans-serif",
                   color: "#374151",
                   marginBottom: "32px",
                   maxWidth: "384px",
@@ -94,7 +91,7 @@ export async function GET(req: NextRequest) {
                       style={{
                         fontSize: "60px",
                         fontWeight: 900,
-                        fontFamily: "Geist Extrabold",
+                        fontFamily: "Arial Black, Arial, sans-serif",
                         color: "#000000",
                         marginRight: "12px",
                       }}
@@ -106,7 +103,7 @@ export async function GET(req: NextRequest) {
                     <span
                       style={{
                         fontSize: "24px",
-                        fontFamily: "Geist Regular",
+                        fontFamily: "Arial, sans-serif",
                         color: "#6b7280",
                         textDecoration: "line-through",
                       }}
@@ -124,7 +121,7 @@ export async function GET(req: NextRequest) {
                     display: "flex",
                     fontSize: "48px",
                     fontWeight: 900,
-                    fontFamily: "Geist Bold",
+                    fontFamily: "Arial Black, Arial, sans-serif",
                     color: "#000000",
                     marginRight: "12px",
                   }}
@@ -143,7 +140,7 @@ export async function GET(req: NextRequest) {
                 }}
               >
                 <img
-                  src={`${process.env.NEXT_PUBLIC_URL}/logo.png`}
+                  src={`${baseUrl}/logo.png`}
                   alt="Rozo Rewards Logo"
                   style={{
                     width: "32px",
@@ -165,7 +162,7 @@ export async function GET(req: NextRequest) {
               }}
             >
               <img
-                src={image}
+                src={finalImage}
                 width={320}
                 height={320}
                 style={{
@@ -183,23 +180,7 @@ export async function GET(req: NextRequest) {
       {
         width: 1200,
         height: 630,
-        fonts: [
-          {
-            name: "Geist Regular",
-            data: geistRegular,
-            style: "normal",
-          },
-          {
-            name: "Geist Bold",
-            data: geistBold,
-            style: "normal",
-          },
-          {
-            name: "Geist Extrabold",
-            data: geistExtrabold,
-            style: "normal",
-          },
-        ],
+        // No custom fonts - using system Arial for maximum speed
       }
     );
   } catch (error) {
@@ -215,7 +196,7 @@ export async function GET(req: NextRequest) {
               "linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%)",
             padding: "32px",
             display: "flex",
-            fontFamily: "Geist Regular",
+            fontFamily: "Arial, sans-serif",
           }}
         >
           <div
@@ -238,7 +219,7 @@ export async function GET(req: NextRequest) {
                 style={{
                   fontSize: "76px",
                   fontWeight: 900,
-                  fontFamily: "Geist Bold",
+                  fontFamily: "Arial Black, Arial, sans-serif",
                   color: "#333",
                   marginBottom: "16px",
                 }}
@@ -256,7 +237,9 @@ export async function GET(req: NextRequest) {
                 }}
               >
                 <img
-                  src={`${process.env.NEXT_PUBLIC_URL}/logo.png`}
+                  src={`${
+                    process.env.NEXT_PUBLIC_URL || "http://localhost:3000"
+                  }/logo.png`}
                   alt="Rozo Rewards Logo"
                   style={{
                     width: "32px",
@@ -278,7 +261,9 @@ export async function GET(req: NextRequest) {
               }}
             >
               <img
-                src={`${process.env.NEXT_PUBLIC_URL}/rozo-white.png`}
+                src={`${
+                  process.env.NEXT_PUBLIC_URL || "http://localhost:3000"
+                }/rozo-white.png`}
                 width={320}
                 height={320}
                 style={{

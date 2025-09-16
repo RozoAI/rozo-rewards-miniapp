@@ -1,5 +1,6 @@
 import { BottomNavbar } from "@/components/bottom-navbar";
 import IntercomInitializer from "@/components/intercom";
+import { MiniappPrompt } from "@/components/MiniappPrompt";
 import { CreditProvider } from "@/contexts/CreditContext";
 import { MiniKitContextProvider } from "@/providers/MiniKitProvider";
 import Web3Provider from "@/providers/Web3Provider";
@@ -101,6 +102,7 @@ export default function RootLayout({
               >
                 <main className="flex min-h-screen flex-col justify-between md:min-h-screen md:items-center md:justify-center relative">
                   <NextTopLoader showSpinner={false} />
+                  <MiniappPrompt />
                   {children}
                   <IntercomInitializer
                     appId={process.env.INTERCOM_APP_ID as string}
