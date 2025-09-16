@@ -11,6 +11,7 @@ import { useHasMounted } from "@/hooks/useHasMounted";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { useUSDCBalance } from "@/hooks/useUSDCBalance";
 import { formatAddress } from "@/lib/utils";
+import { sdk } from "@farcaster/miniapp-sdk";
 import { Coins, Copy, Loader2, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -43,6 +44,8 @@ function ProfilePageContentInternal() {
   const [showNSCafe, setShowNSCafe] = useState(false);
   const { availableCredit, setAvailableCredit, deductCredit } = useCredit();
   const { getPoints, isLoading } = useRozoPointAPI();
+  const [pfpUrl, setPfpUrl] = useState<string | null>(null);
+
   // const {
   //   points,
   //   isLoading: pointsLoading,
@@ -68,6 +71,10 @@ function ProfilePageContentInternal() {
 
       setPointsLoading(true);
       const points = await getPoints(address);
+
+      const context = await sdk.context;
+      setPfpUrl(context.user.pfpUrl || null);
+
       setPoints(points);
       setPointsLoading(false);
     };
@@ -124,7 +131,7 @@ function ProfilePageContentInternal() {
             <div className="flex items-center space-x-4">
               <Avatar className="h-16 w-16">
                 <AvatarImage
-                  src={`https://avatar.tobi.sh/${address}`}
+                  src={pfpUrl || `https://avatar.tobi.sh/${address}`}
                   alt="Profile"
                 />
                 <AvatarFallback className="text-lg">
