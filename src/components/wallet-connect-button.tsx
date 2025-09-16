@@ -4,10 +4,12 @@ import { useHasMounted } from "@/hooks/useHasMounted";
 import { useRozoAPI } from "@/hooks/useRozoAPI";
 import { formatAddress } from "@/lib/utils";
 import { WalletProvider } from "@coinbase/onchainkit/wallet";
+import sdk from "@farcaster/miniapp-sdk";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { UserIcon } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
@@ -18,9 +20,18 @@ function WalletComponentsInternal() {
   const { status: connectStatus } = useConnect();
   const { isAuthenticated } = useRozoAPI();
   const { openConnectModal } = useConnectModal();
+  const [pfpUrl, setPfpUrl] = useState<string | null>(null);
 
   // Ensure consistent rendering between server and client
   const displayAddress = accountAddress || "";
+
+  useEffect(() => {
+    const fetchPfpUrl = async () => {
+      const context = await sdk.context;
+      setPfpUrl(context.user.pfpUrl || null);
+    };
+    fetchPfpUrl();
+  }, []);
 
   return (
     <WalletProvider>
@@ -32,7 +43,9 @@ function WalletComponentsInternal() {
         <Button asChild variant="secondary">
           <Link href={`/profile`}>
             <Avatar className="size-4">
-              <AvatarImage src={`https://avatar.tobi.sh/${displayAddress}`} />
+              <AvatarImage
+                src={pfpUrl || `https://avatar.tobi.sh/${displayAddress}`}
+              />
               <AvatarFallback>
                 <UserIcon className="size-4" />
               </AvatarFallback>

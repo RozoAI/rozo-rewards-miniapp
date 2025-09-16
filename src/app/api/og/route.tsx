@@ -5,19 +5,6 @@ export async function GET(req: NextRequest) {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
 
-    // Load only essential fonts for speed
-    const [geistRegularRes, geistBlackRes] = await Promise.all([
-      fetch(new URL("/Geist-Regular.ttf", baseUrl)),
-      fetch(new URL("/Geist-Black.ttf", baseUrl)),
-    ]);
-
-    const geistRegular = geistRegularRes.ok
-      ? await geistRegularRes.arrayBuffer()
-      : null;
-    const geistBlack = geistBlackRes.ok
-      ? await geistBlackRes.arrayBuffer()
-      : null;
-
     const { searchParams } = req.nextUrl;
 
     // Extract parameters with defaults
@@ -48,7 +35,7 @@ export async function GET(req: NextRequest) {
               "linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%)",
             padding: "32px",
             display: "flex",
-            fontFamily: "Geist Regular",
+            fontFamily: "Arial, sans-serif",
           }}
         >
           <div
@@ -71,7 +58,7 @@ export async function GET(req: NextRequest) {
                 style={{
                   fontSize: "76px",
                   fontWeight: 900,
-                  fontFamily: "Geist Black",
+                  fontFamily: "Arial Black, Arial, sans-serif",
                   color: "#333",
                   marginBottom: "16px",
                 }}
@@ -81,7 +68,7 @@ export async function GET(req: NextRequest) {
               <p
                 style={{
                   fontSize: "20px",
-                  fontFamily: "Geist Regular",
+                  fontFamily: "Arial, sans-serif",
                   color: "#374151",
                   marginBottom: "32px",
                   maxWidth: "384px",
@@ -104,7 +91,7 @@ export async function GET(req: NextRequest) {
                       style={{
                         fontSize: "60px",
                         fontWeight: 900,
-                        fontFamily: "Geist Black",
+                        fontFamily: "Arial Black, Arial, sans-serif",
                         color: "#000000",
                         marginRight: "12px",
                       }}
@@ -116,7 +103,7 @@ export async function GET(req: NextRequest) {
                     <span
                       style={{
                         fontSize: "24px",
-                        fontFamily: "Geist Regular",
+                        fontFamily: "Arial, sans-serif",
                         color: "#6b7280",
                         textDecoration: "line-through",
                       }}
@@ -134,7 +121,7 @@ export async function GET(req: NextRequest) {
                     display: "flex",
                     fontSize: "48px",
                     fontWeight: 900,
-                    fontFamily: "Geist Bold",
+                    fontFamily: "Arial Black, Arial, sans-serif",
                     color: "#000000",
                     marginRight: "12px",
                   }}
@@ -193,26 +180,7 @@ export async function GET(req: NextRequest) {
       {
         width: 1200,
         height: 630,
-        fonts: [
-          ...(geistRegular
-            ? [
-                {
-                  name: "Geist Regular",
-                  data: geistRegular,
-                  style: "normal" as const,
-                },
-              ]
-            : []),
-          ...(geistBlack
-            ? [
-                {
-                  name: "Geist Black",
-                  data: geistBlack,
-                  style: "normal" as const,
-                },
-              ]
-            : []),
-        ],
+        // No custom fonts - using system Arial for maximum speed
       }
     );
   } catch (error) {
@@ -228,7 +196,7 @@ export async function GET(req: NextRequest) {
               "linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%)",
             padding: "32px",
             display: "flex",
-            fontFamily: "Geist Regular",
+            fontFamily: "Arial, sans-serif",
           }}
         >
           <div
@@ -251,7 +219,7 @@ export async function GET(req: NextRequest) {
                 style={{
                   fontSize: "76px",
                   fontWeight: 900,
-                  fontFamily: "Geist Black",
+                  fontFamily: "Arial Black, Arial, sans-serif",
                   color: "#333",
                   marginBottom: "16px",
                 }}

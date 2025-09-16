@@ -1,7 +1,7 @@
 "use client";
 
 import { MiniKitClient } from "@/components/minikit-client";
-import { MiniKitProvider } from "@coinbase/onchainkit/minikit";
+import { OnchainKitProvider } from "@coinbase/onchainkit";
 import { base } from "wagmi/chains";
 
 export function MiniKitContextProvider({
@@ -10,7 +10,7 @@ export function MiniKitContextProvider({
   children: React.ReactNode;
 }) {
   return (
-    <MiniKitProvider
+    <OnchainKitProvider
       // apiKey={process.env.NEXT_PUBLIC_CDP_CLIENT_API_KEY}
       chain={base}
       config={{
@@ -21,8 +21,12 @@ export function MiniKitContextProvider({
           logo: process.env.NEXT_PUBLIC_ICON_URL,
         },
       }}
+      miniKit={{
+        enabled: true,
+        autoConnect: true,
+      }}
     >
       <MiniKitClient>{children}</MiniKitClient>
-    </MiniKitProvider>
+    </OnchainKitProvider>
   );
 }
