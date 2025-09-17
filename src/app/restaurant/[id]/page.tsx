@@ -67,6 +67,7 @@ export default function RestaurantDetailPage() {
   const [dialogLoading, setDialogLoading] = React.useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastResetAmountRef = useRef<string>("");
+  const [appId, setAppId] = React.useState<string>("");
 
   const metadata = useMemo(() => {
     return {
@@ -102,7 +103,11 @@ export default function RestaurantDetailPage() {
         const displayCurrency = foundRestaurant.currency || "USD";
         const usdAmount = convertToUSD(price.toFixed(2), displayCurrency);
 
+        const appId = `rozoRewardsBNBStellarMP-${foundRestaurant.handle || ""}`;
+        setAppId(appId);
+
         resetPayment({
+          appId: appId,
           intent: `${foundRestaurant.name} - ${displayCurrency} ${price.toFixed(
             2
           )}`,
@@ -164,7 +169,11 @@ export default function RestaurantDetailPage() {
       const displayCurrency = getDisplayCurrency(restaurant.currency);
       const usdAmount = convertToUSD(value, displayCurrency);
 
+      const appId = `rozoRewardsBNBStellarMP-${restaurant.handle || ""}`;
+      setAppId(appId);
+
       resetPayment({
+        appId: appId,
         intent: `Pay for ${restaurant.name} - ${displayCurrency} ${value}`,
         toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
         toChain: baseUSDC.chainId,
@@ -426,7 +435,7 @@ export default function RestaurantDetailPage() {
                 {/* Payment Button */}
                 <RozoPayButton.Custom
                   resetOnSuccess
-                  appId={`rozoRewardsBNBStellarMP-${restaurant.handle || ""}`}
+                  appId={appId}
                   toAddress={
                     (restaurant.payTo ??
                       "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897") as `0x${string}`

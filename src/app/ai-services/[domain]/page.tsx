@@ -83,6 +83,7 @@ export default function AIServiceDetailPage() {
   const [pointsLoading, setPointsLoading] = React.useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
   const [dialogLoading, setDialogLoading] = React.useState(false);
+  const [appId, setAppId] = React.useState<string>("");
 
   useEffect(() => {
     async function loadService() {
@@ -93,7 +94,12 @@ export default function AIServiceDetailPage() {
         }
 
         setService(foundService);
+
+        const appId = `rozoRewardsBNBStellarMP-${foundService.domain || ""}`;
+        setAppId(appId);
+
         resetPayment({
+          appId: appId,
           intent: `Pay for ${foundService.name} - ${foundService.duration_months} months`,
           toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
           toChain: baseUSDC.chainId,
@@ -389,7 +395,7 @@ export default function AIServiceDetailPage() {
             {!service.sold_out && (
               <RozoPayButton.Custom
                 resetOnSuccess
-                appId={`rozoRewardsBNBStellarMP-${service.domain || ""}`}
+                appId={appId}
                 intent={`Pay for ${service.name} - ${service.duration_months} months`}
                 toAddress="0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897"
                 toChain={8453}
