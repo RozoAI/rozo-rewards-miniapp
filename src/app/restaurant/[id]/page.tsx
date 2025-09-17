@@ -426,7 +426,7 @@ export default function RestaurantDetailPage() {
                 {/* Payment Button */}
                 <RozoPayButton.Custom
                   resetOnSuccess
-                  appId="rozoRewardsBNBStellarMP"
+                  appId={`rozoRewardsBNBStellarMP-${restaurant.handle || ""}`}
                   toAddress={
                     (restaurant.payTo ??
                       "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897") as `0x${string}`
