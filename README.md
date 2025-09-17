@@ -10,6 +10,11 @@ The Rozo Rewards MiniApp is a comprehensive AI promo and cashback platform that 
 - **Shop with savings** through a complete order management system
 - **Enjoy tier-based benefits** with increasing cashback multipliers
 
+## Screenshots
+| Discovery | Lifestyle | Profile |
+|---|---|---|
+| <img width="1284" height="2778" alt="image" src="https://github.com/user-attachments/assets/e66d2bb1-8dcb-40bd-a812-6e7e310f4f8d" /> | <img width="1284" height="2778" alt="image" src="https://github.com/user-attachments/assets/9f21188b-196a-4b71-a8f5-87a05e553676" /> | <img width="1284" height="2778" alt="image" src="https://github.com/user-attachments/assets/a3f333e9-b2d0-4337-b32a-957d275e87a3" /> |
+
 ## ✨ Key Features
 
 ### 🪙 ROZO Token System
