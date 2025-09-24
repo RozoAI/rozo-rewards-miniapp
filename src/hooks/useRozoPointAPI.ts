@@ -44,9 +44,10 @@ export function useRozoPointAPI() {
   const getPoints = async (address: string): Promise<number> => {
     setIsLoading(true);
     setError(null);
+    const addressLower = address.toLowerCase(); 
     try {
       const response = await fetch(
-        `https://auth0.rozo.ai/functions/v1/cashback?evm_address=${address}`
+        `https://auth0.rozo.ai/functions/v1/cashback?evm_address=${addressLower}`
       );
       const data: RozoPointsResponse = await response.json();
       return (data.balance.points || 0) * 100;
