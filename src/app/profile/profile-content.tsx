@@ -65,18 +65,20 @@ function ProfilePageContentInternal() {
   const [pointsLoading, setPointsLoading] = useState(false);
   const [points, setPoints] = useState(0);
 
+  console.log({ isConnected });
+
   useEffect(() => {
     const fetchPoints = async () => {
-      if (!address) return;
+      if (!address || pointsLoading) return;
 
       setPointsLoading(true);
       const points = await getPoints(address);
+      console.log("points", points);
+      setPoints(points);
+      setPointsLoading(false);
 
       const context = await sdk.context;
       setPfpUrl(context.user.pfpUrl || null);
-
-      setPoints(points);
-      setPointsLoading(false);
     };
 
     fetchPoints();
@@ -236,35 +238,19 @@ function ProfilePageContentInternal() {
                     ROZO Points
                   </span>
                   <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                    {isConnected && !isLoading ? (
-                      `${new Intl.NumberFormat("en-US", {
-                        style: "decimal",
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      }).format(points)} Points`
-                    ) : isConnected ? (
-                      <div className="flex items-center gap-2">
-                        <div className="h-6 w-20 bg-blue-200 dark:bg-blue-800 rounded animate-pulse"></div>
-                        <span>Points</span>
-                      </div>
+                    {isConnected ? (
+                      <>
+                        {pointsLoading ? (
+                          <div className="flex items-center gap-2">
+                            <div className="h-6 w-20 bg-blue-200 dark:bg-blue-800 rounded animate-pulse"></div>
+                            <span>Points</span>
+                          </div>
+                        ) : (
+                          `${points.toString()} Points`
+                        )}
+                      </>
                     ) : (
                       "0 Points"
-                    )}
-                  </span>
-                  <span className="text-sm text-blue-700 dark:text-blue-300">
-                    {isConnected && !isLoading ? (
-                      <>
-                        equivalent to <b>${(points / 100).toFixed(2)}</b>
-                      </>
-                    ) : isConnected ? (
-                      <div className="flex items-center gap-1">
-                        <span>equivalent to</span>
-                        <div className="h-4 w-12 bg-blue-200 dark:bg-blue-800 rounded animate-pulse"></div>
-                      </div>
-                    ) : (
-                      <>
-                        equivalent to <b>$0.00</b>
-                      </>
                     )}
                   </span>
                 </div>
