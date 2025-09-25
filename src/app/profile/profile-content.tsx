@@ -246,7 +246,7 @@ function ProfilePageContentInternal() {
                             <span>Points</span>
                           </div>
                         ) : (
-                          `${points.toString()} Points`
+                          `${Number(points).toFixed(2)} Points`
                         )}
                       </>
                     ) : (
