@@ -3,7 +3,7 @@ pre-commit:
   commands:
     lint:
       glob: "src/**/*.{js,jsx,ts,tsx}"
-      run: pnpm lint --no-cache --quiet --file {staged_files}
+      run: bun lint --no-cache --quiet --file {staged_files}
       skip:
         - merge
         - rebase
