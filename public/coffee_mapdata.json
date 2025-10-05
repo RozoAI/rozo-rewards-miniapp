@@ -308,23 +308,6 @@
       "price": "$$$"
     },
 
-    {
-      "_id": "vn-surfpoint-001",
-      "name": "Surfpoint (at Seahorse Resort & Spa entrance area)",
-      "formatted": "Kitesurf school/club listed in source; clubhouse inside Seahorse Resort complex",
-      "address_line1": "16 Nguyen Dinh Chieu, Ham Tien Ward, Mui Ne",
-      "address_line2": "Phan Thiet, Binh Thuan, Vietnam",
-      "lat": 10.94296,
-      "lon": 108.1936,
-      "payTo": null,
-      "createdAt": "2025-08-30T00:00:00.000Z",
-      "updatedAt": "2025-08-30T00:00:00.000Z",
-      "__v": 0,
-      "logo_url": null,
-      "cashback_rate": 0,
-      "is_live": false,
-      "price": "$$"
-    },
 
     {
       "_id": "e802cafc-72be-48b5-b02f-9361c13c7a9e",

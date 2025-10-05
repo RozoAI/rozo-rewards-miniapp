@@ -70,11 +70,20 @@ export default function RestaurantDetailPage() {
   const [appId, setAppId] = React.useState<string>("");
 
   const metadata = useMemo(() => {
-    return {
+    const baseMetadata = {
       amount_local: paymentAmount,
       currency_local: getDisplayCurrency(restaurant?.currency),
     };
-  }, [paymentAmount, restaurant?.currency]);
+    
+    if (restaurant?.handle) {
+      return {
+        ...baseMetadata,
+        merchant_order_id: `${restaurant.handle.toUpperCase()}-${new Date().getTime()}`,
+      };
+    }
+    
+    return baseMetadata;
+  }, [paymentAmount, restaurant?.currency, restaurant?.handle]);
 
   useEffect(() => {
     async function loadRestaurant() {
@@ -179,7 +188,11 @@ export default function RestaurantDetailPage() {
         toChain: baseUSDC.chainId,
         toToken: baseUSDC.token as `0x${string}`,
         toUnits: usdAmount, // Use USD amount for payment processing
-        metadata: {
+        metadata: restaurant?.handle ? {
+          amount_local: value,
+          currency_local: displayCurrency,
+          merchant_order_id: `${restaurant.handle.toUpperCase()}-${new Date().getTime()}`,
+        } : {
           amount_local: value,
           currency_local: displayCurrency,
         },
