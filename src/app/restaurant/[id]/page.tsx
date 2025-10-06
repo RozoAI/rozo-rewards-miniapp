@@ -289,6 +289,13 @@ export default function RestaurantDetailPage() {
     }
   };
 
+  const handleClearPayment = () => {
+    setPaymentAmount("");
+    setPaymentAmountUSD("");
+    setPaymentLoading(false);
+    setOpenPayModal(false);
+  };
+
   if (loading) {
     return (
       <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
@@ -497,7 +504,7 @@ export default function RestaurantDetailPage() {
                           duration: 2000,
                         }
                       );
-                      setPaymentLoading(false);
+                      handleClearPayment();
                     }}
                   >
                     {({ show }) => {
