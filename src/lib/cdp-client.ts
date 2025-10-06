@@ -3,25 +3,25 @@
  * Implements real blockchain integration for ROZO payments
  */
 
-import { 
-  createPublicClient, 
-  createWalletClient, 
-  http, 
-  Address, 
-  parseUnits, 
+import {
+  Address,
+  createPublicClient,
+  createWalletClient,
+  custom,
   formatUnits,
   Hex,
-  custom
-} from 'viem';
-import { base, baseSepolia } from 'viem/chains';
-import { 
-  getCurrentContracts, 
-  CURRENT_NETWORK, 
-  SPEND_PERMISSION_DOMAIN, 
-  SPEND_PERMISSION_TYPES,
+  http,
+  parseUnits,
+} from "viem";
+import { base, baseSepolia } from "viem/chains";
+import {
+  CURRENT_NETWORK,
+  DEFAULT_SPEND_PERMISSION,
+  getCurrentContracts,
   ROZO_PAYMASTER_ADDRESS,
-  DEFAULT_SPEND_PERMISSION
-} from './cdp-config';
+  SPEND_PERMISSION_DOMAIN,
+  SPEND_PERMISSION_TYPES,
+} from "./cdp-config";
 
 // ABI for SpendPermissionManager contract
 const SPEND_PERMISSION_MANAGER_ABI = [
@@ -29,95 +29,95 @@ const SPEND_PERMISSION_MANAGER_ABI = [
     inputs: [
       {
         components: [
-          { name: 'account', type: 'address' },
-          { name: 'spender', type: 'address' },
-          { name: 'token', type: 'address' },
-          { name: 'allowance', type: 'uint256' },
-          { name: 'period', type: 'uint48' },
-          { name: 'start', type: 'uint48' },
-          { name: 'end', type: 'uint48' },
-          { name: 'salt', type: 'uint256' },
-          { name: 'extraData', type: 'bytes' },
+          { name: "account", type: "address" },
+          { name: "spender", type: "address" },
+          { name: "token", type: "address" },
+          { name: "allowance", type: "uint256" },
+          { name: "period", type: "uint48" },
+          { name: "start", type: "uint48" },
+          { name: "end", type: "uint48" },
+          { name: "salt", type: "uint256" },
+          { name: "extraData", type: "bytes" },
         ],
-        name: 'spendPermission',
-        type: 'tuple',
+        name: "spendPermission",
+        type: "tuple",
       },
-      { name: 'signature', type: 'bytes' },
+      { name: "signature", type: "bytes" },
     ],
-    name: 'approveWithSignature',
+    name: "approveWithSignature",
     outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
     inputs: [
       {
         components: [
-          { name: 'account', type: 'address' },
-          { name: 'spender', type: 'address' },
-          { name: 'token', type: 'address' },
-          { name: 'allowance', type: 'uint256' },
-          { name: 'period', type: 'uint48' },
-          { name: 'start', type: 'uint48' },
-          { name: 'end', type: 'uint48' },
-          { name: 'salt', type: 'uint256' },
-          { name: 'extraData', type: 'bytes' },
+          { name: "account", type: "address" },
+          { name: "spender", type: "address" },
+          { name: "token", type: "address" },
+          { name: "allowance", type: "uint256" },
+          { name: "period", type: "uint48" },
+          { name: "start", type: "uint48" },
+          { name: "end", type: "uint48" },
+          { name: "salt", type: "uint256" },
+          { name: "extraData", type: "bytes" },
         ],
-        name: 'spendPermission',
-        type: 'tuple',
+        name: "spendPermission",
+        type: "tuple",
       },
-      { name: 'value', type: 'uint256' },
+      { name: "value", type: "uint256" },
     ],
-    name: 'spend',
+    name: "spend",
     outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
     inputs: [
-      { name: 'account', type: 'address' },
-      { name: 'spender', type: 'address' },
-      { name: 'token', type: 'address' },
-      { name: 'start', type: 'uint48' },
-      { name: 'period', type: 'uint48' },
+      { name: "account", type: "address" },
+      { name: "spender", type: "address" },
+      { name: "token", type: "address" },
+      { name: "start", type: "uint48" },
+      { name: "period", type: "uint48" },
     ],
-    name: 'getCurrentPeriod',
-    outputs: [{ type: 'uint48' }],
-    stateMutability: 'view',
-    type: 'function',
+    name: "getCurrentPeriod",
+    outputs: [{ type: "uint48" }],
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [
-      { name: 'account', type: 'address' },
-      { name: 'spender', type: 'address' },
-      { name: 'token', type: 'address' },
-      { name: 'period', type: 'uint48' },
+      { name: "account", type: "address" },
+      { name: "spender", type: "address" },
+      { name: "token", type: "address" },
+      { name: "period", type: "uint48" },
     ],
-    name: 'getSpent',
-    outputs: [{ type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
+    name: "getSpent",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
   },
 ] as const;
 
 // USDC Contract ABI (minimal)
 const USDC_ABI = [
   {
-    inputs: [{ name: 'account', type: 'address' }],
-    name: 'balanceOf',
-    outputs: [{ type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
+    inputs: [{ name: "account", type: "address" }],
+    name: "balanceOf",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [
-      { name: 'to', type: 'address' },
-      { name: 'amount', type: 'uint256' },
+      { name: "to", type: "address" },
+      { name: "amount", type: "uint256" },
     ],
-    name: 'transfer',
-    outputs: [{ type: 'bool' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
+    name: "transfer",
+    outputs: [{ type: "bool" }],
+    stateMutability: "nonpayable",
+    type: "function",
   },
 ] as const;
 
@@ -160,7 +160,7 @@ export class CDPClient {
     const allowanceWei = parseUnits(allowanceUSD.toString(), 6); // USDC has 6 decimals
     const now = Math.floor(Date.now() / 1000);
     const period = durationHours * 3600; // Convert hours to seconds
-    
+
     return {
       account: userAddress,
       spender: ROZO_PAYMASTER_ADDRESS,
@@ -168,9 +168,9 @@ export class CDPClient {
       allowance: allowanceWei,
       period,
       start: now,
-      end: now + (period * 365), // Valid for 1 year
+      end: now + period * 365, // Valid for 1 year
       salt: BigInt(Math.floor(Math.random() * 1000000)),
-      extraData: '0x',
+      extraData: "0x",
     };
   }
 
@@ -181,7 +181,7 @@ export class CDPClient {
     return {
       domain: SPEND_PERMISSION_DOMAIN,
       types: SPEND_PERMISSION_TYPES,
-      primaryType: 'SpendPermission',
+      primaryType: "SpendPermission",
       message: spendPermission,
     };
   }
@@ -194,13 +194,13 @@ export class CDPClient {
       const balance = await publicClient.readContract({
         address: this.contracts.USDC,
         abi: USDC_ABI,
-        functionName: 'balanceOf',
+        functionName: "balanceOf",
         args: [userAddress],
       });
-      
+
       return parseFloat(formatUnits(balance, 6)); // USDC has 6 decimals
     } catch (error) {
-      console.error('Error checking USDC balance:', error);
+      console.error("Error checking USDC balance:", error);
       return 0;
     }
   }
@@ -216,7 +216,7 @@ export class CDPClient {
       const currentPeriod = await publicClient.readContract({
         address: this.contracts.SpendPermissionManager,
         abi: SPEND_PERMISSION_MANAGER_ABI,
-        functionName: 'getCurrentPeriod',
+        functionName: "getCurrentPeriod",
         args: [
           userAddress,
           spenderAddress,
@@ -229,18 +229,13 @@ export class CDPClient {
       const spent = await publicClient.readContract({
         address: this.contracts.SpendPermissionManager,
         abi: SPEND_PERMISSION_MANAGER_ABI,
-        functionName: 'getSpent',
-        args: [
-          userAddress,
-          spenderAddress,
-          this.contracts.USDC,
-          currentPeriod,
-        ],
+        functionName: "getSpent",
+        args: [userAddress, spenderAddress, this.contracts.USDC, currentPeriod],
       });
 
       return parseFloat(formatUnits(spent, 6));
     } catch (error) {
-      console.error('Error checking current spending:', error);
+      console.error("Error checking current spending:", error);
       return 0;
     }
   }
@@ -254,20 +249,20 @@ export class CDPClient {
     walletClient?: any
   ): Promise<Hex> {
     if (!walletClient) {
-      throw new Error('Wallet client required for transaction');
+      throw new Error("Wallet client required for transaction");
     }
 
     try {
       const hash = await walletClient.writeContract({
         address: this.contracts.SpendPermissionManager,
         abi: SPEND_PERMISSION_MANAGER_ABI,
-        functionName: 'approveWithSignature',
+        functionName: "approveWithSignature",
         args: [spendPermission, signature],
       });
 
       return hash;
     } catch (error) {
-      console.error('Error approving spend permission:', error);
+      console.error("Error approving spend permission:", error);
       throw error;
     }
   }
@@ -281,26 +276,26 @@ export class CDPClient {
     walletClient?: any
   ): Promise<Hex> {
     if (!walletClient) {
-      throw new Error('Wallet client required for transaction');
+      throw new Error("Wallet client required for transaction");
     }
 
     const amountWei = parseUnits(amountUSD.toString(), 6);
 
     try {
       console.log(`💸 Executing spend of $${amountUSD} (${amountWei} wei)...`);
-      console.log('🔍 SpendPermission details:', spendPermission);
+      console.log("🔍 SpendPermission details:", spendPermission);
 
       const hash = await walletClient.writeContract({
         address: this.contracts.SpendPermissionManager,
         abi: SPEND_PERMISSION_MANAGER_ABI,
-        functionName: 'spend',
+        functionName: "spend",
         args: [spendPermission, amountWei],
       });
 
-      console.log('✅ Spend transaction submitted:', hash);
+      console.log("✅ Spend transaction submitted:", hash);
       return hash;
     } catch (error) {
-      console.error('❌ Error executing spend:', error);
+      console.error("❌ Error executing spend:", error);
       throw error;
     }
   }
@@ -314,25 +309,27 @@ export class CDPClient {
     walletClient?: any
   ): Promise<Hex> {
     if (!walletClient) {
-      throw new Error('Wallet client required for transaction');
+      throw new Error("Wallet client required for transaction");
     }
 
     const amountWei = parseUnits(amountUSD.toString(), 6);
 
     try {
-      console.log(`💸 Executing direct USDC transfer of $${amountUSD} to ${toAddress}...`);
+      console.log(
+        `💸 Executing direct USDC transfer of $${amountUSD} to ${toAddress}...`
+      );
 
       const hash = await walletClient.writeContract({
         address: this.contracts.USDC,
         abi: USDC_ABI,
-        functionName: 'transfer',
+        functionName: "transfer",
         args: [toAddress, amountWei],
       });
 
-      console.log('✅ USDC transfer transaction submitted:', hash);
+      console.log("✅ USDC transfer transaction submitted:", hash);
       return hash;
     } catch (error) {
-      console.error('❌ Error executing USDC transfer:', error);
+      console.error("❌ Error executing USDC transfer:", error);
       throw error;
     }
   }
@@ -343,17 +340,17 @@ export class CDPClient {
   async waitForTransaction(txHash: Hex): Promise<any> {
     try {
       console.log(`⏳ Waiting for transaction confirmation: ${txHash}`);
-      
+
       // Wait for transaction receipt
       const receipt = await publicClient.waitForTransactionReceipt({
         hash: txHash,
         timeout: 60_000, // 60 seconds timeout
       });
 
-      console.log('✅ Transaction confirmed:', receipt);
+      console.log("✅ Transaction confirmed:", receipt);
       return receipt;
     } catch (error) {
-      console.error('❌ Transaction confirmation failed:', error);
+      console.error("❌ Transaction confirmation failed:", error);
       throw error;
     }
   }
@@ -392,12 +389,12 @@ export const cdpClient = new CDPClient();
 
 // Helper function to create wallet client from window.ethereum
 export const createWalletClientFromWindow = () => {
-  if (typeof window === 'undefined' || !window.ethereum) {
-    throw new Error('Ethereum wallet not available');
+  if (typeof window === "undefined" || !window.ethereum) {
+    throw new Error("Ethereum wallet not available");
   }
 
   return createWalletClient({
     chain: getChain(),
-    transport: custom(window.ethereum),
+    transport: custom(window.ethereum as any),
   });
 };
