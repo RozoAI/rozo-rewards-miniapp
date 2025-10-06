@@ -28,7 +28,9 @@ function WalletComponentsInternal() {
   useEffect(() => {
     const fetchPfpUrl = async () => {
       const context = await sdk.context;
-      setPfpUrl(context.user.pfpUrl || null);
+      if (context && context.user.pfpUrl) {
+        setPfpUrl(context.user.pfpUrl);
+      }
     };
     fetchPfpUrl();
   }, []);

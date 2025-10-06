@@ -78,7 +78,9 @@ function ProfilePageContentInternal() {
       setPointsLoading(false);
 
       const context = await sdk.context;
-      setPfpUrl(context.user.pfpUrl || null);
+      if (context && context.user.pfpUrl) {
+        setPfpUrl(context.user.pfpUrl);
+      }
     };
 
     fetchPoints();
