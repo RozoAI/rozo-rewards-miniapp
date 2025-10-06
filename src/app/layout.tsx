@@ -9,6 +9,7 @@ import { generateOgMetadata } from "@/lib/og-image";
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -72,11 +73,14 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersObj = await headers();
+  const cookies = headersObj.get("cookie");
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -91,7 +95,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased !pr-0 relative`}
         suppressHydrationWarning={true}
       >
-        <Web3Provider>
+        <Web3Provider cookies={cookies}>
           <MiniKitContextProvider>
             <CreditProvider>
               <ThemeProvider

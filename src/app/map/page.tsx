@@ -1,18 +1,18 @@
 "use client";
 
 import { PageHeader } from "@/components/page-header";
-import { useGeolocation } from "@/hooks/useGeolocation";
-import { calculateDistance } from "@/lib/utils";
-import { MapPin, Loader2, RefreshCw, Coins } from "lucide-react";
-import React from "react";
-import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { calculateDistance, cn } from "@/lib/utils";
+import { Coins, Loader2, MapPin, RefreshCw } from "lucide-react";
+import dynamic from "next/dynamic";
+import React from "react";
+import data from "../../../public/coffee_mapdata.json";
 
 // Simple map component using dynamic import
 const MapComponent = dynamic(
   () => import("@/components/simple-map").then((mod) => mod.SimpleMap),
-  { 
+  {
     ssr: false,
     loading: () => (
       <div className="h-[500px] w-full rounded-lg border bg-muted flex items-center justify-center">
@@ -21,7 +21,7 @@ const MapComponent = dynamic(
           <span>Loading map...</span>
         </div>
       </div>
-    )
+    ),
   }
 );
 
@@ -42,8 +42,13 @@ export default function MapPage() {
   const [locations, setLocations] = React.useState<LocationItem[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  
-  const { coordinates, loading: locationLoading, error: locationError, requestLocation } = useGeolocation();
+
+  const {
+    coordinates,
+    loading: locationLoading,
+    error: locationError,
+    requestLocation,
+  } = useGeolocation();
 
   // Load restaurant data
   React.useEffect(() => {
@@ -51,14 +56,31 @@ export default function MapPage() {
 
     async function loadLocations() {
       try {
-        const res = await fetch("/coffee_mapdata.json");
-        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        const data = await res.json();
+        // const res = await fetch("/coffee_mapdata.json");
+        // if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+        // const data = await res.json();
         if (!data || !Array.isArray(data.locations)) {
           throw new Error("Invalid data shape");
         }
         if (isMounted) {
-          setLocations(data.locations);
+          // Filter and process locations, providing fallback logo_url for null values
+          const processedLocations = data.locations
+            .filter(
+              (loc: any): loc is LocationItem =>
+                typeof loc._id === "string" &&
+                typeof loc.name === "string" &&
+                typeof loc.formatted === "string" &&
+                typeof loc.address_line1 === "string" &&
+                typeof loc.lat === "number" &&
+                typeof loc.lon === "number" &&
+                typeof loc.cashback_rate === "number"
+            )
+            .map((loc: any) => ({
+              ...loc,
+              logo_url: loc.logo_url || "/logo.png", // Fallback to default logo
+            }));
+
+          setLocations(processedLocations);
           setLoading(false);
         }
       } catch (err) {
@@ -96,7 +118,10 @@ export default function MapPage() {
   if (loading) {
     return (
       <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
-        <PageHeader title="Base Merchants Map" icon={<MapPin className="size-6" />} />
+        <PageHeader
+          title="Base Merchants Map"
+          icon={<MapPin className="size-6" />}
+        />
         <div className="h-96 rounded-lg border bg-muted flex items-center justify-center">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -110,7 +135,10 @@ export default function MapPage() {
   if (error) {
     return (
       <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
-        <PageHeader title="Base Merchants Map" icon={<MapPin className="size-6" />} />
+        <PageHeader
+          title="Base Merchants Map"
+          icon={<MapPin className="size-6" />}
+        />
         <div className="h-96 rounded-lg border bg-muted flex items-center justify-center">
           <div className="text-center text-muted-foreground">
             <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -124,7 +152,10 @@ export default function MapPage() {
 
   return (
     <div className="w-full mb-16 flex flex-col gap-4 mt-4">
-      <PageHeader title="Base Merchants Map" icon={<Coins className="size-6" />} />
+      <PageHeader
+        title="Base Merchants Map"
+        icon={<Coins className="size-6" />}
+      />
 
       {/* Location status */}
       <div className="px-4">
@@ -141,7 +172,12 @@ export default function MapPage() {
               disabled={locationLoading}
               className="text-yellow-800 border-yellow-300 hover:bg-yellow-100"
             >
-              <RefreshCw className={cn("h-3 w-3 mr-1", locationLoading && "animate-spin")} />
+              <RefreshCw
+                className={cn(
+                  "h-3 w-3 mr-1",
+                  locationLoading && "animate-spin"
+                )}
+              />
               Retry
             </Button>
           </div>
@@ -159,7 +195,8 @@ export default function MapPage() {
             <div className="flex items-center gap-2">
               <Coins className="h-4 w-4" />
               <span className="text-sm">
-                {nearbyLocations.length} Base merchant{nearbyLocations.length !== 1 ? 's' : ''} within 10 miles
+                {nearbyLocations.length} Base merchant
+                {nearbyLocations.length !== 1 ? "s" : ""} within 10 miles
               </span>
             </div>
             {nearbyLocations.length > 0 && (
@@ -191,7 +228,7 @@ export default function MapPage() {
       {/* Map View */}
       {!locationError && coordinates ? (
         <div className="flex-1 min-h-[500px] relative mx-4 rounded-lg overflow-hidden border">
-          <MapComponent 
+          <MapComponent
             center={[coordinates.latitude, coordinates.longitude]}
             locations={nearbyLocations}
           />
@@ -202,7 +239,8 @@ export default function MapPage() {
             <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p className="text-lg font-medium mb-2">Map Unavailable</p>
             <p className="text-sm mb-4">
-              {locationError || "Location access required to show nearby Base merchants"}
+              {locationError ||
+                "Location access required to show nearby Base merchants"}
             </p>
             {locationError && (
               <Button
@@ -210,7 +248,12 @@ export default function MapPage() {
                 onClick={requestLocation}
                 disabled={locationLoading}
               >
-                <RefreshCw className={cn("h-4 w-4 mr-2", locationLoading && "animate-spin")} />
+                <RefreshCw
+                  className={cn(
+                    "h-4 w-4 mr-2",
+                    locationLoading && "animate-spin"
+                  )}
+                />
                 Try Again
               </Button>
             )}
@@ -219,4 +262,4 @@ export default function MapPage() {
       )}
     </div>
   );
-} 
+}

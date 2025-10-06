@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 interface RozoPointsResponse {
   balance: {
@@ -40,29 +40,42 @@ interface SpendPointsResponse {
 export function useRozoPointAPI() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const ongoingRequest = useRef<Promise<number> | null>(null);
 
   const getPoints = async (address: string): Promise<number> => {
+    // If there's already a request in progress, return it
+    if (ongoingRequest.current) {
+      return ongoingRequest.current;
+    }
+
     setIsLoading(true);
     setError(null);
-    const addressLower = address.toLowerCase();
-    try {
-      const response = await fetch(
-        `https://auth0.rozo.ai/functions/v1/cashback?evm_address=${addressLower}`
-      );
 
-      if (response.ok) {
-        const data: RozoPointsResponse = await response.json();
-        console.log("data", data);
-        return Number(data.balance.points || 0) * 100;
-      } else {
-        throw new Error("Failed to fetch points balance");
+    const requestPromise = (async (): Promise<number> => {
+      try {
+        const addressLower = address.toLowerCase();
+        const response = await fetch(
+          `https://auth0.rozo.ai/functions/v1/cashback?evm_address=${addressLower}`
+        );
+
+        if (response.ok) {
+          const data: RozoPointsResponse = await response.json();
+          console.log("data", data);
+          return Number(data.balance.points || 0) * 100;
+        } else {
+          throw new Error("Failed to fetch points balance");
+        }
+      } catch (err) {
+        setError("Failed to fetch points balance");
+        return 0;
+      } finally {
+        setIsLoading(false);
+        ongoingRequest.current = null;
       }
-    } catch (err) {
-      setError("Failed to fetch points balance");
-      return 0;
-    } finally {
-      setIsLoading(false);
-    }
+    })();
+
+    ongoingRequest.current = requestPromise;
+    return requestPromise;
   };
 
   /*
@@ -113,7 +126,10 @@ About: ${about}
       );
 
       // Get signature from wallet
-      const provider = new ethers.BrowserProvider(window.ethereum);
+      if (!window.ethereum) {
+        throw new Error("No wallet provider found");
+      }
+      const provider = new ethers.BrowserProvider(window.ethereum as any);
       const signer = await provider.getSigner();
       const signature = await signer.signMessage(message);
 

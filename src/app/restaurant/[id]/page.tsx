@@ -44,6 +44,7 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
+import data from "../../../../public/coffee_mapdata.json";
 
 export default function RestaurantDetailPage() {
   const params = useParams();
@@ -61,7 +62,6 @@ export default function RestaurantDetailPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = React.useState(false);
   const [paymentAmount, setPaymentAmount] = React.useState<string>("");
-  const [paymentAmountUSD, setPaymentAmountUSD] = React.useState<string>("");
   const [points, setPoints] = React.useState(0);
   const [pointsLoading, setPointsLoading] = React.useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
@@ -69,8 +69,6 @@ export default function RestaurantDetailPage() {
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastResetAmountRef = useRef<string>("");
   const [appId, setAppId] = React.useState<string>("");
-
-  const [openPayModal, setOpenPayModal] = React.useState(false);
 
   const metadata = useMemo(() => {
     const baseMetadata = {
@@ -91,15 +89,19 @@ export default function RestaurantDetailPage() {
   useEffect(() => {
     async function loadRestaurant() {
       try {
-        const res = await fetch("/coffee_mapdata.json", { cache: "no-store" });
-        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        const data = await res.json();
+        // const res = await fetch("/coffee_mapdata.json", { cache: "no-store" });
+        // if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+        // const data = await res.json();
 
         const foundRestaurant = data.locations.find(
-          (loc: Restaurant) => loc._id === restaurantId
+          (loc) =>
+            typeof loc === "object" &&
+            loc !== null &&
+            "_id" in loc &&
+            loc._id === restaurantId
         );
         if (!foundRestaurant) {
-          throw new Error("Lifestyle not found");
+          throw new Error("Restaurant not found");
         }
 
         console.log("foundRestaurant", foundRestaurant);
@@ -110,7 +112,6 @@ export default function RestaurantDetailPage() {
         if (foundRestaurant.price && !isNaN(Number(foundRestaurant.price))) {
           price = Number(foundRestaurant.price);
           setPaymentAmount(price.toFixed(2));
-          setPaymentAmountUSD(price.toFixed(2));
         }
 
         const displayCurrency = foundRestaurant.currency || "USD";
@@ -169,11 +170,6 @@ export default function RestaurantDetailPage() {
 
   const handleAmountChange = (value: string) => {
     if (!restaurant) return;
-
-    if (openPayModal) {
-      setOpenPayModal(false);
-    }
-
     setPaymentAmount(value);
     setIsDebouncing(true);
 
@@ -186,7 +182,7 @@ export default function RestaurantDetailPage() {
     debounceTimerRef.current = setTimeout(() => {
       const displayCurrency = getDisplayCurrency(restaurant.currency);
       const usdAmount = convertToUSD(value, displayCurrency);
-      setPaymentAmountUSD(usdAmount);
+
       const appId = `rozoRewardsBNBStellarMP-${restaurant.handle || ""}`;
       setAppId(appId);
 
@@ -291,9 +287,7 @@ export default function RestaurantDetailPage() {
 
   const handleClearPayment = () => {
     setPaymentAmount("");
-    setPaymentAmountUSD("");
     setPaymentLoading(false);
-    setOpenPayModal(false);
   };
 
   if (loading) {
@@ -464,108 +458,76 @@ export default function RestaurantDetailPage() {
                 </div>
 
                 {/* Payment Button */}
-                {openPayModal ? (
-                  <RozoPayButton.Custom
-                    defaultOpen
-                    resetOnSuccess
-                    appId={appId}
-                    toAddress={
-                      (restaurant.payTo ??
-                        "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897") as `0x${string}`
-                    }
-                    toChain={baseUSDC.chainId}
-                    {...(paymentAmount && parseFloat(paymentAmount) > 0
-                      ? {
-                          toUnits: convertToUSD(
-                            paymentAmount,
-                            getDisplayCurrency(restaurant?.currency)
-                          ),
-                        }
-                      : {})}
-                    toToken={baseUSDC.token as `0x${string}`}
-                    intent={`Pay for ${restaurant.name} - ${getDisplayCurrency(
-                      restaurant?.currency
-                    )} ${paymentAmount}`}
-                    metadata={metadata}
-                    onPaymentStarted={() => {
-                      setLoading(true);
-                      setPaymentLoading(true);
-                    }}
-                    onPaymentBounced={() => {
-                      setLoading(false);
-                      setPaymentLoading(false);
-                    }}
-                    onPaymentCompleted={(args: PaymentCompletedEvent) => {
-                      toast.success(
-                        `Payment successful to ${restaurant.name}!`,
-                        {
-                          description:
-                            "Your payment has been processed successfully. Redirecting to receipt...",
-                          duration: 2000,
-                        }
-                      );
-                      handleClearPayment();
-                    }}
-                  >
-                    {({ show }) => {
-                      const usdAmount = convertToUSD(
-                        paymentAmount,
-                        getDisplayCurrency(restaurant?.currency)
-                      );
+                <RozoPayButton.Custom
+                  resetOnSuccess
+                  appId={appId}
+                  toAddress={
+                    (restaurant.payTo ??
+                      "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897") as `0x${string}`
+                  }
+                  toChain={baseUSDC.chainId}
+                  {...(paymentAmount && parseFloat(paymentAmount) > 0
+                    ? {
+                        toUnits: convertToUSD(
+                          paymentAmount,
+                          getDisplayCurrency(restaurant?.currency)
+                        ),
+                      }
+                    : {})}
+                  toToken={baseUSDC.token as `0x${string}`}
+                  intent={`Pay for ${restaurant.name} - ${getDisplayCurrency(
+                    restaurant?.currency
+                  )} ${paymentAmount}`}
+                  metadata={metadata}
+                  onPaymentStarted={() => {
+                    setLoading(true);
+                    setPaymentLoading(true);
+                  }}
+                  onPaymentBounced={() => {
+                    setLoading(false);
+                    setPaymentLoading(false);
+                  }}
+                  onPaymentCompleted={(args: PaymentCompletedEvent) => {
+                    toast.success(`Payment successful to ${restaurant.name}!`, {
+                      description:
+                        "Your payment has been processed successfully. Redirecting to receipt...",
+                      duration: 2000,
+                    });
+                    handleClearPayment();
+                  }}
+                >
+                  {({ show }) => {
+                    const usdAmount = convertToUSD(
+                      paymentAmount,
+                      getDisplayCurrency(restaurant?.currency)
+                    );
 
-                      return (
-                        <Button
-                          variant="default"
-                          className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
-                          onClick={show}
-                          disabled={
-                            isDebouncing ||
-                            loading ||
-                            !paymentAmount ||
-                            parseFloat(paymentAmount) <= 0 ||
-                            isNaN(parseFloat(paymentAmount)) ||
-                            paymentState !== "preview"
-                          }
-                          size="lg"
-                        >
-                          {loading ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          ) : (
-                            <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                          )}
-                          Pay $
-                          {isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount}{" "}
-                          with Crypto
-                        </Button>
-                      );
-                    }}
-                  </RozoPayButton.Custom>
-                ) : (
-                  <Button
-                    variant="default"
-                    className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
-                    disabled={
-                      loading ||
-                      isDebouncing ||
-                      !paymentAmount ||
-                      isNaN(Number(paymentAmount)) ||
-                      Number(paymentAmount) <= 0
-                    }
-                    onClick={() => setOpenPayModal(true)}
-                    size="lg"
-                  >
-                    {loading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                    )}
-                    Pay $
-                    {isNaN(parseFloat(paymentAmountUSD))
-                      ? "0.00"
-                      : paymentAmountUSD}{" "}
-                    with Crypto
-                  </Button>
-                )}
+                    return (
+                      <Button
+                        variant="default"
+                        className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
+                        onClick={show}
+                        disabled={
+                          isDebouncing ||
+                          loading ||
+                          !paymentAmount ||
+                          parseFloat(paymentAmount) <= 0 ||
+                          isNaN(parseFloat(paymentAmount)) ||
+                          paymentState !== "preview"
+                        }
+                        size="lg"
+                      >
+                        {loading ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                        )}
+                        Pay ${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount}{" "}
+                        with Crypto
+                      </Button>
+                    );
+                  }}
+                </RozoPayButton.Custom>
 
                 {/* Pay with Points Button */}
                 {points > 0 && (

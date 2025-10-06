@@ -5,8 +5,7 @@ import { useRozoAPI } from "@/hooks/useRozoAPI";
 import { formatAddress } from "@/lib/utils";
 import { WalletProvider } from "@coinbase/onchainkit/wallet";
 import sdk from "@farcaster/miniapp-sdk";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
-import "@rainbow-me/rainbowkit/styles.css";
+import { useAppKit } from "@reown/appkit/react";
 import { UserIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -19,7 +18,7 @@ function WalletComponentsInternal() {
   const { address: accountAddress, status } = useAccount();
   const { status: connectStatus } = useConnect();
   const { isAuthenticated } = useRozoAPI();
-  const { openConnectModal } = useConnectModal();
+  const { open: openConnectModal } = useAppKit();
   const [pfpUrl, setPfpUrl] = useState<string | null>(null);
 
   // Ensure consistent rendering between server and client
@@ -38,7 +37,7 @@ function WalletComponentsInternal() {
   return (
     <WalletProvider>
       {status === "disconnected" && openConnectModal ? (
-        <Button onClick={openConnectModal}>Connect Wallet</Button>
+        <Button onClick={() => openConnectModal()}>Connect Wallet</Button>
       ) : connectStatus === "pending" ? (
         <Button disabled>Connecting...</Button>
       ) : (

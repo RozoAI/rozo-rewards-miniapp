@@ -2,18 +2,22 @@
 
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { calculateDistance } from "@/lib/utils";
-import { MapPin, Loader2 } from "lucide-react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { Loader2, MapPin } from "lucide-react";
 import React from "react";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import data from "../../public/coffee_mapdata.json";
 
 // Fix default markers in react-leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
 type LocationItem = {
@@ -35,8 +39,12 @@ export function FooterMap({ className }: FooterMapProps) {
   const [locations, setLocations] = React.useState<LocationItem[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  
-  const { coordinates, loading: locationLoading, error: locationError } = useGeolocation();
+
+  const {
+    coordinates,
+    loading: locationLoading,
+    error: locationError,
+  } = useGeolocation();
 
   // Load restaurant data
   React.useEffect(() => {
@@ -44,9 +52,9 @@ export function FooterMap({ className }: FooterMapProps) {
 
     async function loadLocations() {
       try {
-        const res = await fetch("/coffee_mapdata.json");
-        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        const data = await res.json();
+        // const res = await fetch("/coffee_mapdata.json");
+        // if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+        // const data = await res.json();
         if (!data || !Array.isArray(data.locations)) {
           throw new Error("Invalid data shape");
         }
@@ -88,7 +96,11 @@ export function FooterMap({ className }: FooterMapProps) {
 
   if (loading || locationLoading) {
     return (
-      <div className={`h-64 rounded-lg border bg-muted flex items-center justify-center ${className || ""}`}>
+      <div
+        className={`h-64 rounded-lg border bg-muted flex items-center justify-center ${
+          className || ""
+        }`}
+      >
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
           <span className="text-sm">Loading map...</span>
@@ -99,7 +111,11 @@ export function FooterMap({ className }: FooterMapProps) {
 
   if (error || locationError || !coordinates) {
     return (
-      <div className={`h-64 rounded-lg border bg-muted flex items-center justify-center ${className || ""}`}>
+      <div
+        className={`h-64 rounded-lg border bg-muted flex items-center justify-center ${
+          className || ""
+        }`}
+      >
         <div className="text-center text-muted-foreground">
           <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
           <p className="text-sm">
@@ -114,7 +130,9 @@ export function FooterMap({ className }: FooterMapProps) {
   }
 
   return (
-    <div className={`h-64 rounded-lg overflow-hidden border ${className || ""}`}>
+    <div
+      className={`h-64 rounded-lg overflow-hidden border ${className || ""}`}
+    >
       <MapContainer
         center={[coordinates.latitude, coordinates.longitude]}
         zoom={12}
@@ -126,12 +144,12 @@ export function FooterMap({ className }: FooterMapProps) {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        
+
         {/* User location marker */}
-        <Marker 
+        <Marker
           position={[coordinates.latitude, coordinates.longitude]}
           icon={L.divIcon({
-            className: 'custom-user-marker',
+            className: "custom-user-marker",
             html: '<div style="background-color: #3b82f6; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
             iconSize: [16, 16],
             iconAnchor: [8, 8],
@@ -146,10 +164,7 @@ export function FooterMap({ className }: FooterMapProps) {
 
         {/* Nearby restaurant markers */}
         {nearbyLocations.map((location) => (
-          <Marker 
-            key={location._id} 
-            position={[location.lat, location.lon]}
-          >
+          <Marker key={location._id} position={[location.lat, location.lon]}>
             <Popup>
               <div className="text-center min-w-0">
                 <strong className="block font-semibold text-sm">
@@ -171,13 +186,14 @@ export function FooterMap({ className }: FooterMapProps) {
           </Marker>
         ))}
       </MapContainer>
-      
+
       {/* Location count indicator */}
       {nearbyLocations.length > 0 && (
         <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium text-gray-700 shadow-sm z-10">
-          {nearbyLocations.length} shop{nearbyLocations.length !== 1 ? 's' : ''} within 10 miles
+          {nearbyLocations.length} shop{nearbyLocations.length !== 1 ? "s" : ""}{" "}
+          within 10 miles
         </div>
       )}
     </div>
   );
-} 
+}
