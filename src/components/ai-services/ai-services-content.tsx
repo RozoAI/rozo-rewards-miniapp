@@ -29,7 +29,7 @@ export function AiServicesContent({ className }: { className?: string }) {
           
           // Add Rozo Banana as the first item
           const rozoBananaItem: CatalogItem = {
-            domain: "banana.rozo.ai",
+            domain: "b.rozo.ai",
             name: "Rozo Banana",
             price_in_usd: 0.5,
             original_value_usd: 1,
@@ -42,7 +42,7 @@ export function AiServicesContent({ className }: { className?: string }) {
             cashback_rate: 0,
             discount_rate: 0,
             savings_usd: 0,
-            source: "https://banana.rozo.ai/",
+            source: "https://b.rozo.ai/",
             sold_out: false
           };
           

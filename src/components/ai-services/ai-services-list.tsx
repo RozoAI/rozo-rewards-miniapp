@@ -33,7 +33,7 @@ function ListRow({ item }: { item: CatalogItem }) {
   const hasCashback = item.cashback_rate > 0;
 
   // Check if this is an external link (Rozo Banana)
-  const isExternalLink = item.domain === "banana.rozo.ai";
+  const isExternalLink = item.domain === "b.rozo.ai";
   const linkHref = isExternalLink ? item.source : `/ai-services/${encodeURIComponent(item.domain)}`;
   
   return (
