@@ -109,15 +109,15 @@ function ListRow({ item }: { item: CatalogItem }) {
                   {item.discount_rate}% OFF
                 </Badge>
               )}
-              {/* 
-              {!item.sold_out && hasCashback && (
+               
+              {!item.sold_out && hasCashback && item.domain === 'b.rozo.ai' && (
                 <Badge
                   variant="secondary"
                   className="text-xs font-semibold bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400 border-green-500/20"
                 >
                   {item.cashback_rate}% Cashback
                 </Badge>
-              )} */}
+              )} 
 
               {!item.sold_out && hasBundle && item.duration_months > 0 && (
                 <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md flex items-center gap-1">
