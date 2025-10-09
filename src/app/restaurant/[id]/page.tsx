@@ -90,9 +90,12 @@ export default function RestaurantDetailPage() {
 
     if (restaurant?.handle && restaurant?.name) {
       const merchantOrderId = `${restaurant.handle.toUpperCase()}-${new Date().getTime()}`;
+      const receiptUrl = `https://ns.rozo.ai/payment/success?order_id=${merchantOrderId}`;
+
       return {
         ...baseMetadata,
         merchant_order_id: merchantOrderId,
+        ...(restaurant?.is_live ? { receiptUrl: receiptUrl } : {}),
         items: [
           ...baseMetadata.items,
           {
