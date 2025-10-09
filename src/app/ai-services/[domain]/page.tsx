@@ -32,7 +32,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 import data from "../../../../public/ai_commerce_catalog.json";
@@ -105,6 +105,7 @@ export default function AIServiceDetailPage() {
           toChain: baseUSDC.chainId,
           toToken: baseUSDC.token as `0x${string}`,
           toUnits: foundService.price_in_usd?.toString(),
+          metadata: metadata as any,
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
@@ -202,6 +203,37 @@ export default function AIServiceDetailPage() {
       })();
     }
   };
+
+  const metadata = useMemo(() => {
+    const baseMetadata = {
+      amount_local: service?.price_in_usd,
+      currency_local: "USD",
+      items: [
+        {
+          name: service?.name,
+          description: `${service?.price_in_usd} (${service?.price_in_usd} USD)`,
+        },
+      ],
+    };
+
+    if (service?.domain) {
+      const merchantOrderId = `${service?.domain.toUpperCase()}-${new Date().getTime()}`;
+
+      return {
+        ...baseMetadata,
+        merchant_order_id: merchantOrderId,
+        items: [
+          ...baseMetadata.items,
+          {
+            name: "Order ID",
+            description: merchantOrderId,
+          },
+        ],
+      };
+    }
+
+    return baseMetadata;
+  }, [service?.price_in_usd, service?.name, service?.domain]);
 
   if (loading) {
     return (
@@ -403,6 +435,7 @@ export default function AIServiceDetailPage() {
                 {...(service.price_in_usd && {
                   toUnits: service.price_in_usd.toString(),
                 })}
+                metadata={metadata as any}
                 onPaymentStarted={() => {
                   setPaymentLoading(true);
                 }}

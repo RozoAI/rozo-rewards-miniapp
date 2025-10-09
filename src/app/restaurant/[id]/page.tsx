@@ -74,12 +74,26 @@ export default function RestaurantDetailPage() {
     const baseMetadata = {
       amount_local: paymentAmount,
       currency_local: getDisplayCurrency(restaurant?.currency),
+      items: [
+        {
+          name: restaurant?.name,
+          description: `${restaurant?.currency} ${paymentAmount} (${paymentAmount} USD)`,
+        },
+      ],
     };
 
     if (restaurant?.handle) {
+      const merchantOrderId = `${restaurant.handle.toUpperCase()}-${new Date().getTime()}`;
       return {
         ...baseMetadata,
-        merchant_order_id: `${restaurant.handle.toUpperCase()}-${new Date().getTime()}`,
+        merchant_order_id: merchantOrderId,
+        items: [
+          ...baseMetadata.items,
+          {
+            name: "Order ID",
+            description: merchantOrderId,
+          },
+        ],
       };
     }
 
@@ -129,6 +143,7 @@ export default function RestaurantDetailPage() {
           toChain: baseUSDC.chainId,
           toToken: baseUSDC.token as `0x${string}`,
           toUnits: usdAmount,
+          metadata: metadata as any,
         });
 
         // Store initial amount to prevent unnecessary resets
@@ -478,7 +493,7 @@ export default function RestaurantDetailPage() {
                   intent={`Pay for ${restaurant.name} - ${getDisplayCurrency(
                     restaurant?.currency
                   )} ${paymentAmount}`}
-                  metadata={metadata}
+                  metadata={metadata as any}
                   onPaymentStarted={() => {
                     setLoading(true);
                     setPaymentLoading(true);
