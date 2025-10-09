@@ -432,7 +432,7 @@ export default function RestaurantDetailPage() {
               </div>
             </div>
 
-            <div className="flex items-start gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 onClick={handleBookmark}
                 variant={
@@ -446,13 +446,13 @@ export default function RestaurantDetailPage() {
                 }
               >
                 <Bookmark
-                  className={`h-4 w-4 ${
+                  className={`size-4 ${
                     isBookmarked(restaurant?._id || "") ? "fill-current" : ""
                   }`}
                 />
               </Button>
               <Button onClick={handleShare} variant="default" size="icon">
-                <Share className="h-4 w-4" />
+                <Share className="size-4" />
               </Button>
             </div>
           </div>

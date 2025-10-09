@@ -10,7 +10,13 @@ import { AiServicesList, CatalogItem } from "./ai-services-list";
 
 type CatalogResponse = CatalogItem[];
 
-export function AiServicesContent({ className }: { className?: string }) {
+export function AiServicesContent({
+  className,
+  hasBookmarks = false,
+}: {
+  className?: string;
+  hasBookmarks?: boolean;
+}) {
   const [items, setItems] = React.useState<CatalogItem[] | null>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
@@ -26,7 +32,7 @@ export function AiServicesContent({ className }: { className?: string }) {
           const filteredData = data.filter(
             (item) => item.discount_rate && item.discount_rate !== 0
           );
-          
+
           // Add Rozo Banana as the first item
           const rozoBananaItem: CatalogItem = {
             domain: "b.rozo.ai",
@@ -43,9 +49,9 @@ export function AiServicesContent({ className }: { className?: string }) {
             discount_rate: 0,
             savings_usd: 0,
             source: "https://b.rozo.ai/",
-            sold_out: false
+            sold_out: false,
           };
-          
+
           setItems([rozoBananaItem, ...filteredData]);
         }
       } catch (err) {
@@ -92,19 +98,21 @@ export function AiServicesContent({ className }: { className?: string }) {
           onClear={clearSearch}
           placeholder="Search AI services..."
         />
-        <ul className={cn("divide-y rounded-md rounded-b-none")}>
-          {Array.from({ length: 12 }).map((_, idx) => (
-            <li key={idx} className="flex items-start gap-3 px-4 py-4">
-              <div className="size-12 sm:size-16 rounded-lg bg-muted animate-pulse ring-1 ring-border flex-shrink-0" />
-              <div className="flex-1 space-y-2">
-                <div className="h-4 w-3/4 max-w-48 rounded bg-muted animate-pulse" />
-                <div className="h-3 w-1/2 max-w-32 rounded bg-muted animate-pulse" />
-                <div className="h-3 w-full max-w-64 rounded bg-muted animate-pulse" />
-                <div className="h-3 w-1/3 max-w-24 rounded bg-muted animate-pulse" />
-              </div>
-            </li>
-          ))}
-        </ul>
+        <div className={cn(hasBookmarks && "pb-24")}>
+          <ul className={cn("divide-y rounded-md rounded-b-none")}>
+            {Array.from({ length: 12 }).map((_, idx) => (
+              <li key={idx} className="flex items-start gap-3 px-4 py-4">
+                <div className="size-12 sm:size-16 rounded-lg bg-muted animate-pulse ring-1 ring-border flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-3/4 max-w-48 rounded bg-muted animate-pulse" />
+                  <div className="h-3 w-1/2 max-w-32 rounded bg-muted animate-pulse" />
+                  <div className="h-3 w-full max-w-64 rounded bg-muted animate-pulse" />
+                  <div className="h-3 w-1/3 max-w-24 rounded bg-muted animate-pulse" />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     );
   }
@@ -139,7 +147,11 @@ export function AiServicesContent({ className }: { className?: string }) {
           </button>
         </div>
       ) : (
-        hasResults && <AiServicesList items={filteredItems!} />
+        hasResults && (
+          <div className={cn(hasBookmarks && "pb-24")}>
+            <AiServicesList items={filteredItems!} />
+          </div>
+        )
       )}
     </div>
   );

@@ -1,23 +1,15 @@
 "use client";
 
-import { useBookmarks } from "@/contexts/BookmarkContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export function BookmarkRedirect() {
-  const { bookmarks } = useBookmarks();
   const router = useRouter();
 
   useEffect(() => {
-    // Check if there are bookmarks and redirect accordingly
-    if (bookmarks.length > 0) {
-      router.replace("/bookmarks");
-    } else {
-      router.replace("/ai-services");
-    }
-  }, [bookmarks, router]);
+    router.replace("/ai-services");
+  }, []);
 
-  // Show loading while redirecting
   return (
     <div className="w-full h-screen flex items-center justify-center">
       <div className="text-center">
