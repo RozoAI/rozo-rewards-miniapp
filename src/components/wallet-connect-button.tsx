@@ -5,17 +5,17 @@ import { useRozoAPI } from "@/hooks/useRozoAPI";
 import { formatAddress } from "@/lib/utils";
 import { WalletProvider } from "@coinbase/onchainkit/wallet";
 import sdk from "@farcaster/miniapp-sdk";
-import { useAppKit } from "@reown/appkit/react";
+import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
 import { UserIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useAccount, useConnect } from "wagmi";
+import { useConnect } from "wagmi";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 
 // Internal component that contains wagmi hooks - only rendered after hydration
 function WalletComponentsInternal() {
-  const { address: accountAddress, status } = useAccount();
+  const { address: accountAddress, status } = useAppKitAccount();
   const { status: connectStatus } = useConnect();
   const { isAuthenticated } = useRozoAPI();
   const { open: openConnectModal } = useAppKit();
@@ -74,12 +74,13 @@ export function WalletComponents() {
   // Show loading state until mounted to prevent hydration mismatch
   if (!hasMounted) {
     return (
-      <WalletProvider>
-        <Button disabled>Loading...</Button>
-      </WalletProvider>
+      // <WalletProvider>
+      <Button disabled>Loading...</Button>
+      // </WalletProvider>
     );
   }
 
   // Render the internal component only after mounting
-  return <WalletComponentsInternal />;
+  // return <WalletComponentsInternal />;
+  return <appkit-button balance="hide" label="Connect Wallet" />;
 }

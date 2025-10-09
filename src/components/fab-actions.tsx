@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useAppKitTheme } from "@reown/appkit/react";
 import { HelpCircleIcon, MoonIcon, SunIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -11,11 +12,16 @@ import { useEffect, useState } from "react";
 export function FabActions({ className }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { setThemeMode } = useAppKitTheme();
 
   // Only show theme-dependent content after mounting to avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    setThemeMode(resolvedTheme === "dark" ? "dark" : "light");
+  }, [resolvedTheme]);
 
   // Action button styles
   const actionButtonStyle = {

@@ -18,6 +18,7 @@ import {
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
+import { useAppKitAccount } from "@reown/appkit/react";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPayUI } from "@rozoai/intent-pay";
 import {
@@ -34,7 +35,6 @@ import {
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useMemo } from "react";
 import { toast } from "sonner";
-import { useAccount } from "wagmi";
 import data from "../../../../public/ai_commerce_catalog.json";
 
 type CatalogItem = {
@@ -73,7 +73,7 @@ export default function AIServiceDetailPage() {
   const { composeCast } = useComposeCast();
   const { resetPayment } = useRozoPayUI();
   const { getPoints, spendPoints } = useRozoPointAPI();
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useAppKitAccount();
 
   const [service, setService] = React.useState<CatalogItem | null>(null);
   const [loading, setLoading] = React.useState(true);

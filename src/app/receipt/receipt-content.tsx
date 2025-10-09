@@ -187,7 +187,7 @@ export default function ReceiptContent() {
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Transaction ID:</span>
+              <span className="text-muted-foreground">Order ID:</span>
               <span className="font-semibold text-xs">
                 {paymentData.order_id}
               </span>

@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useBookmarks } from "@/contexts/BookmarkContext";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import {
   convertToUSD,
@@ -29,8 +30,10 @@ import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPay, useRozoPayUI } from "@rozoai/intent-pay";
 
+import { useAppKitAccount } from "@reown/appkit/react";
 import {
   BadgePercent,
+  Bookmark,
   Coins,
   CreditCard,
   HelpCircle,
@@ -43,7 +46,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { useAccount } from "wagmi";
 import data from "../../../../public/coffee_mapdata.json";
 
 export default function RestaurantDetailPage() {
@@ -53,9 +55,10 @@ export default function RestaurantDetailPage() {
   const { resetPayment } = useRozoPayUI();
   const { paymentState } = useRozoPay();
   const { getPoints, spendPoints } = useRozoPointAPI();
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useAppKitAccount();
   const { isInMiniApp } = useIsInMiniApp();
   const { composeCast } = useComposeCast();
+  const { isBookmarked, toggleBookmark } = useBookmarks();
 
   const [restaurant, setRestaurant] = React.useState<Restaurant | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -223,42 +226,48 @@ export default function RestaurantDetailPage() {
   };
 
   const confirmPaymentWithPoints = async () => {
-    if (!address || !restaurant || !paymentAmount) return;
+    try {
+      if (!address || !restaurant || !paymentAmount) return;
 
-    setDialogLoading(true);
+      setDialogLoading(true);
 
-    const displayCurrency = getDisplayCurrency(restaurant?.currency);
-    const usdAmount = convertToUSD(paymentAmount, displayCurrency);
+      const displayCurrency = getDisplayCurrency(restaurant?.currency);
+      const usdAmount = convertToUSD(paymentAmount, displayCurrency);
 
-    const paymentData = {
-      from_address: address,
-      to_handle:
-        restaurant.handle || restaurant.name.toLowerCase().replace(/\s+/g, ""),
-      amount_usd_cents: parseFloat(usdAmount) * 100,
-      amount_local: parseFloat(paymentAmount),
-      currency_local: displayCurrency,
-      timestamp: Date.now(),
-      order_id: Date.now().toString(),
-      about: `Pay for ${restaurant.name} - ${displayCurrency} ${paymentAmount}`,
-    };
-    router.prefetch("/receipt");
-    const response = await spendPoints(paymentData);
-
-    if (response && response.status === "success") {
-      // Store payment data in sessionStorage for receipt page
-      const receiptData = {
-        ...response.data,
-        restaurant_name: restaurant.name,
-        restaurant_address: restaurant.address_line1,
+      const paymentData = {
+        from_address: address,
+        to_handle:
+          restaurant.handle ||
+          restaurant.name.toLowerCase().replace(/\s+/g, ""),
+        amount_usd_cents: parseFloat(usdAmount) * 100,
+        amount_local: parseFloat(paymentAmount),
+        currency_local: displayCurrency,
+        timestamp: Date.now(),
+        order_id: Date.now().toString(),
+        about: `Pay for ${restaurant.name} - ${displayCurrency} ${paymentAmount}`,
       };
+      router.prefetch("/receipt");
+      const response = await spendPoints(paymentData);
 
-      sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
+      if (response && response.status === "success") {
+        // Store payment data in sessionStorage for receipt page
+        const receiptData = {
+          ...response.data,
+          restaurant_name: restaurant.name,
+          restaurant_address: restaurant.address_line1,
+        };
 
-      setShowConfirmDialog(false);
-      toast.success("Points spent successfully");
-      // Navigate to receipt page
-      router.push("/receipt");
-    } else {
+        sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
+
+        setShowConfirmDialog(false);
+        toast.success("Points spent successfully");
+        // Navigate to receipt page
+        router.push("/receipt");
+      } else {
+        toast.error("Failed to spend points");
+        setDialogLoading(false);
+      }
+    } catch {
       toast.error("Failed to spend points");
       setDialogLoading(false);
     }
@@ -291,6 +300,17 @@ export default function RestaurantDetailPage() {
           console.error(`Error sharing: ${err}`);
         }
       })();
+    }
+  };
+
+  const handleBookmark = () => {
+    if (restaurant) {
+      toggleBookmark(restaurant._id);
+      toast.success(
+        isBookmarked(restaurant._id)
+          ? "Removed from bookmarks"
+          : "Added to bookmarks"
+      );
     }
   };
 
@@ -413,6 +433,24 @@ export default function RestaurantDetailPage() {
             </div>
 
             <div className="flex items-start gap-2">
+              <Button
+                onClick={handleBookmark}
+                variant={
+                  isBookmarked(restaurant?._id || "") ? "default" : "outline"
+                }
+                size="icon"
+                title={
+                  isBookmarked(restaurant?._id || "")
+                    ? "Remove from bookmarks"
+                    : "Add to bookmarks"
+                }
+              >
+                <Bookmark
+                  className={`h-4 w-4 ${
+                    isBookmarked(restaurant?._id || "") ? "fill-current" : ""
+                  }`}
+                />
+              </Button>
               <Button onClick={handleShare} variant="default" size="icon">
                 <Share className="h-4 w-4" />
               </Button>

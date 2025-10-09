@@ -1,12 +1,14 @@
 "use client";
 
+import { useBookmarks } from "@/contexts/BookmarkContext";
 import { cn } from "@/lib/utils";
-import { Binoculars, StoreIcon, User } from "lucide-react";
+import { Binoculars, Bookmark, StoreIcon, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export function BottomNavbar() {
   const pathname = usePathname();
+  const { bookmarks } = useBookmarks();
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -45,6 +47,26 @@ export function BottomNavbar() {
           <span className="text-xs font-medium" suppressHydrationWarning>
             Discovery
           </span>
+        </Link>
+        <Link
+          href="/bookmarks"
+          className={cn(
+            "flex flex-col items-center justify-center gap-1 transition-colors min-w-0 relative",
+            isActive("/bookmarks")
+              ? "text-primary dark:text-primary font-bold"
+              : "text-gray-500 hover:text-gray-900 focus:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 dark:focus:text-gray-50"
+          )}
+          prefetch={false}
+        >
+          <div className="relative">
+            <Bookmark className="h-5 w-5 sm:h-6 sm:w-6" />
+            {bookmarks.length > 0 && (
+              <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center font-medium">
+                {bookmarks.length > 9 ? "9+" : bookmarks.length}
+              </span>
+            )}
+          </div>
+          <span className="text-xs font-medium">Bookmarks</span>
         </Link>
         <Link
           href="/profile"

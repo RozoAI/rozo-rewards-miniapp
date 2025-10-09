@@ -1,12 +1,18 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useRozoAPI } from '@/hooks/useRozoAPI';
-import { useCDPPermissions } from '@/hooks/useCDPPermissions';
-import { useAccount } from 'wagmi';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useCDPPermissions } from "@/hooks/useCDPPermissions";
+import { useRozoAPI } from "@/hooks/useRozoAPI";
+import { useAppKitAccount } from "@reown/appkit/react";
+import React, { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface PaymentButtonProps {
   merchant: string;
@@ -43,15 +49,15 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
   cashbackRate,
   onPaymentSuccess,
   disabled = false,
-  className = ""
+  className = "",
 }) => {
-  const { 
-    loading, 
-    error, 
+  const {
+    loading,
+    error,
     isAuthenticated,
-    checkPaymentEligibility, 
+    checkPaymentEligibility,
     processPayment,
-    clearError 
+    clearError,
   } = useRozoAPI();
 
   // CDP Permissions for real blockchain payments
@@ -60,12 +66,14 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
     error: cdpError,
     payWithROZORewards,
     checkUSDCBalance,
-    clearError: clearCDPError
+    clearError: clearCDPError,
   } = useCDPPermissions();
 
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useAppKitAccount();
 
-  const [eligibility, setEligibility] = useState<PaymentEligibility | null>(null);
+  const [eligibility, setEligibility] = useState<PaymentEligibility | null>(
+    null
+  );
   const [processingPayment, setProcessingPayment] = useState(false);
 
   const checkEligibility = useCallback(async () => {
@@ -92,24 +100,30 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
 
   const handlePayment = async () => {
     if (!eligibility?.eligible) {
-      toast.error('Payment not eligible. Please check your authorization status.');
+      toast.error(
+        "Payment not eligible. Please check your authorization status."
+      );
       return;
     }
 
     if (!isConnected || !address) {
-      toast.error('Please connect your wallet to make payments.');
+      toast.error("Please connect your wallet to make payments.");
       return;
     }
 
     setProcessingPayment(true);
-    
+
     try {
-      console.log('🚀 Starting payment process...');
+      console.log("🚀 Starting payment process...");
 
       // Check USDC balance first
       const usdcBalance = await checkUSDCBalance();
       if (usdcBalance < amount) {
-        toast.error(`Insufficient USDC balance. You have $${usdcBalance.toFixed(2)} but need $${amount.toFixed(2)}.`);
+        toast.error(
+          `Insufficient USDC balance. You have $${usdcBalance.toFixed(
+            2
+          )} but need $${amount.toFixed(2)}.`
+        );
         return;
       }
 
@@ -123,29 +137,30 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
 
       if (result) {
         toast.success(
-          `✅ Payment successful! Paid $${amount.toFixed(2)} to ${merchantName}. ` +
-          `Earned ${result.cashback_earned.toFixed(1)} ROZO!`
+          `✅ Payment successful! Paid $${amount.toFixed(
+            2
+          )} to ${merchantName}. ` +
+            `Earned ${result.cashback_earned.toFixed(1)} ROZO!`
         );
-        
+
         onPaymentSuccess?.(result);
-        
+
         // Refresh eligibility for next payment
         await checkEligibility();
       }
-      
+
       // TODO: Implement real CDP payment execution
       // When spend permission storage is available:
       // const paymentResult = await payWithROZORewards(spendPermission, amount);
-      
     } catch (error: any) {
-      console.error('❌ Payment error:', error);
-      
-      if (error.message.includes('insufficient')) {
+      console.error("❌ Payment error:", error);
+
+      if (error.message.includes("insufficient")) {
         toast.error(error.message);
-      } else if (error.name === 'UserRejectedRequestError') {
-        toast.error('Payment cancelled by user.');
+      } else if (error.name === "UserRejectedRequestError") {
+        toast.error("Payment cancelled by user.");
       } else {
-        toast.error('Payment failed. Please try again.');
+        toast.error("Payment failed. Please try again.");
       }
     } finally {
       setProcessingPayment(false);
@@ -181,7 +196,8 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
                     {formatRozo(eligibility.cashback_preview.estimated_rozo)}
                   </p>
                   <p className="text-xs text-green-600">
-                    ≈ {formatCurrency(eligibility.cashback_preview.estimated_usd)}
+                    ≈{" "}
+                    {formatCurrency(eligibility.cashback_preview.estimated_usd)}
                   </p>
                 </div>
                 <div className="text-right">
@@ -208,9 +224,9 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
           <Button
             onClick={handlePayment}
             disabled={
-              disabled || 
-              loading || 
-              processingPayment || 
+              disabled ||
+              loading ||
+              processingPayment ||
               !eligibility?.eligible ||
               amount <= 0
             }
@@ -223,15 +239,13 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
                 <span>Processing Payment...</span>
               </div>
             ) : loading ? (
-              'Checking Eligibility...'
+              "Checking Eligibility..."
             ) : !eligibility ? (
-              'Check Eligibility'
+              "Check Eligibility"
             ) : !eligibility.eligible ? (
-              'Payment Not Available'
+              "Payment Not Available"
             ) : (
-              <>
-                💳 Pay {formatCurrency(amount)} - One Tap
-              </>
+              <>💳 Pay {formatCurrency(amount)} - One Tap</>
             )}
           </Button>
 
@@ -241,13 +255,14 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
               <p className="text-sm text-yellow-800 font-medium">
                 ⚠️ Payment not available
               </p>
-              {eligibility.recommendations && eligibility.recommendations.length > 0 && (
-                <ul className="text-xs text-yellow-700 mt-1 list-disc list-inside">
-                  {eligibility.recommendations.map((rec, index) => (
-                    <li key={index}>{rec}</li>
-                  ))}
-                </ul>
-              )}
+              {eligibility.recommendations &&
+                eligibility.recommendations.length > 0 && (
+                  <ul className="text-xs text-yellow-700 mt-1 list-disc list-inside">
+                    {eligibility.recommendations.map((rec, index) => (
+                      <li key={index}>{rec}</li>
+                    ))}
+                  </ul>
+                )}
             </div>
           )}
 
@@ -255,8 +270,9 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
           {eligibility?.eligible && (
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800">
-                ✨ <strong>One-Tap Payment:</strong> No wallet signature required for this payment.
-                Cashback will be automatically credited to your account.
+                ✨ <strong>One-Tap Payment:</strong> No wallet signature
+                required for this payment. Cashback will be automatically
+                credited to your account.
               </p>
             </div>
           )}

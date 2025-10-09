@@ -1,8 +1,8 @@
 import { ROZO_POINTS_ABI, ROZO_POINTS_CONTRACT_ADDRESS } from "@/lib/contracts";
+import { useAppKitAccount } from "@reown/appkit/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-  useAccount,
   useChainId,
   useReadContract,
   useSwitchChain,
@@ -66,7 +66,7 @@ const USDC_ABI = [
 ] as const;
 
 export function useRozoPoints() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useAppKitAccount();
   const chainId = useChainId();
   const { switchChain, isPending: isSwitching } = useSwitchChain();
   const [points, setPoints] = useState<number>(0);
@@ -84,7 +84,7 @@ export function useRozoPoints() {
     address: ROZO_POINTS_CONTRACT_ADDRESS as `0x${string}`,
     abi: ROZO_POINTS_ABI,
     functionName: "getUserPoints",
-    args: address ? [address] : undefined,
+    args: address ? [address as `0x${string}`] : undefined,
     query: {
       enabled: !!address && isOnBaseChain,
     },
@@ -118,7 +118,10 @@ export function useRozoPoints() {
     functionName: "allowance",
     args:
       address && isOnBaseChain
-        ? [address, ROZO_POINTS_CONTRACT_ADDRESS as `0x${string}`]
+        ? [
+            address as `0x${string}`,
+            ROZO_POINTS_CONTRACT_ADDRESS as `0x${string}`,
+          ]
         : undefined,
     query: {
       enabled: !!address && isOnBaseChain,

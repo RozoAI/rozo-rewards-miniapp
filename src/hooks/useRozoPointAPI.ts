@@ -1,4 +1,5 @@
-import { ethers } from "ethers";
+import { wagmiAdapter } from "@/lib/appkit";
+import { ConnectorNotConnectedError, signMessage } from "@wagmi/core";
 import { useRef, useState } from "react";
 
 interface RozoPointsResponse {
@@ -114,6 +115,7 @@ About: ${about}
   ): Promise<SpendPointsResponse | null> => {
     setIsLoading(true);
     setError(null);
+
     try {
       // Get the message to sign
       const message = getSignMessage(
@@ -129,9 +131,20 @@ About: ${about}
       if (!window.ethereum) {
         throw new Error("No wallet provider found");
       }
-      const provider = new ethers.BrowserProvider(window.ethereum as any);
-      const signer = await provider.getSigner();
-      const signature = await signer.signMessage(message);
+      // const provider = new ethers.BrowserProvider(window.ethereum as any);
+      // const signer = await provider.getSigner();
+      // const signature = await signer.signMessage(message);
+
+      const currentConnector = wagmiAdapter.getConnectorId("eip155");
+      const connector = wagmiAdapter.wagmiConfig.connectors.find(
+        (connector) => connector.id === currentConnector
+      );
+
+      const signature = await signMessage(wagmiAdapter.wagmiConfig, {
+        message,
+        account: payload.from_address as `0x${string}`,
+        connector,
+      });
 
       const timestamp = Date.now();
       const body: SpendPointsRequest = {
@@ -169,8 +182,13 @@ About: ${about}
       return data;
     } catch (err) {
       console.log("err", err);
-      const message =
+      let message =
         err instanceof Error ? err.message : "Failed to spend points";
+
+      if (err instanceof ConnectorNotConnectedError) {
+        message = "Wallet not connected";
+      }
+
       setError(message);
       return null;
     } finally {

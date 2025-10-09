@@ -2,7 +2,6 @@ import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import {
   base as baseNetwork,
   bsc as bscNetwork,
-  mainnet as mainnetNetwork,
   polygon as polygonNetwork,
 } from "@reown/appkit/networks";
 import { createAppKit } from "@reown/appkit/react";
@@ -28,12 +27,11 @@ const metadata = {
 
 // 3. Create Wagmi Adapter
 export const wagmiAdapter = new WagmiAdapter({
-  networks: [mainnetNetwork, baseNetwork, polygonNetwork, bscNetwork],
+  networks: [baseNetwork, polygonNetwork, bscNetwork],
   projectId: WALLETCONNECT_PROJECT_ID,
   ssr: true,
   chains: [mainnet, base, polygon, bsc],
   transports: {
-    [mainnet.id]: http(),
     [base.id]: http(),
     [polygon.id]: http(),
     [bsc.id]: http(),
@@ -48,7 +46,7 @@ export const wagmiAdapter = new WagmiAdapter({
 // 4. Create modal
 createAppKit({
   adapters: [wagmiAdapter],
-  networks: [mainnetNetwork, baseNetwork, polygonNetwork, bscNetwork],
+  networks: [baseNetwork, polygonNetwork, bscNetwork],
   projectId: WALLETCONNECT_PROJECT_ID,
   metadata,
   features: {

@@ -12,11 +12,12 @@ import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { useUSDCBalance } from "@/hooks/useUSDCBalance";
 import { formatAddress } from "@/lib/utils";
 import { sdk } from "@farcaster/miniapp-sdk";
+import { useAppKitAccount } from "@reown/appkit/react";
 import { Coins, Copy, Loader2, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { useConnect, useDisconnect } from "wagmi";
 
 export default function ProfilePageContent() {
   const hasMounted = useHasMounted();
@@ -36,7 +37,7 @@ export default function ProfilePageContent() {
 }
 
 function ProfilePageContentInternal() {
-  const { address, isConnected, status } = useAccount();
+  const { address, isConnected, status } = useAppKitAccount();
   const { disconnect } = useDisconnect();
   const { connectors, connect } = useConnect();
   const router = useRouter();

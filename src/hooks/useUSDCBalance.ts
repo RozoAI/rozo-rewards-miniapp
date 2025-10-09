@@ -1,11 +1,11 @@
+import { useAppKitAccount } from "@reown/appkit/react";
 import { useEffect, useState } from "react";
-import { useAccount, useBalance } from "wagmi";
-
+import { useBalance } from "wagmi";
 // USDC token address on Base
 const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 
 export function useUSDCBalance() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useAppKitAccount();
   const [usdcBalance, setUsdcBalance] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -15,7 +15,7 @@ export function useUSDCBalance() {
     refetch: refetchBalance,
     error: balanceError,
   } = useBalance({
-    address: address,
+    address: address as `0x${string}`,
     token: USDC_ADDRESS as `0x${string}`,
     chainId: 8453,
     query: {

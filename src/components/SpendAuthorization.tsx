@@ -1,12 +1,19 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useRozoAPI, TEST_CONFIG } from '@/hooks/useRozoAPI';
-import { useCDPPermissions } from '@/hooks/useCDPPermissions';
-import { useAccount, useSignMessage } from 'wagmi';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useCDPPermissions } from "@/hooks/useCDPPermissions";
+import { TEST_CONFIG, useRozoAPI } from "@/hooks/useRozoAPI";
+import { useAppKitAccount } from "@reown/appkit/react";
+import React, { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { useSignMessage } from "wagmi";
 
 interface SpendAuthorizationProps {
   onAuthorizationComplete?: (data: any) => void;
@@ -33,19 +40,19 @@ interface RozoBalanceData {
 export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
   onAuthorizationComplete,
   onBalanceUpdate,
-  onCreditUpdate
+  onCreditUpdate,
 }) => {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useAppKitAccount();
   const { signMessageAsync } = useSignMessage();
-  const { 
-    loading, 
-    error, 
+  const {
+    loading,
+    error,
     isAuthenticated,
     authenticateWallet,
-    checkSpendPermission, 
-    authorizeSpending, 
+    checkSpendPermission,
+    authorizeSpending,
     getRozoBalance,
-    clearError 
+    clearError,
   } = useRozoAPI();
 
   // CDP Permissions hook for real blockchain integration
@@ -57,12 +64,15 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
     submitSpendPermission,
     checkPermissionStatus,
     checkUSDCBalance,
-    clearError: clearCDPError
+    clearError: clearCDPError,
   } = useCDPPermissions();
 
-  const [spendPermission, setSpendPermission] = useState<SpendPermissionData | null>(null);
+  const [spendPermission, setSpendPermission] =
+    useState<SpendPermissionData | null>(null);
   const [rozoBalance, setRozoBalance] = useState<RozoBalanceData | null>(null);
-  const [authorizationAmount, setAuthorizationAmount] = useState(TEST_CONFIG.authorizationAmount);
+  const [authorizationAmount, setAuthorizationAmount] = useState(
+    TEST_CONFIG.authorizationAmount
+  );
   const [availableCredit, setAvailableCredit] = useState<number>(0);
   const [mounted, setMounted] = useState(false);
 
@@ -90,7 +100,7 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
         }
       }
     } catch (error) {
-      console.error('Failed to load authorization status:', error);
+      console.error("Failed to load authorization status:", error);
       setSpendPermission(null);
       setAvailableCredit(0);
       onCreditUpdate?.(0);
@@ -111,7 +121,7 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
         onBalanceUpdate?.(balance.available_cashback_rozo);
       }
     } catch (error) {
-      console.error('Failed to load ROZO balance:', error);
+      console.error("Failed to load ROZO balance:", error);
       setRozoBalance(null);
       onBalanceUpdate?.(0);
     }
@@ -130,7 +140,14 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
       onCreditUpdate?.(0);
       onBalanceUpdate?.(0);
     }
-  }, [isConnected, isAuthenticated, loadAuthorizationStatus, loadRozoBalance, onCreditUpdate, onBalanceUpdate]);
+  }, [
+    isConnected,
+    isAuthenticated,
+    loadAuthorizationStatus,
+    loadRozoBalance,
+    onCreditUpdate,
+    onBalanceUpdate,
+  ]);
 
   // Clear error when component updates
   useEffect(() => {
@@ -142,37 +159,46 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
 
   const handleAuthorizeSpending = async () => {
     if (!isConnected || !address) {
-      toast.error('Please connect your wallet first');
+      toast.error("Please connect your wallet first");
       return;
     }
 
     try {
-      console.log('🚀 Starting real CDP spend permission authorization...');
-      
+      console.log("🚀 Starting real CDP spend permission authorization...");
+
       // Step 1: Check USDC balance first
       const usdcBalance = await checkUSDCBalance();
       console.log(`💰 User USDC balance: $${usdcBalance}`);
-      
+
       if (usdcBalance < authorizationAmount) {
-        toast.error(`Insufficient USDC balance. You have $${usdcBalance.toFixed(2)} but need $${authorizationAmount.toFixed(2)}. Please add USDC to your Base wallet.`);
+        toast.error(
+          `Insufficient USDC balance. You have $${usdcBalance.toFixed(
+            2
+          )} but need $${authorizationAmount.toFixed(
+            2
+          )}. Please add USDC to your Base wallet.`
+        );
         return;
       }
 
       // Step 2: Create and sign EIP-712 spend permission
-      const permissionResult = await createSpendPermission(authorizationAmount, 24);
+      const permissionResult = await createSpendPermission(
+        authorizationAmount,
+        24
+      );
       if (!permissionResult) {
-        throw new Error('Failed to create spend permission');
+        throw new Error("Failed to create spend permission");
       }
       const { permission, signature } = permissionResult;
-      console.log('✅ EIP-712 spend permission created and signed');
+      console.log("✅ EIP-712 spend permission created and signed");
 
       // Step 3: Submit to blockchain (SpendPermissionManager contract)
       const txHash = await submitSpendPermission(permission, signature);
-      console.log('✅ Spend permission submitted to blockchain:', txHash);
+      console.log("✅ Spend permission submitted to blockchain:", txHash);
 
       // Step 4: Update backend with the permission data
       const result = await authorizeSpending(authorizationAmount, signature);
-      
+
       if (result) {
         setSpendPermission(result);
         setAvailableCredit(result.remaining_today || authorizationAmount);
@@ -182,60 +208,69 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
           txHash,
           permission,
           signature,
-          cdp_verified: true
+          cdp_verified: true,
         });
-        
+
         // Refresh balance after authorization
         await loadRozoBalance();
-        
-        toast.success(`🎉 CDP Spend Permission authorized successfully! ${txHash ? `Tx: ${txHash.slice(0, 10)}...` : ''}`);
+
+        toast.success(
+          `🎉 CDP Spend Permission authorized successfully! ${
+            txHash ? `Tx: ${txHash.slice(0, 10)}...` : ""
+          }`
+        );
       } else {
-        throw new Error('Backend authorization failed');
+        throw new Error("Backend authorization failed");
       }
-      
     } catch (error: any) {
-      console.error('❌ CDP authorization error:', error);
-      
-      if (error.name === 'UserRejectedRequestError') {
-        toast.error('Signature cancelled. Authorization is required for ROZO payments.');
-      } else if (error.message.includes('insufficient')) {
+      console.error("❌ CDP authorization error:", error);
+
+      if (error.name === "UserRejectedRequestError") {
+        toast.error(
+          "Signature cancelled. Authorization is required for ROZO payments."
+        );
+      } else if (error.message.includes("insufficient")) {
         toast.error(error.message);
       } else {
         // Fallback to traditional authorization for development
-        console.log('🔧 Falling back to traditional authorization...');
-        
+        console.log("🔧 Falling back to traditional authorization...");
+
         try {
-          const message = `Authorize ROZO spending limit of $${authorizationAmount.toFixed(2)}\nWallet: ${address}\nTimestamp: ${Date.now()}`;
+          const message = `Authorize ROZO spending limit of $${authorizationAmount.toFixed(
+            2
+          )}\nWallet: ${address}\nTimestamp: ${Date.now()}`;
           const signature = await signMessageAsync({ message });
-          
-          const result = await authorizeSpending(authorizationAmount, signature);
-          
+
+          const result = await authorizeSpending(
+            authorizationAmount,
+            signature
+          );
+
           if (result) {
             setSpendPermission(result);
             setAvailableCredit(result.remaining_today || authorizationAmount);
             onCreditUpdate?.(result.remaining_today || authorizationAmount);
             onAuthorizationComplete?.(result);
             await loadRozoBalance();
-            
-            toast.success('✅ Fallback authorization completed successfully!');
+
+            toast.success("✅ Fallback authorization completed successfully!");
           }
         } catch (fallbackError) {
-          toast.error('Failed to authorize spending. Please check your connection and try again.');
+          toast.error(
+            "Failed to authorize spending. Please check your connection and try again."
+          );
         }
       }
     }
   };
 
   const refreshData = async () => {
-    await Promise.all([
-      loadAuthorizationStatus(),
-      loadRozoBalance()
-    ]);
+    await Promise.all([loadAuthorizationStatus(), loadRozoBalance()]);
   };
 
-  // Function to deduct from available credit after purchase  
+  // Function to deduct from available credit after purchase
   const deductCredit = (amount: number) => {
-    setAvailableCredit(prev => Math.max(0, prev - amount));
+    setAvailableCredit((prev) => Math.max(0, prev - amount));
   };
 
   if (!mounted || !isConnected) {
@@ -243,10 +278,14 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
       <Card>
         <CardHeader>
           <CardTitle>Payment Authorization</CardTitle>
-          <CardDescription>Connect your wallet to set up payment authorization</CardDescription>
+          <CardDescription>
+            Connect your wallet to set up payment authorization
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-500">Please connect your wallet to continue</p>
+          <p className="text-gray-500">
+            Please connect your wallet to continue
+          </p>
         </CardContent>
       </Card>
     );
@@ -258,18 +297,21 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
       <Card>
         <CardHeader>
           <CardTitle>Authentication Required</CardTitle>
-          <CardDescription>Sign in with your wallet to access ROZO features</CardDescription>
+          <CardDescription>
+            Sign in with your wallet to access ROZO features
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-gray-600">
-            To set up payment authorization and access ROZO features, you need to authenticate with your wallet.
+            To set up payment authorization and access ROZO features, you need
+            to authenticate with your wallet.
           </p>
-          <Button 
+          <Button
             onClick={authenticateWallet}
             disabled={loading}
             className="w-full"
           >
-            {loading ? 'Authenticating...' : '🔐 Sign In with Wallet'}
+            {loading ? "Authenticating..." : "🔐 Sign In with Wallet"}
           </Button>
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -283,7 +325,6 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
 
   return (
     <div className="space-y-4">
-
       {/* ROZO Balance Card */}
       <Card>
         <CardHeader>
@@ -296,10 +337,11 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
               <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
                 <div>
                   <p className="text-2xl font-bold text-purple-800">
-                    {(rozoBalance.available_cashback_rozo).toFixed(2)} ROZO
+                    {rozoBalance.available_cashback_rozo.toFixed(2)} ROZO
                   </p>
                   <p className="text-sm text-purple-600">
-                    ≈ ${(rozoBalance.available_cashback_usd || 0).toFixed(2)} USD
+                    ≈ ${(rozoBalance.available_cashback_usd || 0).toFixed(2)}{" "}
+                    USD
                   </p>
                 </div>
                 <div className="text-right">
@@ -309,7 +351,7 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
                   </p>
                 </div>
               </div>
-              
+
               {rozoBalance.available_cashback_rozo === 0 && (
                 <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-sm text-yellow-800">
@@ -320,7 +362,7 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
             </div>
           ) : (
             <div className="p-4 text-center text-gray-500">
-              {loading ? 'Loading balance...' : 'Unable to load balance'}
+              {loading ? "Loading balance..." : "Unable to load balance"}
             </div>
           )}
         </CardContent>
@@ -337,7 +379,10 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
           {!spendPermission?.authorized ? (
             <div className="space-y-4">
               <div>
-                <label htmlFor="amount" className="block text-sm font-medium mb-2">
+                <label
+                  htmlFor="amount"
+                  className="block text-sm font-medium mb-2"
+                >
                   Authorization Amount (USD)
                 </label>
                 <div className="flex items-center space-x-2">
@@ -345,25 +390,31 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
                     id="amount"
                     type="number"
                     value={authorizationAmount}
-                    onChange={(e) => setAuthorizationAmount(Number(e.target.value))}
+                    onChange={(e) =>
+                      setAuthorizationAmount(Number(e.target.value))
+                    }
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter amount"
                     min="1"
                     max="1000"
                   />
-                  <Button 
+                  <Button
                     onClick={handleAuthorizeSpending}
                     disabled={loading || authorizationAmount <= 0}
                     className="min-w-[120px]"
                   >
-                    {loading ? 'Authorizing...' : `Authorize $${authorizationAmount}`}
+                    {loading
+                      ? "Authorizing..."
+                      : `Authorize $${authorizationAmount}`}
                   </Button>
                 </div>
               </div>
-              
+
               <div className="text-sm text-gray-600">
                 <p>• You&apos;ll need to sign a message with your wallet</p>
-                <p>• This enables one-tap payments without repeated signatures</p>
+                <p>
+                  • This enables one-tap payments without repeated signatures
+                </p>
                 <p>• You can revoke authorization at any time</p>
               </div>
             </div>
@@ -371,11 +422,15 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
                 <div>
-                  <p className="font-semibold text-green-800">✅ Authorization Active</p>
-                  <p className="text-sm text-green-600">One-tap payments enabled</p>
+                  <p className="font-semibold text-green-800">
+                    ✅ Authorization Active
+                  </p>
+                  <p className="text-sm text-green-600">
+                    One-tap payments enabled
+                  </p>
                 </div>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={refreshData}
                   disabled={loading}
@@ -383,7 +438,7 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
                   Refresh
                 </Button>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-600">Authorized</p>
@@ -398,15 +453,17 @@ export const SpendAuthorization: React.FC<SpendAuthorizationProps> = ({
                   </p>
                 </div>
               </div>
-              
+
               <div className="text-sm text-gray-600">
-                <p>Expires: {new Date(spendPermission.expiry).toLocaleDateString()}</p>
+                <p>
+                  Expires:{" "}
+                  {new Date(spendPermission.expiry).toLocaleDateString()}
+                </p>
               </div>
             </div>
           )}
         </CardContent>
       </Card>
-
 
       {/* Error Display */}
       {error && (
