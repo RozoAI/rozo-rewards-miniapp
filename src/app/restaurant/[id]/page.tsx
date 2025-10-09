@@ -41,7 +41,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 import data from "../../../../public/coffee_mapdata.json";
@@ -70,19 +70,22 @@ export default function RestaurantDetailPage() {
   const lastResetAmountRef = useRef<string>("");
   const [appId, setAppId] = React.useState<string>("");
 
-  const metadata = useMemo(() => {
+  const generateMetadata = (amountLocal: string, currencyLocal: string) => {
+    const displayCurrency = getDisplayCurrency(currencyLocal);
+    const usdAmount = convertToUSD(amountLocal, displayCurrency);
+
     const baseMetadata = {
-      amount_local: paymentAmount,
-      currency_local: getDisplayCurrency(restaurant?.currency),
+      amount_local: amountLocal,
+      currency_local: displayCurrency,
       items: [
         {
           name: restaurant?.name,
-          description: `${restaurant?.currency} ${paymentAmount} (${paymentAmount} USD)`,
+          description: `${displayCurrency} ${amountLocal} (${usdAmount} USD)`,
         },
       ],
     };
 
-    if (restaurant?.handle) {
+    if (restaurant?.handle && restaurant?.name) {
       const merchantOrderId = `${restaurant.handle.toUpperCase()}-${new Date().getTime()}`;
       return {
         ...baseMetadata,
@@ -98,7 +101,7 @@ export default function RestaurantDetailPage() {
     }
 
     return baseMetadata;
-  }, [paymentAmount, restaurant?.currency, restaurant?.handle]);
+  };
 
   useEffect(() => {
     async function loadRestaurant() {
@@ -143,7 +146,7 @@ export default function RestaurantDetailPage() {
           toChain: baseUSDC.chainId,
           toToken: baseUSDC.token as `0x${string}`,
           toUnits: usdAmount,
-          metadata: metadata as any,
+          metadata: generateMetadata(price.toFixed(2), displayCurrency) as any,
         });
 
         // Store initial amount to prevent unnecessary resets
@@ -203,21 +206,12 @@ export default function RestaurantDetailPage() {
 
       resetPayment({
         appId: appId,
-        intent: `Pay for ${restaurant.name} - ${displayCurrency} ${value}`,
+        intent: `Pay for ${restaurant.name} - ${displayCurrency}${value} ($${usdAmount})`,
         toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
         toChain: baseUSDC.chainId,
         toToken: baseUSDC.token as `0x${string}`,
         toUnits: usdAmount, // Use USD amount for payment processing
-        metadata: restaurant?.handle
-          ? {
-              amount_local: value,
-              currency_local: displayCurrency,
-              merchant_order_id: `${restaurant.handle.toUpperCase()}-${new Date().getTime()}`,
-            }
-          : {
-              amount_local: value,
-              currency_local: displayCurrency,
-            },
+        metadata: generateMetadata(value, displayCurrency) as any,
       });
       setIsDebouncing(false);
       debounceTimerRef.current = null;
@@ -493,7 +487,6 @@ export default function RestaurantDetailPage() {
                   intent={`Pay for ${restaurant.name} - ${getDisplayCurrency(
                     restaurant?.currency
                   )} ${paymentAmount}`}
-                  metadata={metadata as any}
                   onPaymentStarted={() => {
                     setLoading(true);
                     setPaymentLoading(true);
