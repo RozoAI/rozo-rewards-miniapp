@@ -1,9 +1,7 @@
 "use client";
 
 import { AiServicesContent } from "@/components/ai-services/ai-services-content";
-import { FloatingBookmarks } from "@/components/FloatingBookmarks";
 import { PageHeader } from "@/components/page-header";
-import { useBookmarks } from "@/contexts/BookmarkContext";
 import { useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { Binoculars } from "lucide-react";
 import { useEffect } from "react";
@@ -14,7 +12,6 @@ import { injected } from "wagmi/connectors";
 export default function AiServicesPage() {
   const { isInMiniApp } = useIsInMiniApp();
   const { connect } = useConnect();
-  const { bookmarks } = useBookmarks();
 
   useEffect(() => {
     if (isInMiniApp) {
@@ -25,8 +22,7 @@ export default function AiServicesPage() {
   return (
     <div className="w-full mb-16 flex flex-col gap-4 mt-4">
       <PageHeader title="Discovery" icon={<Binoculars className="size-6" />} />
-      <AiServicesContent hasBookmarks={bookmarks.length > 0} />
-      <FloatingBookmarks />
+      <AiServicesContent />
     </div>
   );
 }

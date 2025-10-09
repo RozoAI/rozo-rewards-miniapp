@@ -1,26 +1,45 @@
 "use client";
 
 import { ListSearchInput } from "@/components/list-search-input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { useBookmarks } from "@/contexts/BookmarkContext";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { cn } from "@/lib/utils";
-import { Search } from "lucide-react";
+import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
+import { Bookmark, Plus, Search, Trash } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import * as React from "react";
+import { toast } from "sonner";
 import data from "../../../public/ai_commerce_catalog.json";
 import { AiServicesList, CatalogItem } from "./ai-services-list";
 
 type CatalogResponse = CatalogItem[];
 
-export function AiServicesContent({
-  className,
-  hasBookmarks = false,
-}: {
-  className?: string;
-  hasBookmarks?: boolean;
-}) {
+export function AiServicesContent({ className }: { className?: string }) {
+  const { bookmarks, getBookmarkedRestaurants, removeBookmark } =
+    useBookmarks();
+  const router = useRouter();
   const [items, setItems] = React.useState<CatalogItem[] | null>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const [bookmarkedRestaurants, setBookmarkedRestaurants] = React.useState<
+    any[]
+  >([]);
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 250);
+
+  React.useEffect(() => {
+    const restaurants = getBookmarkedRestaurants();
+    // Show only the first 4 bookmarks
+    setBookmarkedRestaurants(restaurants.slice(0, 4));
+  }, [bookmarks, getBookmarkedRestaurants]);
+
+  const clearAllBookmarks = () => {
+    bookmarks.forEach((bookmarkId) => {
+      removeBookmark(bookmarkId);
+    });
+    toast.success("All bookmarks cleared");
+  };
 
   React.useEffect(() => {
     let isMounted = true;
@@ -92,13 +111,102 @@ export function AiServicesContent({
   if (!items) {
     return (
       <div className={className}>
-        <ListSearchInput
-          value={searchQuery}
-          onChange={setSearchQuery}
-          onClear={clearSearch}
-          placeholder="Search AI services..."
-        />
-        <div className={cn(hasBookmarks && "pb-24")}>
+        {/* Show bookmarks grid if there are bookmarks, otherwise show search */}
+        {bookmarks.length > 0 ? (
+          <div className="bg-background/95 backdrop-blur-sm border rounded-lg shadow-lg p-3 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Bookmark className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-muted-foreground">
+                  Bookmarks
+                </span>
+              </div>
+              <Button
+                onClick={clearAllBookmarks}
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 hover:bg-destructive/10 hover:text-destructive"
+                title="Clear all bookmarks"
+              >
+                <Trash className="h-3 w-3" />
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-4 gap-2">
+              {bookmarkedRestaurants.map((restaurant) => {
+                const initials = getFirstTwoWordInitialsFromName(
+                  restaurant.name
+                );
+
+                return (
+                  <Link
+                    key={restaurant._id}
+                    href={`/restaurant/${restaurant._id}`}
+                    className="group"
+                    title={restaurant.name}
+                  >
+                    <div className="flex flex-col items-center gap-1 p-2 rounded-md hover:bg-muted/50 transition-colors border-2">
+                      <Avatar className="size-8 rounded-md ring-1 ring-border bg-muted">
+                        <AvatarImage
+                          src={restaurant.logo_url}
+                          alt={restaurant.name}
+                        />
+                        <AvatarFallback
+                          title={restaurant.name}
+                          className="font-medium text-xs"
+                        >
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs font-medium text-muted-foreground truncate">
+                        {restaurant.name}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+
+              {/* Show "Explore" item if less than 4 bookmarks */}
+              {bookmarkedRestaurants.length < 4 && (
+                <button
+                  onClick={() => router.push("/lifestyle")}
+                  className="group"
+                  title="Explore more restaurants"
+                >
+                  <div className="flex flex-col items-center gap-1 p-2 rounded-md hover:bg-muted/50 transition-colors">
+                    <div className="size-8 rounded-md ring-1 ring-border bg-muted flex items-center justify-center">
+                      <Plus className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground">
+                      Explore
+                    </span>
+                  </div>
+                </button>
+              )}
+
+              {/* Fill remaining slots with empty spaces if needed */}
+              {Array.from({
+                length: Math.max(
+                  0,
+                  4 -
+                    bookmarkedRestaurants.length -
+                    (bookmarkedRestaurants.length < 4 ? 1 : 0)
+                ),
+              }).map((_, index) => (
+                <div key={`empty-${index}`} className="size-8" />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <ListSearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onClear={clearSearch}
+            placeholder="Search AI services..."
+          />
+        )}
+
+        <div>
           <ul className={cn("divide-y rounded-md rounded-b-none")}>
             {Array.from({ length: 12 }).map((_, idx) => (
               <li key={idx} className="flex items-start gap-3 px-4 py-4">
@@ -123,12 +231,99 @@ export function AiServicesContent({
 
   return (
     <div className={className}>
-      <ListSearchInput
-        value={searchQuery}
-        onChange={setSearchQuery}
-        onClear={clearSearch}
-        placeholder="Search AI services..."
-      />
+      {/* Show bookmarks grid if there are bookmarks, otherwise show search */}
+      {bookmarks.length > 0 ? (
+        <div className="bg-background/95 backdrop-blur-sm sm:rounded-xl sm:border sm:shadow-sm p-3 mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Bookmark className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-muted-foreground">
+                Bookmarks
+              </span>
+            </div>
+            <Button
+              onClick={clearAllBookmarks}
+              variant="ghost"
+              size="sm"
+              title="Clear all bookmarks"
+            >
+              <Trash className="h-3 w-3" />
+              Clear all
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-4 gap-2">
+            {bookmarkedRestaurants.map((restaurant) => {
+              const initials = getFirstTwoWordInitialsFromName(restaurant.name);
+
+              return (
+                <Link
+                  key={restaurant._id}
+                  href={`/restaurant/${restaurant._id}`}
+                  className="group"
+                  title={restaurant.name}
+                >
+                  <div className="flex flex-col items-center gap-1 p-2 rounded-md hover:bg-muted/50 transition-colors">
+                    <Avatar className="size-8 rounded-md ring-1 ring-border bg-muted">
+                      <AvatarImage
+                        src={restaurant.logo_url}
+                        alt={restaurant.name}
+                      />
+                      <AvatarFallback
+                        title={restaurant.name}
+                        className="font-medium text-xs"
+                      >
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs font-medium text-muted-foreground truncate">
+                      {restaurant.name}
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+
+            {/* Show "Explore" item if less than 4 bookmarks */}
+            {bookmarkedRestaurants.length < 4 && (
+              <button
+                onClick={() => router.push("/lifestyle")}
+                className="group"
+                title="Explore more restaurants"
+              >
+                <div className="flex flex-col items-center gap-1 p-2 rounded-md hover:bg-muted/50 transition-colors">
+                  <div className="size-8 rounded-md ring-1 ring-border bg-muted flex items-center justify-center">
+                    <Plus className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Explore
+                  </span>
+                </div>
+              </button>
+            )}
+
+            {/* Fill remaining slots with empty spaces if needed */}
+            {Array.from({
+              length: Math.max(
+                0,
+                4 -
+                  bookmarkedRestaurants.length -
+                  (bookmarkedRestaurants.length < 4 ? 1 : 0)
+              ),
+            }).map((_, index) => (
+              <div key={`empty-${index}`} className="size-8" />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <ListSearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          onClear={clearSearch}
+          placeholder="Search AI services..."
+        />
+      )}
+
       {showNoResults ? (
         <div className="text-center py-8 px-4">
           <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -148,7 +343,7 @@ export function AiServicesContent({
         </div>
       ) : (
         hasResults && (
-          <div className={cn(hasBookmarks && "pb-24")}>
+          <div>
             <AiServicesList items={filteredItems!} />
           </div>
         )
