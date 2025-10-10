@@ -231,9 +231,15 @@ export function AiServicesContent({ className }: { className?: string }) {
 
   return (
     <div className={className}>
-      {/* Show bookmarks grid if there are bookmarks, otherwise show search */}
+      <ListSearchInput
+        value={searchQuery}
+        onChange={setSearchQuery}
+        onClear={clearSearch}
+        placeholder="Search AI services..."
+      />
+
       {bookmarks.length > 0 ? (
-        <div className="bg-background/95 backdrop-blur-sm sm:rounded-xl sm:border sm:shadow-sm px-3 sm:p-3 sm:mb-4">
+        <div className="bg-background/95 backdrop-blur-sm sm:rounded-xl sm:border sm:shadow-sm px-3 sm:p-3 mb-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Bookmark className="h-4 w-4 text-primary" />
@@ -253,7 +259,7 @@ export function AiServicesContent({ className }: { className?: string }) {
             </Button>
           </div>
 
-          <div className="grid grid-cols-4 gap-2">
+          <div className="flex flex-wrap gap-2">
             {bookmarkedRestaurants.map((restaurant) => {
               const initials = getFirstTwoWordInitialsFromName(restaurant.name);
 
@@ -316,14 +322,7 @@ export function AiServicesContent({ className }: { className?: string }) {
             ))}
           </div>
         </div>
-      ) : (
-        <ListSearchInput
-          value={searchQuery}
-          onChange={setSearchQuery}
-          onClear={clearSearch}
-          placeholder="Search AI services..."
-        />
-      )}
+      ) : null}
 
       {showNoResults ? (
         <div className="text-center py-8 px-4">

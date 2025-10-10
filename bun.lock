@@ -16,7 +16,7 @@
         "@radix-ui/react-tooltip": "^1.2.8",
         "@reown/appkit-adapter-wagmi": "^1.8.9",
         "@rozoai/intent-common": "0.0.21",
-        "@rozoai/intent-pay": "0.0.29-beta.9",
+        "@rozoai/intent-pay": "0.0.29-beta.10",
         "@supabase/ssr": "^0.6.1",
         "@supabase/supabase-js": "^2.54.0",
         "@tanstack/react-query": "^5.84.2",
@@ -649,7 +649,7 @@
 
     "@rozoai/intent-common": ["@rozoai/intent-common@0.0.21", "", { "dependencies": { "@scure/base": "^1.2.4", "viem": "^2.23.14", "zod": "^3.24.2" } }, "sha512-/dzLLaNSQnbK1WzQBACVsLkPXtGx7ZKXwaiE9OVjc0KRGWlD4bnoDKB4FGz0NoagOPJmvHfO4c/Dm9r8SJ7GQA=="],
 
-    "@rozoai/intent-pay": ["@rozoai/intent-pay@0.0.29-beta.9", "", { "dependencies": { "@albedo-link/intent": "^0.13.0", "@creit.tech/stellar-wallets-kit": "^1.7.6", "@rollup/plugin-typescript": "^12.1.2", "@rozoai/intent-common": "0.0.22", "@solana/spl-token": "^0.4.13", "@solana/wallet-adapter-base": "^0.9.23", "@solana/wallet-adapter-react": "^0.15.35", "@solana/web3.js": "^1.95.4", "@stellar/stellar-sdk": "^13.3.0", "@trpc/client": "^11.0.0-next-beta.318", "@trpc/server": "^11.0.0-next-beta.318", "@worldcoin/minikit-js": "^1.9.7", "alchemy-sdk": "^3.6.3", "bs58": "^6.0.0", "buffer": "^6.0.3", "detect-browser": "^5.3.0", "encoding": "^0.1.13", "framer-motion": "^11.11.4", "pino-pretty": "^13.0.0", "qrcode": "^1.5.0", "react-transition-state": "^1.1.4", "react-use-measure": "^2.1.1", "resize-observer-polyfill": "^1.5.1", "styled-components": "^5.3.5" }, "peerDependencies": { "@tanstack/react-query": ">=5.0.0", "react": "18.x || 19.x", "react-dom": "18.x || 19.x", "viem": "2.x", "wagmi": "2.x" } }, "sha512-VHc61Am1oBDQ2unkMlQbbBnDCU/2Evnifi+pnfNAfD30tGrsVbpoXKlZ8g0CTI1+2TTQLU5dXqNyPQiSC6nxYg=="],
+    "@rozoai/intent-pay": ["@rozoai/intent-pay@0.0.29-beta.10", "", { "dependencies": { "@albedo-link/intent": "^0.13.0", "@creit.tech/stellar-wallets-kit": "^1.7.6", "@rollup/plugin-typescript": "^12.1.2", "@rozoai/intent-common": "0.0.22", "@solana/spl-token": "^0.4.13", "@solana/wallet-adapter-base": "^0.9.23", "@solana/wallet-adapter-react": "^0.15.35", "@solana/web3.js": "^1.95.4", "@stellar/stellar-sdk": "^13.3.0", "@trpc/client": "^11.0.0-next-beta.318", "@trpc/server": "^11.0.0-next-beta.318", "@worldcoin/minikit-js": "^1.9.7", "alchemy-sdk": "^3.6.3", "bs58": "^6.0.0", "buffer": "^6.0.3", "detect-browser": "^5.3.0", "encoding": "^0.1.13", "framer-motion": "^11.11.4", "pino-pretty": "^13.0.0", "qrcode": "^1.5.0", "react-transition-state": "^1.1.4", "react-use-measure": "^2.1.1", "resize-observer-polyfill": "^1.5.1", "styled-components": "^5.3.5" }, "peerDependencies": { "@tanstack/react-query": ">=5.0.0", "react": "18.x || 19.x", "react-dom": "18.x || 19.x", "viem": "2.x", "wagmi": "2.x" } }, "sha512-edWmOeDttD2DO+nAyXt6LprTz0Un/+z/GC4BoT6kTAa/IhY0XLz60TFPDz6efVyLOh1Ve+XQxWCX8INZuw/yWA=="],
 
     "@rtsao/scc": ["@rtsao/scc@1.1.0", "", {}, "sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g=="],
 

@@ -15,6 +15,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
@@ -84,6 +86,40 @@ export default function AIServiceDetailPage() {
   const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
   const [dialogLoading, setDialogLoading] = React.useState(false);
   const [appId, setAppId] = React.useState<string>("");
+  const [userEmail, setUserEmail] = React.useState<string>("");
+  const [emailError, setEmailError] = React.useState<string>("");
+
+  const metadata = useMemo(() => {
+    const baseMetadata = {
+      amount_local: service?.price_in_usd,
+      currency_local: "USD",
+      email: userEmail,
+      items: [
+        {
+          name: service?.name,
+          description: `${service?.price_in_usd} (${service?.price_in_usd} USD)`,
+        },
+      ],
+    };
+
+    if (service?.domain) {
+      const merchantOrderId = `${service?.domain.toUpperCase()}-${new Date().getTime()}`;
+
+      return {
+        ...baseMetadata,
+        merchant_order_id: merchantOrderId,
+        items: [
+          ...baseMetadata.items,
+          {
+            name: "Order ID",
+            description: merchantOrderId,
+          },
+        ],
+      };
+    }
+
+    return baseMetadata;
+  }, [service?.price_in_usd, service?.name, service?.domain, userEmail]);
 
   useEffect(() => {
     async function loadService() {
@@ -117,11 +153,11 @@ export default function AIServiceDetailPage() {
     if (serviceDomain) {
       loadService();
     }
-  }, [serviceDomain]);
+  }, [serviceDomain, userEmail]);
 
   useEffect(() => {
     const fetchPoints = async () => {
-      if (!address) return;
+      if (!address || !isConnected) return;
 
       setPointsLoading(true);
       const points = await getPoints(address);
@@ -131,7 +167,45 @@ export default function AIServiceDetailPage() {
     fetchPoints();
   }, [isConnected, address]);
 
+  // Update payment metadata when email changes (but only after initial load)
+  useEffect(() => {
+    if (userEmail && service && appId) {
+      resetPayment({
+        appId: appId,
+        intent: `Pay for ${service.name} - ${service.duration_months} months`,
+        toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
+        toChain: baseUSDC.chainId,
+        toToken: baseUSDC.token as `0x${string}`,
+        toUnits: service.price_in_usd?.toString(),
+        metadata: metadata as any,
+      });
+    }
+  }, [userEmail, service, appId]);
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validateEmailInput = () => {
+    if (!userEmail.trim()) {
+      setEmailError("Email address is required");
+      return false;
+    }
+
+    if (!validateEmail(userEmail)) {
+      setEmailError("Please enter a valid email address");
+      return false;
+    }
+
+    setEmailError("");
+    return true;
+  };
+
   const handlePayWithPoints = () => {
+    if (!validateEmailInput()) {
+      return;
+    }
     setShowConfirmDialog(true);
   };
 
@@ -146,6 +220,7 @@ export default function AIServiceDetailPage() {
       amount_usd_cents: service.price_in_usd * 100,
       amount_local: service.price_in_usd,
       currency_local: "USD",
+      email: userEmail,
       timestamp: Date.now(),
       order_id: Date.now().toString(),
       about: `Pay for ${service.name} - ${service.duration_months} months`,
@@ -203,37 +278,6 @@ export default function AIServiceDetailPage() {
       })();
     }
   };
-
-  const metadata = useMemo(() => {
-    const baseMetadata = {
-      amount_local: service?.price_in_usd,
-      currency_local: "USD",
-      items: [
-        {
-          name: service?.name,
-          description: `${service?.price_in_usd} (${service?.price_in_usd} USD)`,
-        },
-      ],
-    };
-
-    if (service?.domain) {
-      const merchantOrderId = `${service?.domain.toUpperCase()}-${new Date().getTime()}`;
-
-      return {
-        ...baseMetadata,
-        merchant_order_id: merchantOrderId,
-        items: [
-          ...baseMetadata.items,
-          {
-            name: "Order ID",
-            description: merchantOrderId,
-          },
-        ],
-      };
-    }
-
-    return baseMetadata;
-  }, [service?.price_in_usd, service?.name, service?.domain]);
 
   if (loading) {
     return (
@@ -421,6 +465,28 @@ export default function AIServiceDetailPage() {
             </div>
           )}
 
+          {/* Email Input */}
+          <div className="space-y-2">
+            <Label htmlFor="email">Email Address</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email address"
+              value={userEmail}
+              onChange={(e) => {
+                setUserEmail(e.target.value);
+                setEmailError("");
+              }}
+              className={emailError ? "border-destructive" : ""}
+            />
+            {emailError && (
+              <p className="text-sm text-destructive">{emailError}</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Required for payment confirmation and receipt delivery
+            </p>
+          </div>
+
           {/* Action Buttons */}
           <div className="flex flex-col gap-3">
             {/* Intent SDK for non mini app */}
@@ -456,7 +522,12 @@ export default function AIServiceDetailPage() {
                     <Button
                       className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
                       size={"lg"}
-                      onClick={show}
+                      onClick={() => {
+                        if (!validateEmailInput()) {
+                          return;
+                        }
+                        show();
+                      }}
                       disabled={paymentLoading}
                     >
                       {paymentLoading ? (

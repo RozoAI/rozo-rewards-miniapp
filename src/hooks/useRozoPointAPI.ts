@@ -61,7 +61,6 @@ export function useRozoPointAPI() {
 
         if (response.ok) {
           const data: RozoPointsResponse = await response.json();
-          console.log("data", data);
           return Number(data.balance.points || 0) * 100;
         } else {
           throw new Error("Failed to fetch points balance");
