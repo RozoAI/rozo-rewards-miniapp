@@ -108,10 +108,12 @@ export default function AIServiceDetailPage() {
 
     if (service?.domain) {
       const merchantOrderId = `${service?.domain.toUpperCase()}-${new Date().getTime()}`;
+      const receiptUrl = `https://ns.rozo.ai/payment/success?order_id=${merchantOrderId}`;
 
       return {
         ...baseMetadata,
         merchant_order_id: merchantOrderId,
+        ...(service?.sold_out ? { receiptUrl: receiptUrl } : {}),
         items: [
           ...baseMetadata.items,
           {
