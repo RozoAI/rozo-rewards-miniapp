@@ -1,26 +1,30 @@
 "use client";
 
-import { Restaurant } from "@/types/restaurant";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import data from "../../public/coffee_mapdata.json";
+
+interface Bookmark {
+  id: string;
+  title: string;
+  logo_url: string;
+  url: string;
+}
 
 interface BookmarkContextType {
-  bookmarks: string[];
-  addBookmark: (restaurantId: string) => void;
-  removeBookmark: (restaurantId: string) => void;
-  isBookmarked: (restaurantId: string) => boolean;
-  toggleBookmark: (restaurantId: string) => void;
-  getBookmarkedRestaurants: () => Restaurant[];
+  bookmarks: Bookmark[];
+  addBookmark: (bookmark: Bookmark) => void;
+  removeBookmark: (id: string) => void;
+  isBookmarked: (id: string) => boolean;
+  toggleBookmark: (bookmark: Bookmark) => void;
 }
 
 const BookmarkContext = createContext<BookmarkContextType | undefined>(
   undefined
 );
 
-const BOOKMARK_STORAGE_KEY = "rozo_restaurant_bookmarks";
+const BOOKMARK_STORAGE_KEY = "rozo_rewards_bookmarks";
 
 export function BookmarkProvider({ children }: { children: React.ReactNode }) {
-  const [bookmarks, setBookmarks] = useState<string[]>([]);
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
 
   // Load bookmarks from localStorage on mount
   useEffect(() => {
@@ -47,37 +51,33 @@ export function BookmarkProvider({ children }: { children: React.ReactNode }) {
     }
   }, [bookmarks]);
 
-  const addBookmark = (restaurantId: string) => {
+  const addBookmark = (bookmark: Bookmark) => {
     setBookmarks((prev) => {
-      if (!prev.includes(restaurantId)) {
-        return [...prev, restaurantId];
+      if (
+        !prev.some((existingBookmark) => existingBookmark.id === bookmark.id)
+      ) {
+        return [...prev, bookmark];
       }
       return prev;
     });
   };
 
-  const removeBookmark = (restaurantId: string) => {
-    setBookmarks((prev) => prev.filter((id) => id !== restaurantId));
+  const removeBookmark = (id: string) => {
+    setBookmarks((prev) => prev.filter((bookmark) => bookmark.id !== id));
   };
 
-  const isBookmarked = (restaurantId: string) => {
-    return bookmarks.includes(restaurantId);
+  const isBookmarked = (id: string) => {
+    return bookmarks.some((bookmark) => bookmark.id === id);
   };
 
-  const toggleBookmark = (restaurantId: string) => {
-    if (isBookmarked(restaurantId)) {
-      removeBookmark(restaurantId);
+  const toggleBookmark = (bookmark: Bookmark) => {
+    console.log("toggleBookmark", bookmark, isBookmarked(bookmark.id));
+
+    if (isBookmarked(bookmark.id)) {
+      removeBookmark(bookmark.id);
     } else {
-      addBookmark(restaurantId);
+      addBookmark(bookmark);
     }
-  };
-
-  const getBookmarkedRestaurants = (): Restaurant[] => {
-    if (bookmarks.length === 0) return [];
-
-    return (data.locations as Restaurant[]).filter((restaurant: Restaurant) =>
-      bookmarks.includes(restaurant._id)
-    );
   };
 
   const value: BookmarkContextType = {
@@ -86,7 +86,6 @@ export function BookmarkProvider({ children }: { children: React.ReactNode }) {
     removeBookmark,
     isBookmarked,
     toggleBookmark,
-    getBookmarkedRestaurants,
   };
 
   return (

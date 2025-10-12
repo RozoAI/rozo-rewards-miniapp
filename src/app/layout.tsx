@@ -113,7 +113,7 @@ export default async function RootLayout({
                     <IntercomInitializer
                       appId={process.env.INTERCOM_APP_ID as string}
                     />
-                    <Toaster position="top-center" />
+                    <Toaster position="top-center" richColors />
                     <BottomNavbar />
                   </main>
                 </ThemeProvider>

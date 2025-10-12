@@ -14,29 +14,17 @@ import { toast } from "sonner";
 import data from "../../../public/ai_commerce_catalog.json";
 import { AiServicesList, CatalogItem } from "./ai-services-list";
 
-type CatalogResponse = CatalogItem[];
-
 export function AiServicesContent({ className }: { className?: string }) {
-  const { bookmarks, getBookmarkedRestaurants, removeBookmark } =
-    useBookmarks();
+  const { bookmarks, removeBookmark } = useBookmarks();
   const router = useRouter();
   const [items, setItems] = React.useState<CatalogItem[] | null>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
-  const [bookmarkedRestaurants, setBookmarkedRestaurants] = React.useState<
-    any[]
-  >([]);
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 250);
 
-  React.useEffect(() => {
-    const restaurants = getBookmarkedRestaurants();
-    // Show only the first 4 bookmarks
-    setBookmarkedRestaurants(restaurants.slice(0, 4));
-  }, [bookmarks, getBookmarkedRestaurants]);
-
   const clearAllBookmarks = () => {
-    bookmarks.forEach((bookmarkId) => {
-      removeBookmark(bookmarkId);
+    bookmarks.forEach((bookmark) => {
+      removeBookmark(bookmark.id);
     });
     toast.success("All bookmarks cleared");
   };
@@ -133,33 +121,28 @@ export function AiServicesContent({ className }: { className?: string }) {
             </div>
 
             <div className="grid grid-cols-4 gap-2">
-              {bookmarkedRestaurants.map((restaurant) => {
-                const initials = getFirstTwoWordInitialsFromName(
-                  restaurant.name
-                );
+              {bookmarks.map((item) => {
+                const initials = getFirstTwoWordInitialsFromName(item.title);
 
                 return (
                   <Link
-                    key={restaurant._id}
-                    href={`/restaurant/${restaurant._id}`}
+                    key={item.id}
+                    href={item.url}
                     className="group"
-                    title={restaurant.name}
+                    title={item.title}
                   >
                     <div className="flex flex-col items-center gap-1 p-2 rounded-md hover:bg-muted/50 transition-colors border-2">
                       <Avatar className="size-8 rounded-md ring-1 ring-border bg-muted">
-                        <AvatarImage
-                          src={restaurant.logo_url}
-                          alt={restaurant.name}
-                        />
+                        <AvatarImage src={item.logo_url} alt={item.title} />
                         <AvatarFallback
-                          title={restaurant.name}
+                          title={item.title}
                           className="font-medium text-xs"
                         >
                           {initials}
                         </AvatarFallback>
                       </Avatar>
                       <span className="text-xs font-medium text-muted-foreground truncate">
-                        {restaurant.name}
+                        {item.title}
                       </span>
                     </div>
                   </Link>
@@ -167,7 +150,7 @@ export function AiServicesContent({ className }: { className?: string }) {
               })}
 
               {/* Show "Explore" item if less than 4 bookmarks */}
-              {bookmarkedRestaurants.length < 4 && (
+              {bookmarks.length < 4 && (
                 <button
                   onClick={() => router.push("/lifestyle")}
                   className="group"
@@ -188,9 +171,7 @@ export function AiServicesContent({ className }: { className?: string }) {
               {Array.from({
                 length: Math.max(
                   0,
-                  4 -
-                    bookmarkedRestaurants.length -
-                    (bookmarkedRestaurants.length < 4 ? 1 : 0)
+                  4 - bookmarks.length - (bookmarks.length < 4 ? 1 : 0)
                 ),
               }).map((_, index) => (
                 <div key={`empty-${index}`} className="size-8" />
@@ -260,31 +241,28 @@ export function AiServicesContent({ className }: { className?: string }) {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {bookmarkedRestaurants.map((restaurant) => {
-              const initials = getFirstTwoWordInitialsFromName(restaurant.name);
+            {bookmarks.map((item) => {
+              const initials = getFirstTwoWordInitialsFromName(item.title);
 
               return (
                 <Link
-                  key={restaurant._id}
-                  href={`/restaurant/${restaurant._id}`}
+                  key={item.id}
+                  href={item.url}
                   className="group"
-                  title={restaurant.name}
+                  title={item.title}
                 >
                   <div className="flex flex-col items-center gap-1 p-2 rounded-md hover:bg-muted/50 transition-colors">
                     <Avatar className="size-8 rounded-md ring-1 ring-border bg-muted">
-                      <AvatarImage
-                        src={restaurant.logo_url}
-                        alt={restaurant.name}
-                      />
+                      <AvatarImage src={item.logo_url} alt={item.title} />
                       <AvatarFallback
-                        title={restaurant.name}
+                        title={item.title}
                         className="font-medium text-xs"
                       >
                         {initials}
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-xs font-medium text-muted-foreground truncate">
-                      {restaurant.name}
+                      {item.title}
                     </span>
                   </div>
                 </Link>
@@ -292,7 +270,7 @@ export function AiServicesContent({ className }: { className?: string }) {
             })}
 
             {/* Show "Explore" item if less than 4 bookmarks */}
-            {bookmarkedRestaurants.length < 4 && (
+            {bookmarks.length < 4 && (
               <button
                 onClick={() => router.push("/lifestyle")}
                 className="group"
@@ -313,9 +291,7 @@ export function AiServicesContent({ className }: { className?: string }) {
             {Array.from({
               length: Math.max(
                 0,
-                4 -
-                  bookmarkedRestaurants.length -
-                  (bookmarkedRestaurants.length < 4 ? 1 : 0)
+                4 - bookmarks.length - (bookmarks.length < 4 ? 1 : 0)
               ),
             }).map((_, index) => (
               <div key={`empty-${index}`} className="size-8" />

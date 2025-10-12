@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useBookmarks } from "@/contexts/BookmarkContext";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
@@ -25,6 +26,7 @@ import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPayUI } from "@rozoai/intent-pay";
 import {
   ArrowLeft,
+  Bookmark,
   Clock,
   Coins,
   CreditCard,
@@ -88,6 +90,8 @@ export default function AIServiceDetailPage() {
   const [appId, setAppId] = React.useState<string>("");
   const [userEmail, setUserEmail] = React.useState<string>("");
   const [emailError, setEmailError] = React.useState<string>("");
+
+  const { toggleBookmark, isBookmarked } = useBookmarks();
 
   const metadata = useMemo(() => {
     const baseMetadata = {
@@ -279,6 +283,22 @@ export default function AIServiceDetailPage() {
     }
   };
 
+  const handleBookmark = () => {
+    if (service) {
+      toggleBookmark({
+        id: service.domain,
+        title: service.name,
+        logo_url: service.logo_url,
+        url: `/ai-services/${service.domain}`,
+      });
+      toast.success(
+        isBookmarked(service.domain)
+          ? "Removed from bookmarks"
+          : "Added to bookmarks"
+      );
+    }
+  };
+
   if (loading) {
     return (
       <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
@@ -390,7 +410,23 @@ export default function AIServiceDetailPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-2">
+              <div className="flex flex-col sm:flex-row items-start  gap-2">
+                <Button
+                  onClick={handleBookmark}
+                  variant={isBookmarked(service.domain) ? "default" : "outline"}
+                  size="icon"
+                  title={
+                    isBookmarked(service.domain)
+                      ? "Remove from bookmarks"
+                      : "Add to bookmarks"
+                  }
+                >
+                  <Bookmark
+                    className={`size-4 ${
+                      isBookmarked(service.domain) ? "fill-current" : ""
+                    }`}
+                  />
+                </Button>
                 <Button onClick={handleShare} variant="default" size="icon">
                   <Share className="h-4 w-4" />
                 </Button>

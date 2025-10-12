@@ -308,7 +308,12 @@ export default function RestaurantDetailPage() {
 
   const handleBookmark = () => {
     if (restaurant) {
-      toggleBookmark(restaurant._id);
+      toggleBookmark({
+        id: restaurant._id,
+        title: restaurant.name,
+        logo_url: restaurant.logo_url,
+        url: `/restaurant/${restaurant._id}`,
+      });
       toast.success(
         isBookmarked(restaurant._id)
           ? "Removed from bookmarks"
