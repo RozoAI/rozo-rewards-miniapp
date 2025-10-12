@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getDisplayCurrency } from "@/lib/utils";
+import { format } from "date-fns";
 import { ArrowLeftIcon, Check } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -86,11 +87,7 @@ export default function ReceiptContent() {
   // Note: We don't clear sessionStorage to ensure data persists
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString("en-US", {
-      month: "numeric",
-      day: "numeric",
-      year: "numeric",
-    });
+    return format(new Date(timestamp), "MM dd yyyy HH:mm");
   };
 
   const handleBackToHome = () => {

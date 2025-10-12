@@ -93,6 +93,8 @@ export default function AIServiceDetailPage() {
 
   const { toggleBookmark, isBookmarked } = useBookmarks();
 
+  const merchantOrderId = `${service?.domain.toUpperCase()}-${new Date().getTime()}`;
+
   const metadata = useMemo(() => {
     const baseMetadata = {
       amount_local: service?.price_in_usd,
@@ -107,7 +109,6 @@ export default function AIServiceDetailPage() {
     };
 
     if (service?.domain) {
-      const merchantOrderId = `${service?.domain.toUpperCase()}-${new Date().getTime()}`;
       const receiptUrl = `https://ns.rozo.ai/payment/success?order_id=${merchantOrderId}`;
 
       return {
@@ -228,7 +229,7 @@ export default function AIServiceDetailPage() {
       currency_local: "USD",
       email: userEmail,
       timestamp: Date.now(),
-      order_id: Date.now().toString(),
+      order_id: merchantOrderId,
       about: `Pay for ${service.name} - ${service.duration_months} months`,
     };
 

@@ -73,6 +73,8 @@ export default function RestaurantDetailPage() {
   const lastResetAmountRef = useRef<string>("");
   const [appId, setAppId] = React.useState<string>("");
 
+  const merchantOrderId = `${restaurant?.handle.toUpperCase()}-${new Date().getTime()}`;
+
   const generateMetadata = (amountLocal: string, currencyLocal: string) => {
     const displayCurrency = getDisplayCurrency(currencyLocal);
     const usdAmount = convertToUSD(amountLocal, displayCurrency);
@@ -89,7 +91,6 @@ export default function RestaurantDetailPage() {
     };
 
     if (restaurant?.handle && restaurant?.name) {
-      const merchantOrderId = `${restaurant.handle.toUpperCase()}-${new Date().getTime()}`;
       const receiptUrl = `https://ns.rozo.ai/payment/success?order_id=${merchantOrderId}`;
 
       return {
@@ -246,7 +247,7 @@ export default function RestaurantDetailPage() {
         amount_local: parseFloat(paymentAmount),
         currency_local: displayCurrency,
         timestamp: Date.now(),
-        order_id: Date.now().toString(),
+        order_id: merchantOrderId,
         about: `Pay for ${restaurant.name} - ${displayCurrency} ${paymentAmount}`,
       };
       router.prefetch("/receipt");
