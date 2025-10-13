@@ -125,3 +125,9 @@
     @apply min-h-screen max-w-xl mx-auto;
   }
 }
+
+@supports (-webkit-overflow-scrolling: touch) {
+  input {
+    font-size: 16px;
+  }
+}
