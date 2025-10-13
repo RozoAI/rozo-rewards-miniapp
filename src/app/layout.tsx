@@ -10,6 +10,7 @@ import { generateOgMetadata } from "@/lib/og-image";
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
+import Head from "next/head";
 import { headers } from "next/headers";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "sonner";
@@ -84,14 +85,18 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
+      <Head>
         <link
           rel="stylesheet"
           href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossOrigin=""
         />
-      </head>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1"
+        />
+      </Head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased !pr-0 relative`}
         suppressHydrationWarning={true}
