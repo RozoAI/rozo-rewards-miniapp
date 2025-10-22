@@ -1,5 +1,6 @@
 "use client";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import {
   Gem,
   LogOut,
   Star,
+  UserIcon,
   Zap,
 } from "lucide-react";
 import { useState } from "react";
@@ -186,9 +188,14 @@ export default function RozoMembershipRewards({
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-black font-bold text-lg mb-auto">
-                {address ? address.slice(2, 4).toUpperCase() : "U"}
-              </div>
+              <Avatar className="size-12 mb-auto">
+                <AvatarImage
+                  src={pfpUrl || `https://avatar.tobi.sh/${address}`}
+                />
+                <AvatarFallback>
+                  <UserIcon className="size-12" />
+                </AvatarFallback>
+              </Avatar>
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-lg font-semibold">
@@ -207,22 +214,21 @@ export default function RozoMembershipRewards({
                     </Button>
                   )}
                 </div>
-                <p className="text-sm text-gray-300">
-                  {address
-                    ? `${address.slice(0, 6)}...${address.slice(-4)}`
-                    : "Not connected"}
-                </p>
-                {showProfileActions && isConnected && onDisconnect && (
-                  <Button variant="outline" size="sm" onClick={onDisconnect}>
+                {showProfileActions && isConnected && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onDisconnect}
+                    className="text-black"
+                  >
                     <LogOut className="h-3 w-3 mr-1" />
-                    Disconnect
+                    <span className="text-black">Disconnect</span>
                   </Button>
                 )}
               </div>
             </div>
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex flex-col items-end gap-2 mb-auto">
               <Badge variant="secondary">{currentTier}</Badge>
-              <Badge variant="outline">OG</Badge>
             </div>
           </div>
 
@@ -257,7 +263,7 @@ export default function RozoMembershipRewards({
       </Card>
 
       {/* Daily Check-in */}
-      <Card>
+      <Card className="p-0">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -379,9 +385,6 @@ export default function RozoMembershipRewards({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">RECENT ACTIVITY</CardTitle>
-            <Button variant="ghost" size="sm" className="text-black">
-              See All
-            </Button>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -411,7 +414,6 @@ export default function RozoMembershipRewards({
               <div key={index}>
                 <div className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-black rounded-full"></div>
                     <div>
                       <p className="font-medium text-sm">{activity.action}</p>
                       <p className="text-xs text-gray-500">
