@@ -208,15 +208,12 @@ export default function RozoMembershipRewards({
                   )}
                 </div>
                 <p className="text-sm text-gray-300">
-                  {address ? address : "Not connected"}
+                  {address
+                    ? `${address.slice(0, 6)}...${address.slice(-4)}`
+                    : "Not connected"}
                 </p>
                 {showProfileActions && isConnected && onDisconnect && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onDisconnect}
-                    className="w-fit mt-2 h-7 text-xs border-white/30 text-white hover:bg-white/10"
-                  >
+                  <Button variant="outline" size="sm" onClick={onDisconnect}>
                     <LogOut className="h-3 w-3 mr-1" />
                     Disconnect
                   </Button>
@@ -224,12 +221,8 @@ export default function RozoMembershipRewards({
               </div>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <Badge variant="secondary" className="bg-white text-black">
-                {currentTier}
-              </Badge>
-              <Badge variant="outline" className="border-white text-white">
-                OG
-              </Badge>
+              <Badge variant="secondary">{currentTier}</Badge>
+              <Badge variant="outline">OG</Badge>
             </div>
           </div>
 

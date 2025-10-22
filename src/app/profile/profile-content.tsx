@@ -65,7 +65,7 @@ function ProfilePageContentInternal() {
     };
 
     fetchPoints();
-  }, [isConnected, address, getPoints, pointsLoading]);
+  }, [isConnected, address]);
 
   const handleDisconnect = () => {
     connectors.map((connector) => disconnect({ connector }));
