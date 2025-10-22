@@ -43,19 +43,26 @@ export const wagmiAdapter = new WagmiAdapter({
   ],
 });
 
-// 4. Create modal
-createAppKit({
-  adapters: [wagmiAdapter],
-  networks: [baseNetwork, polygonNetwork, bscNetwork],
-  projectId: WALLETCONNECT_PROJECT_ID,
-  metadata,
-  features: {
-    email: false, // default to true
-    socials: ["farcaster"],
-    emailShowWallets: true, // default to true
-  },
-  allWallets: "SHOW", // default to SHOW
-  coinbasePreference: "all",
-  enableCoinbase: true,
-  themeMode: "light",
-});
+// 4. Create modal - only initialize once
+let appKitInitialized = false;
+
+export function initializeAppKit() {
+  if (!appKitInitialized && typeof window !== "undefined") {
+    createAppKit({
+      adapters: [wagmiAdapter],
+      networks: [baseNetwork, polygonNetwork, bscNetwork],
+      projectId: WALLETCONNECT_PROJECT_ID,
+      metadata,
+      features: {
+        email: false, // default to true
+        socials: ["farcaster"],
+        emailShowWallets: true, // default to true
+      },
+      allWallets: "SHOW", // default to SHOW
+      coinbasePreference: "all",
+      enableCoinbase: true,
+      themeMode: "light",
+    });
+    appKitInitialized = true;
+  }
+}
