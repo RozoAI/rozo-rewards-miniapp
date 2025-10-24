@@ -68,7 +68,7 @@ const membershipTiers: MembershipTier[] = [
   },
   {
     name: "Gold Card",
-    color: "bg-gray-300 text-black border-gray-500",
+    color: "bg-yellow-400 text-yellow-900 border-yellow-500",
     icon: <Gem className="h-5 w-5" />,
     requirements: [
       "Spend $5,000 in the current year, OR",
@@ -86,7 +86,7 @@ const membershipTiers: MembershipTier[] = [
   },
   {
     name: "Platinum Card",
-    color: "bg-gray-400 text-black border-gray-600",
+    color: "bg-blue-500 text-white border-blue-700",
     icon: <Diamond className="h-5 w-5" />,
     requirements: [
       "Spend $10,000 in the current year, OR",
@@ -102,7 +102,7 @@ const membershipTiers: MembershipTier[] = [
   },
   {
     name: "Diamond Card",
-    color: "bg-black text-white border-gray-800",
+    color: "bg-purple-500 text-white border-purple-700",
     icon: <Diamond className="h-5 w-5" />,
     requirements: ["Spend $100,000 in the current year"],
     benefits: [
@@ -149,6 +149,7 @@ interface RozoMembershipRewardsProps {
   onCopyAddress?: () => void;
   onDisconnect?: () => void;
   isConnected?: boolean;
+  isBeta?: boolean;
 }
 
 export default function RozoMembershipRewards({
@@ -161,6 +162,7 @@ export default function RozoMembershipRewards({
   onCopyAddress,
   onDisconnect,
   isConnected = false,
+  isBeta = false,
 }: RozoMembershipRewardsProps) {
   const [expandedTier, setExpandedTier] = useState<string | null>(null);
   const [showPointsDetails, setShowPointsDetails] = useState(false);
@@ -204,25 +206,15 @@ export default function RozoMembershipRewards({
                       : "User"}
                   </h3>
                   {showProfileActions && isConnected && onCopyAddress && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={onCopyAddress}
-                      className="h-6 w-6 p-0 text-white hover:bg-white/20"
-                    >
-                      <Copy className="h-3 w-3" />
+                    <Button variant="ghost" size="icon" onClick={onCopyAddress}>
+                      <Copy className="size-4" />
                     </Button>
                   )}
                 </div>
                 {showProfileActions && isConnected && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onDisconnect}
-                    className="text-black"
-                  >
-                    <LogOut className="h-3 w-3 mr-1" />
-                    <span className="text-black">Disconnect</span>
+                  <Button variant="secondary" size="sm" onClick={onDisconnect}>
+                    <LogOut className="size-4 mr-1" />
+                    <span>Disconnect</span>
                   </Button>
                 )}
               </div>
@@ -243,22 +235,24 @@ export default function RozoMembershipRewards({
             </p>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-300">EXP to Next Level</span>
-              <span className="text-sm text-gray-300">
-                {expToNext.current}/{expToNext.required}
-              </span>
+          {isBeta && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-300">EXP to Next Level</span>
+                <span className="text-sm text-gray-300">
+                  {expToNext.current}/{expToNext.required}
+                </span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div
+                  className="bg-white h-2 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${(expToNext.current / expToNext.required) * 100}%`,
+                  }}
+                ></div>
+              </div>
             </div>
-            <div className="w-full bg-gray-700 rounded-full h-2">
-              <div
-                className="bg-white h-2 rounded-full transition-all duration-300"
-                style={{
-                  width: `${(expToNext.current / expToNext.required) * 100}%`,
-                }}
-              ></div>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -285,10 +279,8 @@ export default function RozoMembershipRewards({
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">CURRENT TIER BENEFITS</CardTitle>
-            <Badge variant="secondary" className="bg-black text-white">
-              {currentTier}
-            </Badge>
+            <CardTitle>Current Tier Benefits</CardTitle>
+            <Badge variant="secondary">{currentTier}</Badge>
           </div>
         </CardHeader>
         <CardContent>
@@ -381,58 +373,58 @@ export default function RozoMembershipRewards({
       </Card>
 
       {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">RECENT ACTIVITY</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="space-y-0">
-            {[
-              {
-                action: "Coffee purchase",
-                points: "-500 pts",
-                location: "NS Café",
-              },
-              {
-                action: "10% Off redeemed",
-                points: "-1000 pts",
-                location: "ROZO Banana",
-              },
-              {
-                action: "Invite reward",
-                points: "+150 pts",
-                location: "0xA1...B9C",
-              },
-              {
-                action: "Check-in",
-                points: "+5 pts",
-                location: "Daily Check-in",
-              },
-            ].map((activity, index) => (
-              <div key={index}>
-                <div className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="font-medium text-sm">{activity.action}</p>
-                      <p className="text-xs text-gray-500">
-                        {activity.location}
-                      </p>
+      {isBeta && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="space-y-0">
+              {[
+                {
+                  action: "Coffee purchase",
+                  points: "-500 pts",
+                  location: "NS Café",
+                },
+                {
+                  action: "10% Off redeemed",
+                  points: "-1000 pts",
+                  location: "ROZO Banana",
+                },
+                {
+                  action: "Invite reward",
+                  points: "+150 pts",
+                  location: "0xA1...B9C",
+                },
+                {
+                  action: "Check-in",
+                  points: "+5 pts",
+                  location: "Daily Check-in",
+                },
+              ].map((activity, index) => (
+                <div key={index}>
+                  <div className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <p className="font-medium text-sm">{activity.action}</p>
+                        <p className="text-xs text-gray-500">
+                          {activity.location}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium">{activity.points}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{activity.points}</p>
-                  </div>
+                  {index < 3 && (
+                    <div className="border-b border-gray-200 dark:border-gray-700" />
+                  )}
                 </div>
-                {index < 3 && (
-                  <div className="border-b border-gray-200 dark:border-gray-700" />
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

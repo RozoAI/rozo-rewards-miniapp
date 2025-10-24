@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useConnect, useDisconnect } from "wagmi";
 
-export default function ProfilePageContent() {
+export default function ProfilePageContent({ isBeta }: { isBeta: boolean }) {
   const hasMounted = useHasMounted();
 
   // Show loading state until hydration is complete
@@ -30,10 +30,10 @@ export default function ProfilePageContent() {
     );
   }
 
-  return <ProfilePageContentInternal />;
+  return <ProfilePageContentInternal isBeta={isBeta} />;
 }
 
-function ProfilePageContentInternal() {
+function ProfilePageContentInternal({ isBeta }: { isBeta: boolean }) {
   const { address, isConnected, status } = useAppKitAccount();
   const { disconnect } = useDisconnect();
   const { connectors, connect } = useConnect();
@@ -122,6 +122,7 @@ function ProfilePageContentInternal() {
             onCopyAddress={copyAddress}
             onDisconnect={handleDisconnect}
             isConnected={true}
+            isBeta={isBeta}
           />
         </div>
       ) : (
