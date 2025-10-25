@@ -1,3 +1,4 @@
+import { RozoPayClientWrapper } from "@/components/RozoPayClientWrapper";
 import { createMiniAppMetadata } from "@/lib/miniapp-embed";
 import type { Metadata } from "next";
 import data from "../../../../public/ai_commerce_catalog.json";
@@ -131,5 +132,5 @@ export default function AIServiceDetailLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <RozoPayClientWrapper>{children}</RozoPayClientWrapper>;
 }

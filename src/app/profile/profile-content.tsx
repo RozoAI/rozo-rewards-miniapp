@@ -128,7 +128,7 @@ function ProfilePageContentInternal({ isBeta }: { isBeta: boolean }) {
       ) : (
         /* Wallet Connection Prompt - Show when not connected */
         <div className="mb-14">
-          <div className="text-center py-12">
+          <div className="text-center py-12 flex flex-col items-center justify-center">
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 Connect Your Wallet

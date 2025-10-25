@@ -1,7 +1,7 @@
 "use client";
 
 import { initializeAppKit, wagmiAdapter } from "@/lib/appkit";
-import { RozoPayProvider } from "@rozoai/intent-pay";
+import { AppKitProvider } from "@reown/appkit/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Config, cookieToInitialState, WagmiProvider } from "wagmi";
@@ -20,15 +20,20 @@ export default function Web3Provider({
     cookies
   );
 
-  const [appKitInitialized, setAppKitInitialized] = useState(false);
+  const [appKitInstance, setAppKitInstance] = useState<any>(null);
 
   // Initialize AppKit only once when the component mounts
   useEffect(() => {
-    if (!appKitInitialized) {
-      initializeAppKit();
-      setAppKitInitialized(true);
+    const instance = initializeAppKit();
+    if (instance) {
+      setAppKitInstance(instance);
     }
-  }, [appKitInitialized]);
+  }, []);
+
+  // Don't render children until AppKit is initialized
+  if (!appKitInstance || !appKitInstance) {
+    return null;
+  }
 
   return (
     <WagmiProvider
@@ -36,7 +41,7 @@ export default function Web3Provider({
       initialState={initialState}
     >
       <QueryClientProvider client={queryClient}>
-        <RozoPayProvider>{children}</RozoPayProvider>
+        <AppKitProvider instance={appKitInstance}>{children}</AppKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );

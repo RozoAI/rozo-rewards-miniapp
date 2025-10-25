@@ -34,8 +34,6 @@ function WalletComponentsInternal() {
     fetchPfpUrl();
   }, []);
 
-  console.log({ status, connectStatus, isAuthenticated, accountAddress });
-
   return (
     <WalletProvider>
       {status === "disconnected" && openConnectModal ? (

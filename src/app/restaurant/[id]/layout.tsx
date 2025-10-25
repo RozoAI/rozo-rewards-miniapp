@@ -1,4 +1,5 @@
 import { FabActions } from "@/components/fab-actions";
+import { RozoPayClientWrapper } from "@/components/RozoPayClientWrapper";
 import { createMiniAppMetadata } from "@/lib/miniapp-embed";
 import { Restaurant } from "@/types/restaurant";
 import type { Metadata } from "next";
@@ -94,9 +95,11 @@ export default function RestaurantDetailLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative w-full">
-      {children}
-      <FabActions className="fixed" />
-    </div>
+    <RozoPayClientWrapper>
+      <div className="relative w-full">
+        {children}
+        <FabActions className="fixed" />
+      </div>
+    </RozoPayClientWrapper>
   );
 }

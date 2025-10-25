@@ -44,11 +44,11 @@ export const wagmiAdapter = new WagmiAdapter({
 });
 
 // 4. Create modal - only initialize once
-let appKitInitialized = false;
+let appKitInstance: any = null;
 
 export function initializeAppKit() {
-  if (!appKitInitialized && typeof window !== "undefined") {
-    createAppKit({
+  if (!appKitInstance && typeof window !== "undefined") {
+    appKitInstance = createAppKit({
       adapters: [wagmiAdapter],
       networks: [baseNetwork, polygonNetwork, bscNetwork],
       projectId: WALLETCONNECT_PROJECT_ID,
@@ -63,6 +63,10 @@ export function initializeAppKit() {
       enableCoinbase: true,
       themeMode: "light",
     });
-    appKitInitialized = true;
   }
+  return appKitInstance;
+}
+
+export function getAppKitInstance() {
+  return appKitInstance;
 }
