@@ -606,17 +606,11 @@ export default function AIServiceDetailPage() {
                   Points
                 </Button>
                 <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-                  Available Points:{" "}
-                  {new Intl.NumberFormat("en-US", {
-                    style: "decimal",
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  }).format((points ?? 0) * 100)}{" "}
-                  pts
+                  Available Points: {Number((points ?? 0) * 100).toFixed(2)} pts
                   <CustomTooltip
                     content="Explore all the benefits of Rozo. Rozo points are the rewards for your purchases."
                     position="top"
-                    className="w-[12rem] sm:w-[20rem] ml-1.5"
+                    className="w-48 sm:w-[20rem] ml-1.5"
                   >
                     <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
                   </CustomTooltip>
@@ -672,12 +666,7 @@ export default function AIServiceDetailPage() {
                   Available Points:
                 </span>
                 <span className="font-medium text-muted-foreground">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "decimal",
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  }).format((points ?? 0) * 100)}{" "}
-                  pts
+                  {Number((points ?? 0) * 100).toFixed(2)} pts
                 </span>
               </div>
               <div className="h-px bg-border my-2" />

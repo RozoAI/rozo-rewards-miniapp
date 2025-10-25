@@ -338,7 +338,7 @@ export default function RestaurantDetailPage() {
         <Card className="w-full">
           <CardHeader className="space-y-4 pb-4">
             <div className="flex items-start gap-3">
-              <div className="size-16 sm:size-20 rounded-lg bg-muted animate-pulse flex-shrink-0" />
+              <div className="size-16 sm:size-20 rounded-lg bg-muted animate-pulse shrink-0" />
               <div className="flex-1 space-y-2">
                 <div className="h-5 sm:h-6 w-3/4 bg-muted animate-pulse rounded" />
                 <div className="h-4 w-full bg-muted animate-pulse rounded" />
@@ -393,7 +393,7 @@ export default function RestaurantDetailPage() {
       <Card className="w-full gap-3">
         <CardHeader>
           <div className="flex items-start gap-3">
-            <Avatar className="size-16 sm:size-20 rounded-lg ring-1 ring-border bg-muted flex-shrink-0">
+            <Avatar className="size-16 sm:size-20 rounded-lg ring-1 ring-border bg-muted shrink-0">
               <AvatarImage src={restaurant.logo_url} alt={restaurant.name} />
               <AvatarFallback
                 title={restaurant.name}
@@ -631,17 +631,12 @@ export default function RestaurantDetailPage() {
                       Points
                     </Button>
                     <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-                      Available Points:{" "}
-                      {new Intl.NumberFormat("en-US", {
-                        style: "decimal",
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      }).format((points ?? 0) * 100)}{" "}
+                      Available Points: {Number((points ?? 0) * 100).toFixed(2)}{" "}
                       pts
                       <CustomTooltip
                         content="Explore all the benefits of Rozo. Rozo points are the rewards for your purchases."
                         position="top"
-                        className="w-[12rem] sm:w-[20rem] ml-1.5"
+                        className="w-48 sm:w-[20rem] ml-1.5"
                       >
                         <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
                       </CustomTooltip>
@@ -723,12 +718,7 @@ export default function RestaurantDetailPage() {
                   Available Points:
                 </span>
                 <span className="font-medium text-muted-foreground">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "decimal",
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  }).format((points ?? 0) * 100)}{" "}
-                  pts
+                  {Number((points ?? 0) * 100).toFixed(2)} pts{" "}
                 </span>
               </div>
               <div className="h-px bg-border my-2" />
