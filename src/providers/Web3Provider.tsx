@@ -41,7 +41,7 @@ export default function Web3Provider({
       initialState={initialState}
     >
       <QueryClientProvider client={queryClient}>
-        <AppKitProvider instance={appKitInstance}>{children}</AppKitProvider>
+        <AppKitProvider {...appKitInstance}>{children}</AppKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
