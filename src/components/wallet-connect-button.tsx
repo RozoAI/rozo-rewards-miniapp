@@ -79,6 +79,6 @@ export function WalletComponents() {
   }
 
   // Render the internal component only after mounting
-  // return <WalletComponentsInternal />;
-  return <appkit-button balance="hide" label="Connect Wallet" />;
+  return <WalletComponentsInternal />;
+  // return <appkit-button balance="hide" label="Connect Wallet" />;
 }
