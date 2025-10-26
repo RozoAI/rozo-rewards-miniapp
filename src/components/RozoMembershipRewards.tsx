@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import {
   ArrowRight,
   CheckCircle,
@@ -12,9 +13,9 @@ import {
   Diamond,
   Gem,
   LogOut,
+  MedalIcon,
   Star,
   UserIcon,
-  Zap,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -33,8 +34,8 @@ interface MembershipTier {
 const membershipTiers: MembershipTier[] = [
   {
     name: "Member Card",
-    color: "bg-gray-100 text-black border-gray-300",
-    icon: <Crown className="h-5 w-5" />,
+    color: "bg-neutral-100 text-black border-neutral-300",
+    icon: <Crown className="size-5" />,
     requirements: ["Obtained automatically through consumption"],
     benefits: [
       "Earn 1 experience point per $1 spent",
@@ -50,8 +51,8 @@ const membershipTiers: MembershipTier[] = [
   },
   {
     name: "Silver Card",
-    color: "bg-gray-200 text-black border-gray-400",
-    icon: <Star className="h-5 w-5" />,
+    color: "bg-neutral-200 text-black border-neutral-400",
+    icon: <Star className="size-5" />,
     requirements: [
       "Spend $500 in the current year, OR",
       "Spend $200 in one day",
@@ -69,7 +70,7 @@ const membershipTiers: MembershipTier[] = [
   {
     name: "Gold Card",
     color: "bg-yellow-400 text-yellow-900 border-yellow-500",
-    icon: <Gem className="h-5 w-5" />,
+    icon: <MedalIcon className="size-5" />,
     requirements: [
       "Spend $5,000 in the current year, OR",
       "Spend $2,000 in one day",
@@ -87,7 +88,7 @@ const membershipTiers: MembershipTier[] = [
   {
     name: "Platinum Card",
     color: "bg-blue-500 text-white border-blue-700",
-    icon: <Diamond className="h-5 w-5" />,
+    icon: <Diamond className="size-5" />,
     requirements: [
       "Spend $10,000 in the current year, OR",
       "Spend $5,000 in one day",
@@ -103,7 +104,7 @@ const membershipTiers: MembershipTier[] = [
   {
     name: "Diamond Card",
     color: "bg-purple-500 text-white border-purple-700",
-    icon: <Diamond className="h-5 w-5" />,
+    icon: <Gem className="size-5" />,
     requirements: ["Spend $100,000 in the current year"],
     benefits: [
       "2x points multiplier",
@@ -116,32 +117,8 @@ const membershipTiers: MembershipTier[] = [
   },
 ];
 
-const specialTiers = [
-  {
-    name: "OG Label",
-    color: "bg-gray-100 text-black border-gray-300",
-    icon: <Zap className="h-5 w-5" />,
-    benefits: ["Receive airdrops from partner projects and free subscriptions"],
-  },
-  {
-    name: "Black Card",
-    color: "bg-black text-white border-gray-600",
-    icon: <Crown className="h-5 w-5" />,
-    benefits: ["Invitation only"],
-  },
-];
-
-const pointsStages = [
-  { stage: 0, gdp: 0, pointsEarned: 1, redemptionValue: 1 },
-  { stage: 1, gdp: 1, pointsEarned: 0.1, redemptionValue: 2 },
-  { stage: 2, gdp: 10, pointsEarned: 0.01, redemptionValue: 4 },
-  { stage: 3, gdp: 100, pointsEarned: 0.001, redemptionValue: 8 },
-  { stage: 4, gdp: 10000, pointsEarned: 0.0001, redemptionValue: 16 },
-];
-
 interface RozoMembershipRewardsProps {
   userPoints: number;
-  usdcBalance: number;
   address: string | undefined;
   pfpUrl: string | null;
   isLoading: boolean;
@@ -154,7 +131,6 @@ interface RozoMembershipRewardsProps {
 
 export default function RozoMembershipRewards({
   userPoints,
-  usdcBalance,
   address,
   pfpUrl,
   isLoading,
@@ -165,7 +141,6 @@ export default function RozoMembershipRewards({
   isBeta = false,
 }: RozoMembershipRewardsProps) {
   const [expandedTier, setExpandedTier] = useState<string | null>(null);
-  const [showPointsDetails, setShowPointsDetails] = useState(false);
 
   const toggleTier = (tierName: string) => {
     setExpandedTier(expandedTier === tierName ? null : tierName);
@@ -183,10 +158,28 @@ export default function RozoMembershipRewards({
   const currentTier = getCurrentTier(userPoints);
   const expToNext = { current: 320, required: 500 }; // Mock data - replace with real calculation
 
+  // Get membership description based on current tier
+  const getMembershipDescription = (tier: string) => {
+    const tierMap: { [key: string]: string } = {
+      MEMBER: "Member Card",
+      SILVER: "Silver Card",
+      GOLD: "Gold Card",
+      PLATINUM: "Platinum Card",
+      DIAMOND: "Diamond Card",
+    };
+
+    const tierName = tierMap[tier] || "Member Card";
+    const tierData = membershipTiers.find((t) => t.name === tierName);
+
+    return tierData || membershipTiers[0]; // fallback to first tier
+  };
+
+  const currentTierData = getMembershipDescription(currentTier);
+
   return (
     <div className="space-y-4">
       {/* User Info Header */}
-      <Card className="bg-black text-white p-0">
+      <Card className="bg-black dark:bg-card text-white p-0">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -211,39 +204,54 @@ export default function RozoMembershipRewards({
                     </Button>
                   )}
                 </div>
-                {showProfileActions && isConnected && (
-                  <Button variant="secondary" size="sm" onClick={onDisconnect}>
-                    <LogOut className="size-4 mr-1" />
-                    <span>Disconnect</span>
-                  </Button>
-                )}
               </div>
             </div>
-            <div className="flex flex-col items-end gap-2 mb-auto">
-              <Badge variant="secondary">{currentTier}</Badge>
-            </div>
+
+            {showProfileActions && isConnected && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onDisconnect}
+                className="mb-auto"
+              >
+                <LogOut className="size-4 mr-1" />
+              </Button>
+            )}
           </div>
 
-          <div className="mb-4">
-            <p className="text-sm text-gray-300 mb-1">TOTAL POINTS</p>
-            <p className="text-3xl font-bold">
+          <div className="grid grid-cols-2">
+            <div>
+              <p className="text-sm text-neutral-300 mb-1">Total Points</p>
+              <p className="text-3xl font-bold">
+                {isLoading ? (
+                  <div className="h-8 w-24 bg-neutral-600 rounded animate-pulse"></div>
+                ) : (
+                  userPoints.toLocaleString()
+                )}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-neutral-300 mb-1">Current Tier</p>
               {isLoading ? (
-                <div className="h-8 w-24 bg-gray-600 rounded animate-pulse"></div>
+                <div className="h-8 w-24 bg-neutral-600 rounded animate-pulse"></div>
               ) : (
-                userPoints.toLocaleString()
+                <Badge className={currentTierData.color}>{currentTier}</Badge>
               )}
-            </p>
+            </div>
           </div>
 
           {isBeta && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-300">EXP to Next Level</span>
-                <span className="text-sm text-gray-300">
+                <span className="text-sm text-neutral-300">
+                  EXP to Next Level
+                </span>
+                <span className="text-sm text-neutral-300">
                   {expToNext.current}/{expToNext.required}
                 </span>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-neutral-700 rounded-full h-2">
                 <div
                   className="bg-white h-2 rounded-full transition-all duration-300"
                   style={{
@@ -256,65 +264,38 @@ export default function RozoMembershipRewards({
         </CardContent>
       </Card>
 
-      {/* Daily Check-in */}
-      <Card className="p-0">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white">
-                Daily Check-in
-              </h4>
-              <p className="text-sm text-gray-500">
-                This tier does not provide check-in EXP
-              </p>
-            </div>
-            <Button variant="outline" size="sm" disabled>
-              Check-in
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Current Tier Benefits */}
-      <Card>
+      <Card className="gap-4">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Current Tier Benefits</CardTitle>
-            <Badge variant="secondary">{currentTier}</Badge>
-          </div>
+          <CardTitle>Current Tier Benefits</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">
-            <li className="flex items-start gap-2 text-sm">
-              <CheckCircle className="h-4 w-4 text-black mt-0.5 shrink-0" />
-              <span>
-                Upgrade by spending $10,000 in the current year or $5,000 in one
-                day
-              </span>
-            </li>
-            <li className="flex items-start gap-2 text-sm">
-              <CheckCircle className="h-4 w-4 text-black mt-0.5 shrink-0" />
-              <span>Points can be gifted to other ROZO users</span>
-            </li>
-            <li className="flex items-start gap-2 text-sm">
-              <CheckCircle className="h-4 w-4 text-black mt-0.5 shrink-0" />
-              <span>Member gifts: Free coffee/merchandise/AI services</span>
-            </li>
+            {currentTierData.benefits.map((benefit, index) => (
+              <li key={index} className="flex items-start gap-2 text-sm">
+                <CheckCircle className="size-4 mt-0.5 shrink-0" />
+                <span>{benefit}</span>
+              </li>
+            ))}
           </ul>
         </CardContent>
       </Card>
 
       {/* All Tier Benefits - Compact List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">ALL TIER BENEFITS</CardTitle>
+      <Card className="pb-0 gap-0">
+        <CardHeader className="border-b">
+          <CardTitle>All Tier Benefits</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="space-y-0">
             {membershipTiers.map((tier, index) => (
               <div key={tier.name}>
                 <div
-                  className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                  className={cn(
+                    "flex items-center justify-between p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors",
+                    index === membershipTiers.length - 1 && "rounded-b-xl",
+                    tier.name === expandedTier && "rounded-b-none"
+                  )}
                   onClick={() => toggleTier(tier.name)}
                 >
                   <div className="flex items-center gap-3">
@@ -323,11 +304,11 @@ export default function RozoMembershipRewards({
                     </div>
                     <span className="font-medium">{tier.name}</span>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-gray-400" />
+                  <ArrowRight className="h-4 w-4 text-neutral-400" />
                 </div>
 
                 {expandedTier === tier.name && (
-                  <div className="px-4 pb-4 border-t bg-gray-50 dark:bg-gray-800">
+                  <div className="px-4 pb-4 border-t bg-neutral-50 dark:bg-neutral-800">
                     <div className="pt-4 space-y-3">
                       <div>
                         <h5 className="font-medium text-sm mb-2">
@@ -337,9 +318,9 @@ export default function RozoMembershipRewards({
                           {tier.requirements.map((req, reqIndex) => (
                             <li
                               key={reqIndex}
-                              className="text-sm text-gray-600 dark:text-gray-400 flex items-start gap-2"
+                              className="text-sm text-neutral-600 dark:text-neutral-400 flex items-start gap-2"
                             >
-                              <span className="text-gray-400">•</span>
+                              <span className="text-neutral-400">•</span>
                               {req}
                             </li>
                           ))}
@@ -351,7 +332,7 @@ export default function RozoMembershipRewards({
                           {tier.benefits.map((benefit, benefitIndex) => (
                             <li
                               key={benefitIndex}
-                              className="text-sm text-gray-600 dark:text-gray-400 flex items-start gap-2"
+                              className="text-sm text-neutral-600 dark:text-neutral-400 flex items-start gap-2"
                             >
                               <span className="text-green-500">✓</span>
                               {benefit}
@@ -364,7 +345,7 @@ export default function RozoMembershipRewards({
                 )}
 
                 {index < membershipTiers.length - 1 && (
-                  <div className="border-b border-gray-200 dark:border-gray-700" />
+                  <div className="border-b border-neutral-200 dark:border-neutral-700" />
                 )}
               </div>
             ))}
@@ -403,11 +384,11 @@ export default function RozoMembershipRewards({
                 },
               ].map((activity, index) => (
                 <div key={index}>
-                  <div className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors">
+                  <div className="flex items-center justify-between p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors">
                     <div className="flex items-center gap-3">
                       <div>
                         <p className="font-medium text-sm">{activity.action}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-neutral-500">
                           {activity.location}
                         </p>
                       </div>
@@ -417,7 +398,7 @@ export default function RozoMembershipRewards({
                     </div>
                   </div>
                   {index < 3 && (
-                    <div className="border-b border-gray-200 dark:border-gray-700" />
+                    <div className="border-b border-neutral-200 dark:border-neutral-700" />
                   )}
                 </div>
               ))}

@@ -30,10 +30,13 @@ import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPay, useRozoPayUI } from "@rozoai/intent-pay";
 
+import { PaymentData } from "@/app/receipt/receipt-content";
 import { useAppKitAccount } from "@reown/appkit/react";
 import {
   BadgePercent,
   Bookmark,
+  ChevronDown,
+  ChevronUp,
   Coins,
   CreditCard,
   HelpCircle,
@@ -69,11 +72,13 @@ export default function RestaurantDetailPage() {
   const [pointsLoading, setPointsLoading] = React.useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
   const [dialogLoading, setDialogLoading] = React.useState(false);
+  const [showFullAddress, setShowFullAddress] = React.useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastResetAmountRef = useRef<string>("");
   const [appId, setAppId] = React.useState<string>("");
 
   const merchantOrderId = `${restaurant?.handle.toUpperCase()}-${new Date().getTime()}`;
+  const receiptUrl = `https://ns.rozo.ai/payment/success?order_id=${merchantOrderId}`;
 
   const generateMetadata = (amountLocal: string, currencyLocal: string) => {
     const displayCurrency = getDisplayCurrency(currencyLocal);
@@ -91,8 +96,6 @@ export default function RestaurantDetailPage() {
     };
 
     if (restaurant?.handle && restaurant?.name) {
-      const receiptUrl = `https://ns.rozo.ai/payment/success?order_id=${merchantOrderId}`;
-
       return {
         ...baseMetadata,
         merchant_order_id: merchantOrderId,
@@ -127,8 +130,6 @@ export default function RestaurantDetailPage() {
         if (!foundRestaurant) {
           throw new Error("Restaurant not found");
         }
-
-        console.log("foundRestaurant", foundRestaurant);
 
         setRestaurant(foundRestaurant as Restaurant);
 
@@ -328,6 +329,44 @@ export default function RestaurantDetailPage() {
     setPaymentLoading(false);
   };
 
+  const handlePaymentCompleted = (args: PaymentCompletedEvent) => {
+    if (!restaurant) return;
+
+    toast.success(`Payment successful to ${restaurant.name}!`, {
+      description:
+        "Your payment has been processed successfully. Redirecting to receipt...",
+      duration: 2000,
+    });
+
+    // Store payment data in sessionStorage for receipt page
+    const displayCurrency = getDisplayCurrency(restaurant?.currency);
+    const usdAmount = convertToUSD(paymentAmount, displayCurrency);
+
+    const receiptData: PaymentData = {
+      from_address: address || "",
+      to_handle:
+        restaurant.handle || restaurant.name.toLowerCase().replace(/\s+/g, ""),
+      amount_usd_cents: parseFloat(usdAmount) * 100,
+      amount_local: parseFloat(paymentAmount),
+      currency_local: displayCurrency,
+      timestamp: Date.now(),
+      order_id: merchantOrderId,
+      about: `Pay for ${restaurant.name} - ${displayCurrency} ${paymentAmount}`,
+      restaurant_name: restaurant.name,
+      restaurant_address: restaurant.address_line1,
+    };
+
+    sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
+
+    handleClearPayment();
+
+    // Prefetch and navigate to receipt page
+    router.prefetch("/receipt");
+    setTimeout(() => {
+      router.push("/receipt");
+    }, 2000);
+  };
+
   if (loading) {
     return (
       <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
@@ -409,26 +448,39 @@ export default function RestaurantDetailPage() {
               >
                 {restaurant.name}
               </h2>
-              <Link
-                href={`https://maps.google.com/?q=${restaurant.lat},${restaurant.lon}`}
-                target="_blank"
-                className="flex items-start gap-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer group"
-              >
+              <div className="flex items-start gap-2 text-muted-foreground group">
                 <MapPin className="h-4 w-4 mt-0.5 shrink-0 group-hover:text-blue-600 transition-colors" />
-                <div className="text-sm leading-relaxed group-hover:underline">
-                  <p className="font-medium">{restaurant.address_line1}</p>
-                  {restaurant.address_line2 && (
-                    <p>{restaurant.address_line2}</p>
+                <div className="text-sm leading-relaxed flex-1">
+                  <div className="flex items-center gap-1">
+                    <Link
+                      href={`https://maps.google.com/?q=${restaurant.lat},${restaurant.lon}`}
+                      target="_blank"
+                      className="font-medium hover:text-foreground hover:underline transition-colors flex-1"
+                    >
+                      {restaurant.address_line1}
+                    </Link>
+                    {restaurant.address_line2 && (
+                      <button
+                        onClick={() => setShowFullAddress(!showFullAddress)}
+                        className="p-1 hover:text-foreground transition-colors"
+                      >
+                        {showFullAddress ? (
+                          <ChevronUp className="h-3 w-3" />
+                        ) : (
+                          <ChevronDown className="h-3 w-3" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  {restaurant.address_line2 && showFullAddress && (
+                    <p className="text-muted-foreground mt-1">
+                      {restaurant.address_line2}
+                    </p>
                   )}
                 </div>
-              </Link>
+              </div>
               {/* Price and Cashback Details */}
               <div className="flex items-center gap-3 pt-1">
-                {restaurant.price && (
-                  <p className="text-sm text-muted-foreground">
-                    Price: <b>{restaurant.price}</b>
-                  </p>
-                )}
                 {restaurant.cashback_rate > 0 && (
                   <Badge
                     variant="default"
@@ -478,7 +530,7 @@ export default function RestaurantDetailPage() {
                     htmlFor="payment-amount"
                     className="text-sm font-medium"
                   >
-                    Payment Amount
+                    Amount
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -542,14 +594,7 @@ export default function RestaurantDetailPage() {
                     setLoading(false);
                     setPaymentLoading(false);
                   }}
-                  onPaymentCompleted={(args: PaymentCompletedEvent) => {
-                    toast.success(`Payment successful to ${restaurant.name}!`, {
-                      description:
-                        "Your payment has been processed successfully. Redirecting to receipt...",
-                      duration: 2000,
-                    });
-                    handleClearPayment();
-                  }}
+                  onPaymentCompleted={handlePaymentCompleted}
                 >
                   {({ show }) => {
                     const usdAmount = convertToUSD(

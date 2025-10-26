@@ -114,7 +114,6 @@ function ProfilePageContentInternal({ isBeta }: { isBeta: boolean }) {
         <div className="mb-14">
           <RozoMembershipRewards
             userPoints={points}
-            usdcBalance={usdcBalance || 0}
             address={address}
             pfpUrl={pfpUrl}
             isLoading={pointsLoading || usdcLoading}

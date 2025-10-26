@@ -8,7 +8,7 @@ import { ArrowLeftIcon, Check } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-type PaymentData = {
+export type PaymentData = {
   from_address: string;
   to_handle: string;
   amount_usd_cents: number;
@@ -17,7 +17,6 @@ type PaymentData = {
   timestamp: number;
   order_id: string;
   about: string;
-  signature: string;
   service_name?: string;
   service_domain?: string;
   restaurant_name?: string;
@@ -68,10 +67,9 @@ export default function ReceiptContent() {
         }
       }
 
-      // No data found from either source
       setIsLoading(false);
       setHasChecked(true);
-      // Only redirect after we've actually checked - give more time for data to load
+
       setTimeout(() => {
         router.push("/");
       }, 2000);

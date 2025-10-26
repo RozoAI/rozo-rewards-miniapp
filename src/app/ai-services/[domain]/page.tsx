@@ -1,5 +1,6 @@
 "use client";
 
+import { PaymentData } from "@/app/receipt/receipt-content";
 import { ContactSupport } from "@/components/contact-support";
 import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,7 +20,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useBookmarks } from "@/contexts/BookmarkContext";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
-import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
+import {
+  convertToUSD,
+  getDisplayCurrency,
+  getFirstTwoWordInitialsFromName,
+} from "@/lib/utils";
 import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
@@ -94,6 +99,7 @@ export default function AIServiceDetailPage() {
   const { toggleBookmark, isBookmarked } = useBookmarks();
 
   const merchantOrderId = `${service?.domain.toUpperCase()}-${new Date().getTime()}`;
+  const receiptUrl = `https://ns.rozo.ai/payment/success?order_id=${merchantOrderId}`;
 
   const metadata = useMemo(() => {
     const baseMetadata = {
@@ -109,8 +115,6 @@ export default function AIServiceDetailPage() {
     };
 
     if (service?.domain) {
-      const receiptUrl = `https://ns.rozo.ai/payment/success?order_id=${merchantOrderId}`;
-
       return {
         ...baseMetadata,
         merchant_order_id: merchantOrderId,
@@ -302,6 +306,45 @@ export default function AIServiceDetailPage() {
     }
   };
 
+  const handlePaymentCompleted = (args: PaymentCompletedEvent) => {
+    if (!service) return;
+
+    toast.success(`Payment successful to ${service.name}!`, {
+      description:
+        "Your payment has been processed successfully. Redirecting to receipt...",
+      duration: 2000,
+    });
+
+    // Store payment data in sessionStorage for receipt page
+    const displayCurrency = getDisplayCurrency();
+    const usdAmount = convertToUSD(
+      service.price_in_usd.toString(),
+      displayCurrency
+    );
+
+    const receiptData: PaymentData = {
+      from_address: address || "",
+      to_handle:
+        service.domain || service.name.toLowerCase().replace(/\s+/g, ""),
+      amount_usd_cents: parseFloat(usdAmount) * 100,
+      amount_local: parseFloat(service.price_in_usd.toString()),
+      currency_local: displayCurrency,
+      timestamp: Date.now(),
+      order_id: merchantOrderId,
+      about: `Pay for ${service.name} - ${service.duration_months} months`,
+      service_name: service.name,
+      service_domain: service.domain,
+    };
+
+    sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
+
+    // Prefetch and navigate to receipt page
+    router.prefetch("/receipt");
+    setTimeout(() => {
+      router.push("/receipt");
+    }, 2000);
+  };
+
   if (loading) {
     return (
       <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
@@ -312,7 +355,7 @@ export default function AIServiceDetailPage() {
         <Card className="w-full">
           <CardHeader className="space-y-4 pb-4">
             <div className="flex items-start gap-3">
-              <div className="size-16 sm:size-20 rounded-lg bg-muted animate-pulse flex-shrink-0" />
+              <div className="size-16 sm:size-20 rounded-lg bg-muted animate-pulse shrink-0" />
               <div className="flex-1 space-y-2">
                 <div className="h-5 sm:h-6 w-3/4 bg-muted animate-pulse rounded" />
                 <div className="h-4 w-full bg-muted animate-pulse rounded" />
@@ -380,7 +423,7 @@ export default function AIServiceDetailPage() {
       <Card className="w-full overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm shadow-sm gap-0">
         <CardHeader>
           <div className="flex items-start gap-3 sm:gap-4">
-            <Avatar className="size-16 sm:size-20 rounded-xl ring-1 ring-border/50 bg-muted/50 flex-shrink-0 shadow-sm">
+            <Avatar className="size-16 sm:size-20 rounded-xl ring-1 ring-border/50 bg-muted/50 shrink-0 shadow-sm">
               {service.logo_url ? (
                 <AvatarImage
                   src={service.logo_url}
@@ -547,14 +590,7 @@ export default function AIServiceDetailPage() {
                 onPaymentBounced={() => {
                   setPaymentLoading(false);
                 }}
-                onPaymentCompleted={(args: PaymentCompletedEvent) => {
-                  toast.success(`Payment successful to ${service.name}!`, {
-                    description:
-                      "Your payment has been processed successfully. Redirecting to receipt...",
-                    duration: 2000,
-                  });
-                  setPaymentLoading(false);
-                }}
+                onPaymentCompleted={handlePaymentCompleted}
               >
                 {({ show }) => (
                   <div className="m-auto flex w-full flex-col gap-2">
