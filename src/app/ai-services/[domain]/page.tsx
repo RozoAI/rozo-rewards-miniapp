@@ -231,7 +231,6 @@ export default function AIServiceDetailPage() {
       amount_usd_cents: service.price_in_usd * 100,
       amount_local: service.price_in_usd,
       currency_local: "USD",
-      email: userEmail,
       timestamp: Date.now(),
       order_id: merchantOrderId,
       about: `Pay for ${service.name} - ${service.duration_months} months`,
@@ -245,6 +244,7 @@ export default function AIServiceDetailPage() {
         ...response.data,
         service_name: service.name,
         service_domain: service.domain,
+        is_using_points: true,
       };
 
       sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
@@ -334,6 +334,7 @@ export default function AIServiceDetailPage() {
       about: `Pay for ${service.name} - ${service.duration_months} months`,
       service_name: service.name,
       service_domain: service.domain,
+      is_using_points: false,
     };
 
     sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));

@@ -148,10 +148,10 @@ export default function RozoMembershipRewards({
 
   // Determine current tier based on spending (mock logic - replace with real API)
   const getCurrentTier = (points: number) => {
-    if (points >= 100000) return "DIAMOND";
-    if (points >= 10000) return "PLATINUM";
-    if (points >= 5000) return "GOLD";
-    if (points >= 500) return "SILVER";
+    // if (points >= 100000) return "DIAMOND";
+    // if (points >= 10000) return "PLATINUM";
+    // if (points >= 5000) return "GOLD";
+    // if (points >= 500) return "SILVER";
     return "MEMBER";
   };
 

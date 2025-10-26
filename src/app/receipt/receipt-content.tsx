@@ -17,6 +17,7 @@ export type PaymentData = {
   timestamp: number;
   order_id: string;
   about: string;
+  is_using_points: boolean;
   service_name?: string;
   service_domain?: string;
   restaurant_name?: string;
@@ -139,31 +140,41 @@ export default function ReceiptContent() {
         {/* Payment Details Card */}
         <Card className="w-full max-w-sm bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800 py-0">
           <CardContent className="p-6 space-y-4">
-            {getDisplayCurrency(paymentData.currency_local) !== "USD" && (
+            {getDisplayCurrency(paymentData.currency_local) !== "USD" ? (
+              <>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">
+                    Amount ({getDisplayCurrency(paymentData.currency_local)}):
+                  </span>
+                  <span className="font-semibold">
+                    {getDisplayCurrency(paymentData.currency_local)}{" "}
+                    {paymentData.amount_local.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">USD Equivalent:</span>
+                  <span className="font-semibold">
+                    $ {(paymentData.amount_usd_cents / 100).toFixed(2)}
+                  </span>
+                </div>
+              </>
+            ) : (
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">
-                  Amount ({getDisplayCurrency(paymentData.currency_local)}):
-                </span>
+                <span className="text-muted-foreground">USD:</span>
                 <span className="font-semibold">
-                  {getDisplayCurrency(paymentData.currency_local)}{" "}
-                  {paymentData.amount_local.toFixed(2)}
+                  $ {(paymentData.amount_usd_cents / 100).toFixed(2)}
                 </span>
               </div>
             )}
 
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">USD Equivalent:</span>
-              <span className="font-semibold">
-                $ {(paymentData.amount_usd_cents / 100).toFixed(2)}
-              </span>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Points Used:</span>
-              <span className="font-semibold">
-                {paymentData.amount_usd_cents} pts
-              </span>
-            </div>
+            {paymentData.is_using_points && (
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Points Used:</span>
+                <span className="font-semibold">
+                  {paymentData.amount_usd_cents} pts
+                </span>
+              </div>
+            )}
 
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Merchant:</span>

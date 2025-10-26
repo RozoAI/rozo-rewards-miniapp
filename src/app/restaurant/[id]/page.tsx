@@ -256,10 +256,11 @@ export default function RestaurantDetailPage() {
 
       if (response && response.status === "success") {
         // Store payment data in sessionStorage for receipt page
-        const receiptData = {
+        const receiptData: PaymentData = {
           ...response.data,
           restaurant_name: restaurant.name,
           restaurant_address: restaurant.address_line1,
+          is_using_points: true,
         };
 
         sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
@@ -354,6 +355,7 @@ export default function RestaurantDetailPage() {
       about: `Pay for ${restaurant.name} - ${displayCurrency} ${paymentAmount}`,
       restaurant_name: restaurant.name,
       restaurant_address: restaurant.address_line1,
+      is_using_points: false,
     };
 
     sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
