@@ -59,7 +59,8 @@ export function AiServicesContent({ className }: { className?: string }) {
             sold_out: false,
           };
 
-          setItems([rozoBananaItem, ...filteredData]);
+          // setItems([rozoBananaItem, ...filteredData]);
+          setItems([...filteredData]);
         }
       } catch (err) {
         if (isMounted)
