@@ -1,0 +1,16 @@
+[
+  {
+    "id": "OpenRouter",
+    "name": "OpenRouter",
+    "domain": "https://openrouter.ai/",
+    "description": "The Unified Interface For LLMs",
+    "logo_url": "https://openrouter.ai/favicon.ico"
+  },
+  {
+    "id": "BaseShop",
+    "name": "Base Shop",
+    "domain": "https://coinbaseshop.com/",
+    "description": "High quality base inspired merch and gifts.",
+    "logo_url": "https://coinbaseshop.com/cdn/shop/files/Shop_FaviconC.png?crop=center&height=32&v=1744990398&width=32"
+  }
+]
