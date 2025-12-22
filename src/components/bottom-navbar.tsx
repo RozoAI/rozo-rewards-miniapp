@@ -17,6 +17,11 @@ export function BottomNavbar() {
     return pathname.startsWith(href);
   };
 
+  // Hide navbar on /dapp route
+  if (pathname === "/dapp") {
+    return null;
+  }
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 h-16 bg-background border-t shadow-t shadow-card flex items-center max-w-xl mx-auto border-x">
       <div className="w-full items-center justify-around flex md:max-w-lg md:mx-auto">

@@ -23,8 +23,8 @@ export default function DappPage() {
   useEffect(() => {
     async function fetchDapps() {
       try {
-        const res = await fetch("/dapp.json");
-        if (!res.ok) throw new Error("Failed to fetch dapp.json");
+        const res = await fetch("/api/dappapi");
+        if (!res.ok) throw new Error("Failed to fetch dapp data");
         const data = await res.json();
         setDapps(data);
       } catch (err) {
@@ -38,7 +38,7 @@ export default function DappPage() {
 
   if (error) {
     return (
-      <div className="w-full mb-16 flex flex-col gap-4 mt-4">
+      <div className="w-full flex flex-col gap-4 mt-4">
         <PageHeader title="DApps" icon={<Globe className="size-6" />} />
         <div className="p-4 text-sm text-red-600">{error}</div>
       </div>
@@ -46,7 +46,7 @@ export default function DappPage() {
   }
 
   return (
-    <div className="w-full mb-16 flex flex-col gap-4 mt-4">
+    <div className="w-full flex flex-col gap-4 mt-4">
       <PageHeader title="DApps" icon={<Globe className="size-6" />} />
 
       {loading ? (
