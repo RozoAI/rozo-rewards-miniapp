@@ -1,6 +1,6 @@
 # Rozo Rewards MiniApp
 
-A Coinbase MiniApp for AI promo and cashback platform with ROZO token rewards system.
+A Base MiniApp for AI promo and cashback platform with ROZO token rewards system
 
 ## 🎯 Overview
 
