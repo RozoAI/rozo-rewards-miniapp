@@ -336,7 +336,23 @@ function ScanResult({
                 min="0"
                 placeholder="0.00"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  if (value === "") {
+                    setAmount(value);
+                    return;
+                  }
+
+                  if (value === "." || value === ",") {
+                    setAmount("0.");
+                    return;
+                  }
+
+                  if (/^\d+\.?\d*$|^\d*\.\d+$/.test(value)) {
+                    setAmount(value);
+                  }
+                }}
                 className="text-lg font-semibold h-10"
               />
             </div>
@@ -418,49 +434,47 @@ function ScanResult({
 
         {/* Payment Button */}
         {isIntentReady && intentConfig ? (
-          <div className="pt-2">
-            <RozoPayButton.Custom
-              appId={"rozoInvoice"}
-              toAddress={intentConfig.toAddress}
-              toChain={Number(intentConfig.toChain)}
-              toToken={intentConfig.toToken}
-              toUnits={finalAmount}
-              intent={`Pay for $${finalAmount} to ${formatAddress(
-                destinationAddress
-              )}`}
-              onPaymentCompleted={() => {
-                toast.success("Payment completed successfully!");
-                onClear();
-              }}
-              resetOnSuccess
-              connectedWalletOnly
-            >
-              {({ show }) => {
-                // Store the show function in ref for delayed opening
-                showDialogRef.current = show;
+          <RozoPayButton.Custom
+            appId={"rozoInvoice"}
+            toAddress={intentConfig.toAddress}
+            toChain={Number(intentConfig.toChain)}
+            toToken={intentConfig.toToken}
+            toUnits={finalAmount}
+            intent={`Pay for $${finalAmount} to ${formatAddress(
+              destinationAddress
+            )}`}
+            onPaymentCompleted={() => {
+              toast.success("Payment completed successfully!");
+              onClear();
+            }}
+            resetOnSuccess
+            connectedWalletOnly
+          >
+            {({ show }) => {
+              // Store the show function in ref for delayed opening
+              showDialogRef.current = show;
 
-                return !confirmed ? (
-                  <Button
-                    variant="default"
-                    className="w-full h-12 cursor-pointer font-semibold text-base"
-                    onClick={handleConfirm}
-                    size="lg"
-                  >
-                    Confirm Payment
-                  </Button>
-                ) : (
-                  <Button
-                    variant="default"
-                    className="w-full h-12 cursor-pointer font-semibold text-base"
-                    onClick={show}
-                    size="lg"
-                  >
-                    Pay Now
-                  </Button>
-                );
-              }}
-            </RozoPayButton.Custom>
-          </div>
+              return !confirmed ? (
+                <Button
+                  variant="default"
+                  className="w-full h-12 cursor-pointer font-semibold text-base"
+                  onClick={handleConfirm}
+                  size="lg"
+                >
+                  Confirm Payment
+                </Button>
+              ) : (
+                <Button
+                  variant="default"
+                  className="w-full h-12 cursor-pointer font-semibold text-base"
+                  onClick={show}
+                  size="lg"
+                >
+                  Pay Now
+                </Button>
+              );
+            }}
+          </RozoPayButton.Custom>
         ) : (
           <Button
             variant="default"
