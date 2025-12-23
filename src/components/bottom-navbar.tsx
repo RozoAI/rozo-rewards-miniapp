@@ -18,7 +18,7 @@ export function BottomNavbar() {
   };
 
   // Hide navbar on /dapp route
-  if (pathname === "/dapp") {
+  if (pathname === "/dapp" || pathname === "/wallet") {
     return null;
   }
 

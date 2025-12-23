@@ -3,9 +3,23 @@
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
-import { AlertCircle, CheckCircle2, Copy, Wallet } from "lucide-react";
+import {
+  Account,
+  Address,
+  Contract,
+  nativeToScVal,
+  TransactionBuilder,
+} from "@stellar/stellar-sdk";
+import { Server } from "@stellar/stellar-sdk/rpc";
+import { AlertCircle, CheckCircle2, Copy, Send, Wallet } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+
+// USDC Contract addresses
+const USDC_CONTRACTS = {
+  TESTNET: "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+  PUBLIC: "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+};
 
 export default function WalletPage() {
   const {
@@ -16,10 +30,13 @@ export default function WalletPage() {
     signTransaction,
     signAuthEntry,
     signMessage,
+    getNetworkDetails,
+    provider,
   } = useRozoWallet();
 
   const [copied, setCopied] = useState(false);
   const [signing, setSigning] = useState(false);
+  const [transferring, setTransferring] = useState(false);
 
   const handleCopyAddress = async () => {
     if (!address) return;
@@ -71,6 +88,124 @@ export default function WalletPage() {
       console.error("Sign transaction error:", error);
     } finally {
       setSigning(false);
+    }
+  };
+
+  const handleTransferUSDC = async () => {
+    if (!isAvailable || !isConnected || !provider) {
+      toast.error("Wallet not available or not connected");
+      return;
+    }
+
+    try {
+      setTransferring(true);
+
+      // Test recipient address and amount
+      const recipientAddress =
+        "GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOUJ3UBSIB3GN5QA";
+      const amount = "0.10";
+
+      // 1. Check wallet connection
+      const { isConnected: connected } = await provider.isConnected();
+      if (!connected) {
+        throw new Error("Wallet not connected");
+      }
+
+      // 2. Get wallet address and network details
+      const { address: walletAddress } = await provider.getAddress();
+      const networkDetails = await getNetworkDetails();
+
+      console.log("Wallet:", walletAddress);
+      console.log("Network:", networkDetails.network);
+
+      // 3. Setup RPC and contract
+      const server = new Server(networkDetails.sorobanRpcUrl);
+      const usdcContractId =
+        networkDetails.network === "PUBLIC"
+          ? USDC_CONTRACTS.PUBLIC
+          : USDC_CONTRACTS.TESTNET;
+      const usdcContract = new Contract(usdcContractId);
+
+      // 4. Convert amount to stroops (7 decimal places)
+      const amountInStroops = BigInt(
+        Math.floor(parseFloat(amount) * 10_000_000)
+      );
+
+      // 5. Build the transfer operation
+      const fromAddress = new Address(walletAddress);
+      const toAddress = new Address(recipientAddress);
+
+      const hostFunction = usdcContract.call(
+        "transfer",
+        fromAddress.toScVal(),
+        toAddress.toScVal(),
+        nativeToScVal(amountInStroops, { type: "i128" })
+      );
+
+      // 6. Create dummy source for simulation (Launchtube will set the real source)
+      const dummySource = new Account(
+        "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+        "0"
+      );
+
+      const tx = new TransactionBuilder(dummySource, {
+        fee: "100",
+        networkPassphrase: networkDetails.networkPassphrase,
+      })
+        .addOperation(hostFunction)
+        .setTimeout(30)
+        .build();
+
+      // 7. Simulate to get auth entries
+      console.log("Simulating transaction...");
+      toast.loading("Simulating transaction...");
+      const simulation = await server.simulateTransaction(tx);
+
+      if ("error" in simulation) {
+        throw new Error(`Simulation failed: ${simulation.error}`);
+      }
+
+      // 8. Extract auth entries and host function XDR
+      const authEntries = simulation.result?.auth || [];
+      if (authEntries.length === 0) {
+        throw new Error("No auth entries found");
+      }
+
+      const txXdr = tx.toEnvelope().v1().tx();
+      const opXdr = txXdr.operations()[0].body().invokeHostFunctionOp();
+      const funcXdr = opXdr.hostFunction().toXDR("base64");
+
+      console.log("Auth entries to sign:", authEntries.length);
+
+      // 9. Sign and submit via Launchtube (wallet handles fee sponsorship!)
+      const authEntryXdr =
+        typeof authEntries[0] === "string"
+          ? authEntries[0]
+          : authEntries[0].toXDR("base64");
+
+      toast.loading("Signing and submitting transaction...");
+      const result = await signAuthEntry(authEntryXdr, {
+        func: funcXdr, // Host function for Launchtube
+        submit: true, // Submit via Launchtube (gasless!)
+      });
+
+      console.log("Transaction submitted:", result.hash);
+      console.log("Status:", result.status);
+
+      toast.success(
+        `USDC transfer submitted! Hash: ${result.hash?.slice(0, 8)}...`
+      );
+      return {
+        hash: result.hash,
+        status: result.status,
+        signedAuthEntry: result.signedAuthEntry,
+      };
+    } catch (error: any) {
+      toast.error(error.message || "Failed to transfer USDC");
+      console.error("Transfer USDC error:", error);
+      throw error;
+    } finally {
+      setTransferring(false);
     }
   };
 
@@ -178,7 +313,7 @@ export default function WalletPage() {
           <div className="space-y-2">
             <Button
               onClick={handleSignMessage}
-              disabled={signing}
+              disabled={signing || transferring}
               className="w-full"
               variant="outline"
             >
@@ -186,11 +321,26 @@ export default function WalletPage() {
             </Button>
             <Button
               onClick={handleSignTransaction}
-              disabled={signing}
+              disabled={signing || transferring}
               className="w-full"
               variant="outline"
             >
               {signing ? "Signing..." : "Sign Transaction"}
+            </Button>
+            <Button
+              onClick={handleTransferUSDC}
+              disabled={signing || transferring}
+              className="w-full"
+              variant="default"
+            >
+              {transferring ? (
+                "Transferring..."
+              ) : (
+                <>
+                  <Send className="size-4 mr-2" />
+                  Transfer USDC (Test)
+                </>
+              )}
             </Button>
           </div>
         </div>

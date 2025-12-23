@@ -19,8 +19,8 @@ interface RozoProvider {
   ) => Promise<{ signedTxXdr: string; signerAddress: string }>;
   signAuthEntry: (
     authEntryXdr: string,
-    opts?: { address?: string }
-  ) => Promise<{ signedAuthEntry: string; signerAddress: string }>;
+    opts?: { address?: string; func?: string; submit?: boolean }
+  ) => Promise<{ signedAuthEntry: string; signerAddress: string; hash?: string; status?: string }>;
   signMessage: (
     message: string,
     opts?: { address?: string }
@@ -100,12 +100,17 @@ export function useRozoWallet() {
   );
 
   const signAuthEntry = useCallback(
-    async (authEntryXdr: string) => {
+    async (authEntryXdr: string, opts?: { address?: string; func?: string; submit?: boolean }) => {
       if (!provider) throw new Error("Wallet not available");
-      return provider.signAuthEntry(authEntryXdr);
+      return provider.signAuthEntry(authEntryXdr, opts);
     },
     [provider]
   );
+
+  const getNetworkDetails = useCallback(async () => {
+    if (!provider) throw new Error("Wallet not available");
+    return provider.getNetworkDetails();
+  }, [provider]);
 
   const signMessage = useCallback(
     async (message: string) => {
@@ -124,5 +129,6 @@ export function useRozoWallet() {
     signTransaction,
     signAuthEntry,
     signMessage,
+    getNetworkDetails,
   };
 }
