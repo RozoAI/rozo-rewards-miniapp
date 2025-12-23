@@ -331,27 +331,22 @@ function ScanResult({
               </Label>
               <Input
                 id="amount"
-                type="number"
-                step="any"
-                min="0"
+                type="text"
+                inputMode="decimal"
                 placeholder="0.00"
                 value={amount}
                 onChange={(e) => {
-                  const value = e.target.value;
+                  let value = e.target.value
+                    .replace(/[^\d.,]/g, "") // Remove all symbols except digits, dot, comma
+                    .replace(/,/g, ".") // Replace all commas with dots
+                    .split(".") // Split by dots
+                    .slice(0, 2) // Keep only first two parts (before and after first dot)
+                    .join("."); // Join back with single dot
 
-                  if (value === "") {
-                    setAmount(value);
-                    return;
-                  }
+                  // Prevent just a dot
+                  if (value === ".") value = "0.";
 
-                  if (value === "." || value === ",") {
-                    setAmount("0.");
-                    return;
-                  }
-
-                  if (/^\d+\.?\d*$|^\d*\.\d+$/.test(value)) {
-                    setAmount(value);
-                  }
+                  setAmount(value);
                 }}
                 className="text-lg font-semibold h-10"
               />
