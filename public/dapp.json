@@ -12,5 +12,12 @@
     "domain": "https://coinbaseshop.com/",
     "description": "High quality base inspired merch and gifts.",
     "logo_url": "https://coinbaseshop.com/cdn/shop/files/Shop_FaviconC.png?crop=center&height=32&v=1744990398&width=32"
+  },
+  {
+    "id": "ROZOwallet",
+    "name": "ROZO Wallet",
+    "domain": "https://wallet.rozo.ai/",
+    "description": "Self custodian wallet",
+    "logo_url": "https://imagedelivery.net/AKLvTMvIg6yc9W08fHl1Tg/fdfef53e-91c2-4abc-aec0-6902a26d6c00/80x"
   }
 ]
