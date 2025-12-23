@@ -62,7 +62,7 @@ export default function WalletPage() {
     try {
       setSigning(true);
       // Example XDR - in production, this would come from your transaction builder
-      const exampleXdr = "AAAAAgAAAAD..."; // Placeholder
+      const exampleXdr = "YOUR_XDR"; // Placeholder
       const result = await signTransaction(exampleXdr);
       toast.success("Transaction signed successfully");
       console.log("Signed transaction:", result);
