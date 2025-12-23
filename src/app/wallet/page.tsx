@@ -37,6 +37,8 @@ export default function WalletPage() {
   const [copied, setCopied] = useState(false);
   const [signing, setSigning] = useState(false);
   const [transferring, setTransferring] = useState(false);
+  const [transferStep, setTransferStep] = useState<string | null>(null);
+  const [transferLogs, setTransferLogs] = useState<string[]>([]);
 
   const handleCopyAddress = async () => {
     if (!address) return;
@@ -91,6 +93,13 @@ export default function WalletPage() {
     }
   };
 
+  const addLog = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    const logMessage = `[${timestamp}] ${message}`;
+    console.log(logMessage);
+    setTransferLogs((prev) => [...prev, logMessage]);
+  };
+
   const handleTransferUSDC = async () => {
     if (!isAvailable || !isConnected || !provider) {
       toast.error("Wallet not available or not connected");
@@ -99,41 +108,66 @@ export default function WalletPage() {
 
     try {
       setTransferring(true);
+      setTransferStep(null);
+      setTransferLogs([]);
 
       // Test recipient address and amount
       const recipientAddress =
-        "GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOUJ3UBSIB3GN5QA";
+        "GDATMUNQEPN4TPETV47LAKGJELK4DUHHDRPMGD3K5LOHUPXX2DI623KY";
       const amount = "0.10";
 
-      // 1. Check wallet connection
+      addLog("🚀 Starting USDC transfer process");
+      addLog(`📝 Recipient: ${recipientAddress}`);
+      addLog(`💰 Amount: ${amount} USDC`);
+
+      // Step 1: Check wallet connection
+      setTransferStep("1. Checking wallet connection...");
+      addLog("Step 1: Checking wallet connection");
       const { isConnected: connected } = await provider.isConnected();
       if (!connected) {
         throw new Error("Wallet not connected");
       }
+      addLog("✅ Wallet is connected");
 
-      // 2. Get wallet address and network details
+      // Step 2: Get wallet address and network details
+      setTransferStep("2. Getting wallet address and network details...");
+      addLog("Step 2: Getting wallet address and network details");
       const { address: walletAddress } = await provider.getAddress();
       const networkDetails = await getNetworkDetails();
 
-      console.log("Wallet:", walletAddress);
-      console.log("Network:", networkDetails.network);
+      addLog(`📍 Wallet Address: ${walletAddress}`);
+      addLog(`🌐 Network: ${networkDetails.network}`);
+      addLog(`🔗 Network URL: ${networkDetails.networkUrl}`);
+      addLog(`🔗 Soroban RPC URL: ${networkDetails.sorobanRpcUrl}`);
+      addLog(`🔑 Network Passphrase: ${networkDetails.networkPassphrase}`);
 
-      // 3. Setup RPC and contract
+      // Step 3: Setup RPC and contract
+      setTransferStep("3. Setting up RPC server and USDC contract...");
+      addLog("Step 3: Setting up RPC server and USDC contract");
       const server = new Server(networkDetails.sorobanRpcUrl);
       const usdcContractId =
         networkDetails.network === "PUBLIC"
           ? USDC_CONTRACTS.PUBLIC
           : USDC_CONTRACTS.TESTNET;
       const usdcContract = new Contract(usdcContractId);
+      addLog(`📄 USDC Contract ID: ${usdcContractId}`);
+      addLog(`📡 RPC Server initialized: ${networkDetails.sorobanRpcUrl}`);
 
-      // 4. Convert amount to stroops (7 decimal places)
+      // Step 4: Convert amount to stroops
+      setTransferStep("4. Converting amount to stroops...");
+      addLog("Step 4: Converting amount to stroops (7 decimal places)");
       const amountInStroops = BigInt(
         Math.floor(parseFloat(amount) * 10_000_000)
       );
+      addLog(`💵 Amount in stroops: ${amountInStroops.toString()}`);
 
-      // 5. Build the transfer operation
+      // Step 5: Build the transfer operation
+      setTransferStep("5. Building transfer operation...");
+      addLog("Step 5: Building transfer operation");
       const fromAddress = new Address(walletAddress);
       const toAddress = new Address(recipientAddress);
+      addLog(`📤 From Address: ${fromAddress.toString()}`);
+      addLog(`📥 To Address: ${toAddress.toString()}`);
 
       const hostFunction = usdcContract.call(
         "transfer",
@@ -141,12 +175,16 @@ export default function WalletPage() {
         toAddress.toScVal(),
         nativeToScVal(amountInStroops, { type: "i128" })
       );
+      addLog("✅ Host function created: transfer(from, to, amount)");
 
-      // 6. Create dummy source for simulation (Launchtube will set the real source)
+      // Step 6: Create transaction
+      setTransferStep("6. Creating transaction...");
+      addLog("Step 6: Creating transaction with dummy source account");
       const dummySource = new Account(
         "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
         "0"
       );
+      addLog(`🔧 Dummy Source Account: ${dummySource.accountId()}`);
 
       const tx = new TransactionBuilder(dummySource, {
         fee: "100",
@@ -155,33 +193,46 @@ export default function WalletPage() {
         .addOperation(hostFunction)
         .setTimeout(30)
         .build();
+      addLog("✅ Transaction built successfully");
+      addLog(`⏱️  Timeout: 30 seconds`);
 
-      // 7. Simulate to get auth entries
-      console.log("Simulating transaction...");
+      // Step 7: Simulate transaction
+      setTransferStep("7. Simulating transaction...");
+      addLog("Step 7: Simulating transaction to get auth entries");
       toast.loading("Simulating transaction...");
       const simulation = await server.simulateTransaction(tx);
+      addLog("📊 Simulation response received");
 
       if ("error" in simulation) {
+        addLog(`❌ Simulation error: ${JSON.stringify(simulation.error)}`);
         throw new Error(`Simulation failed: ${simulation.error}`);
       }
+      addLog("✅ Simulation successful");
 
-      // 8. Extract auth entries and host function XDR
+      // Step 8: Extract auth entries and host function XDR
+      setTransferStep("8. Extracting auth entries and function XDR...");
+      addLog("Step 8: Extracting auth entries and host function XDR");
       const authEntries = simulation.result?.auth || [];
       if (authEntries.length === 0) {
+        addLog("❌ No auth entries found in simulation result");
         throw new Error("No auth entries found");
       }
+      addLog(`🔐 Found ${authEntries.length} auth entry/entries`);
 
       const txXdr = tx.toEnvelope().v1().tx();
       const opXdr = txXdr.operations()[0].body().invokeHostFunctionOp();
       const funcXdr = opXdr.hostFunction().toXDR("base64");
+      addLog(`📦 Host function XDR extracted (length: ${funcXdr.length})`);
 
-      console.log("Auth entries to sign:", authEntries.length);
-
-      // 9. Sign and submit via Launchtube (wallet handles fee sponsorship!)
+      // Step 9: Sign and submit
+      setTransferStep("9. Signing auth entry and submitting via Launchtube...");
+      addLog("Step 9: Signing auth entry and submitting via Launchtube");
       const authEntryXdr =
         typeof authEntries[0] === "string"
           ? authEntries[0]
           : authEntries[0].toXDR("base64");
+      addLog(`✍️  Auth entry XDR prepared (length: ${authEntryXdr.length})`);
+      addLog(`🚀 Submitting via Launchtube (gasless transaction)`);
 
       toast.loading("Signing and submitting transaction...");
       const result = await signAuthEntry(authEntryXdr, {
@@ -189,19 +240,29 @@ export default function WalletPage() {
         submit: true, // Submit via Launchtube (gasless!)
       });
 
-      console.log("Transaction submitted:", result.hash);
-      console.log("Status:", result.status);
+      addLog(`✅ Transaction signed successfully`);
+      addLog(
+        `📝 Signed Auth Entry: ${result.signedAuthEntry?.slice(0, 50)}...`
+      );
+      addLog(`🔗 Transaction Hash: ${result.hash || "Pending"}`);
+      addLog(`📊 Status: ${result.status || "Unknown"}`);
 
+      setTransferStep("✅ Transfer completed successfully!");
       toast.success(
         `USDC transfer submitted! Hash: ${result.hash?.slice(0, 8)}...`
       );
+      addLog("🎉 USDC transfer process completed!");
+
       return {
         hash: result.hash,
         status: result.status,
         signedAuthEntry: result.signedAuthEntry,
       };
     } catch (error: any) {
-      toast.error(error.message || "Failed to transfer USDC");
+      const errorMessage = error.message || "Failed to transfer USDC";
+      addLog(`❌ Error: ${errorMessage}`);
+      setTransferStep(`❌ Error: ${errorMessage}`);
+      toast.error(errorMessage);
       console.error("Transfer USDC error:", error);
       throw error;
     } finally {
@@ -344,6 +405,49 @@ export default function WalletPage() {
             </Button>
           </div>
         </div>
+
+        {/* Transfer Status */}
+        {transferring && transferStep && (
+          <div className="rounded-md border bg-card p-4">
+            <h3 className="font-semibold text-foreground mb-3">
+              Transfer Status
+            </h3>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                <p className="text-sm text-foreground font-medium">
+                  {transferStep}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Transfer Logs */}
+        {transferLogs.length > 0 && (
+          <div className="rounded-md border bg-card p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-foreground">Transfer Logs</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setTransferLogs([])}
+                className="h-7 text-xs"
+              >
+                Clear
+              </Button>
+            </div>
+            <div className="bg-muted rounded-md p-3 max-h-64 overflow-y-auto">
+              <div className="space-y-1 font-mono text-xs">
+                {transferLogs.map((log, index) => (
+                  <div key={index} className="text-muted-foreground">
+                    {log}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
