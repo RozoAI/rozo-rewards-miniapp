@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from "react";
 
 // Types
 interface RozoProvider {
@@ -53,14 +53,15 @@ export function useRozoWallet() {
       }
 
       // Wait for provider
-      const handleReady = async (event: CustomEvent) => {
-        const rozo = event.detail.provider as RozoProvider;
+      const handleReady = async (event: Event) => {
+        const customEvent = event as CustomEvent<{ provider: RozoProvider }>;
+        const rozo = customEvent.detail.provider;
         setProvider(rozo);
         await checkConnection(rozo);
         setIsLoading(false);
       };
 
-      window.addEventListener('rozo:ready', handleReady as EventListener);
+      window.addEventListener("rozo:ready", handleReady);
 
       // Timeout
       const timeout = setTimeout(() => {
@@ -68,7 +69,7 @@ export function useRozoWallet() {
       }, 3000);
 
       return () => {
-        window.removeEventListener('rozo:ready', handleReady as EventListener);
+        window.removeEventListener("rozo:ready", handleReady);
         clearTimeout(timeout);
       };
     }
@@ -83,7 +84,7 @@ export function useRozoWallet() {
           setAddress(address);
         }
       } catch (error) {
-        console.error('Failed to check connection:', error);
+        console.error("Failed to check connection:", error);
       }
     }
 
@@ -92,7 +93,7 @@ export function useRozoWallet() {
 
   const signTransaction = useCallback(
     async (xdr: string, options?: { network?: string; submit?: boolean }) => {
-      if (!provider) throw new Error('Wallet not available');
+      if (!provider) throw new Error("Wallet not available");
       return provider.signTransaction(xdr, options);
     },
     [provider]
@@ -100,7 +101,7 @@ export function useRozoWallet() {
 
   const signAuthEntry = useCallback(
     async (authEntryXdr: string) => {
-      if (!provider) throw new Error('Wallet not available');
+      if (!provider) throw new Error("Wallet not available");
       return provider.signAuthEntry(authEntryXdr);
     },
     [provider]
@@ -108,7 +109,7 @@ export function useRozoWallet() {
 
   const signMessage = useCallback(
     async (message: string) => {
-      if (!provider) throw new Error('Wallet not available');
+      if (!provider) throw new Error("Wallet not available");
       return provider.signMessage(message);
     },
     [provider]
@@ -125,4 +126,3 @@ export function useRozoWallet() {
     signMessage,
   };
 }
-
