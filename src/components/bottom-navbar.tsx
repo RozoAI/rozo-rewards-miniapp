@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Binoculars, QrCodeIcon, StoreIcon, User } from "lucide-react";
+import { Binoculars, StoreIcon, User, Wallet } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -58,8 +58,8 @@ export function BottomNavbar() {
               : "text-gray-500 hover:text-gray-900 focus:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 dark:focus:text-gray-50"
           )}
         >
-          <QrCodeIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-          <span className="text-xs font-medium">Scan QR</span>
+          <Wallet className="h-5 w-5 sm:h-6 sm:w-6" />
+          <span className="text-xs font-medium">Pay</span>
         </Link>
         <Link
           href="/profile"
