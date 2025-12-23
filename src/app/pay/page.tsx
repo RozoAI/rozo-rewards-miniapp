@@ -25,13 +25,18 @@ import { ScanQr } from "@rozoai/deeplink-react";
 import {
   getChainById,
   getChainName,
-  rozoSolana,
-  rozoStellar,
+  getKnownToken,
+  rozoSolanaUSDC,
+  rozoSolanaUSDT,
+  rozoStellarUSDC,
   supportedTokens,
+  Token,
 } from "@rozoai/intent-common";
+import { RozoPayButton } from "@rozoai/intent-pay";
 import { ArrowLeft, Check, QrCode, Wallet } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { formatUnits } from "viem";
 
 function ScanResult({
   data,
@@ -56,61 +61,67 @@ function ScanResult({
 
   const [amount, setAmount] = useState(paymentData?.amount || "");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedToken, setSelectedToken] = useState<Token | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
 
+  // Destination address and chain
   const destinationAddress = paymentData?.address;
   const destinationChain =
     paymentData?.asset?.code ||
     (paymentData?.chain_id ? getChainName(Number(paymentData.chain_id)) : null);
+  const destinationTokenAddress = paymentData?.token_address || null;
+
+  // Amount
   const hasAmount = !!paymentData?.amount;
+
+  // Confrimation
   const canConfirm =
     hasAmount ||
     (amount.trim().length > 0 && !isNaN(Number(amount)) && Number(amount) > 0);
 
-  const availableChains = () => {
+  const getDestinationToken = useMemo(() => {
+    if (!paymentData?.chain_id) return null;
+
+    if (data.type === "stellar") {
+      if (data.asset?.code === "USDC") {
+        return rozoStellarUSDC;
+      }
+    }
+
+    if (!destinationTokenAddress) return null;
+
+    return getKnownToken(
+      Number(paymentData?.chain_id),
+      destinationTokenAddress
+    );
+  }, [paymentData, destinationTokenAddress, data]);
+
+  const availableTokens = useMemo(() => {
     if (data.type === "ethereum") {
       return Array.from(supportedTokens)
         .filter(([chainId, tokens]) => getChainById(chainId).type == "evm")
-        .map(([chainId, tokens]) => getChainById(chainId));
+        .map(([chainId, tokens]) => tokens)
+        .flat();
     } else if (data.type === "solana") {
-      return [rozoSolana];
+      return [rozoSolanaUSDC, rozoSolanaUSDT];
     } else if (data.type === "stellar") {
-      return [rozoStellar];
+      return [rozoStellarUSDC];
     }
+
     return [];
-  };
+  }, [data]);
+
+  const formattedAmount = useMemo(() => {
+    if (!paymentData?.amount || !getDestinationToken) return "";
+    return formatUnits(
+      BigInt(paymentData.amount),
+      Number(getDestinationToken.decimals)
+    );
+  }, [paymentData, getDestinationToken]);
 
   const handleConfirm = async () => {
     if (!canConfirm) return;
-
-    setIsProcessing(true);
-    try {
-      // TODO: Implement actual payment logic here
-      const paymentAmount = amount || paymentData?.amount;
-      console.log("Confirming payment:", {
-        destinationAddress,
-        destinationChain,
-        amount: paymentAmount,
-        data,
-      });
-
-      toast.success("Payment confirmed!", {
-        description: `Sending ${paymentAmount} ${destinationChain} to ${destinationAddress?.slice(
-          0,
-          8
-        )}...`,
-      });
-
-      // Clear after successful payment
-      setTimeout(() => {
-        onClear();
-      }, 2000);
-    } catch (error) {
-      toast.error("Payment failed", {
-        description: error instanceof Error ? error.message : "Unknown error",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+    setConfirmed(true);
   };
 
   if (!isPaymentType || !destinationAddress) {
@@ -154,33 +165,38 @@ function ScanResult({
         </div>
 
         {/* Asset */}
-        {destinationChain ? (
+        {getDestinationToken ? (
           <div>
             <Label className="text-sm font-medium text-gray-500">
               Destination Chain
             </Label>
             <div className="mt-1 p-3 bg-gray-50 rounded-md">
               <p className="text-sm font-medium text-gray-900">
-                {destinationChain}
+                {getDestinationToken.name} (
+                {getChainName(Number(getDestinationToken.chainId))})
               </p>
             </div>
           </div>
         ) : (
           <div>
             <Label className="text-sm font-medium text-gray-500">
-              Choose Chain
+              Choose Token
             </Label>
-            <Select>
+            <Select
+              value={selectedToken?.token}
+              onValueChange={(value) =>
+                setSelectedToken(
+                  availableTokens.find((token) => token.token === value) || null
+                )
+              }
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Select Chain" />
+                <SelectValue placeholder="Select Token" />
               </SelectTrigger>
               <SelectContent>
-                {availableChains().map((chain) => (
-                  <SelectItem
-                    key={chain.chainId}
-                    value={chain.chainId.toString()}
-                  >
-                    {chain.name}
+                {availableTokens.map((token) => (
+                  <SelectItem key={token.token} value={token.token}>
+                    {token.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -189,12 +205,12 @@ function ScanResult({
         )}
 
         {/* Amount */}
-        {hasAmount ? (
+        {hasAmount && getDestinationToken ? (
           <div>
             <Label className="text-sm font-medium text-gray-500">Amount</Label>
             <div className="mt-1 p-3 bg-gray-50 rounded-md">
               <p className="text-sm font-medium text-gray-900">
-                {paymentData?.amount}
+                {formattedAmount}
               </p>
             </div>
           </div>
@@ -220,16 +236,50 @@ function ScanResult({
           </div>
         )}
 
-        {/* Confirm Button */}
-        <Button
-          onClick={handleConfirm}
-          disabled={!canConfirm || isProcessing}
-          className="w-full"
-          size="lg"
-        >
-          <Check className="size-5 mr-2" />
-          {isProcessing ? "Processing..." : "Confirm Payment"}
-        </Button>
+        {!confirmed ? (
+          <Button
+            onClick={handleConfirm}
+            disabled={!canConfirm || isProcessing}
+            className="w-full"
+            size="lg"
+          >
+            <Check className="size-5 mr-2" />
+            Confirm Payment
+          </Button>
+        ) : (
+          <RozoPayButton.Custom
+            appId={"rozoPay"}
+            toAddress={destinationAddress}
+            toChain={Number(getDestinationToken?.chainId)}
+            toToken={getDestinationToken?.token || selectedToken?.token || ""}
+            toUnits={formattedAmount}
+            intent={`Pay for ${formattedAmount} to ${formatAddress(
+              destinationAddress
+            )}`}
+            onPaymentStarted={() => {
+              setIsProcessing(true);
+            }}
+            onPaymentCompleted={() => {
+              setIsProcessing(false);
+            }}
+            resetOnSuccess
+            connectedWalletOnly
+            defaultOpen
+          >
+            {({ show }) => {
+              return (
+                <Button
+                  variant="default"
+                  className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
+                  onClick={show}
+                  size="lg"
+                >
+                  Pay
+                </Button>
+              );
+            }}
+          </RozoPayButton.Custom>
+        )}
       </div>
     </div>
   );
