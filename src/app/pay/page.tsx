@@ -348,11 +348,12 @@ function ScanResult({
             {getDestinationToken ? (
               <div>
                 <div className="text-xs text-muted-foreground mb-1.5">
-                  Chain
+                  Token
                 </div>
                 <div className="p-2.5 bg-muted/50 rounded-md">
                   <p className="text-xs font-medium text-card-foreground flex items-center gap-2">
                     {chainToLogo[Number(getDestinationToken.chainId)]}
+                    {getDestinationToken.symbol} -{" "}
                     {getChainName(Number(getDestinationToken.chainId))}
                   </p>
                 </div>
@@ -404,7 +405,7 @@ function ScanResult({
             {/* Address - Compact */}
             <div>
               <div className="text-xs text-muted-foreground mb-1.5">
-                To Address
+                Address
               </div>
               <div className="p-2.5 bg-muted/50 rounded-md">
                 <p className="text-xs font-mono break-all text-card-foreground">
