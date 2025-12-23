@@ -10,7 +10,7 @@ import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { useUSDCBalance } from "@/hooks/useUSDCBalance";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useAppKitAccount } from "@reown/appkit/react";
-import { Loader2 } from "lucide-react";
+import { Loader2, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -127,17 +127,24 @@ function ProfilePageContentInternal({ isBeta }: { isBeta: boolean }) {
       ) : (
         /* Wallet Connection Prompt - Show when not connected */
         <div className="mb-14">
-          <div className="text-center py-12 flex flex-col items-center justify-center">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <div className="text-center py-12 flex flex-col items-center justify-center space-y-6">
+            <div className="mx-auto w-20 h-20 bg-muted rounded-full flex items-center justify-center">
+              <User className="size-10 text-muted-foreground" />
+            </div>
+
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-foreground">
                 Connect Your Wallet
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
+              </h1>
+              <p className="text-muted-foreground">
                 Connect your wallet to view your ROZO membership rewards and
                 points
               </p>
             </div>
-            <WalletComponents />
+
+            <div className="flex justify-center">
+              <WalletComponents />
+            </div>
           </div>
         </div>
       )}

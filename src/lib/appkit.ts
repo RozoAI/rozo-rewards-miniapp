@@ -1,12 +1,28 @@
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import {
+  arbitrum as arbitrumNetwork,
+  avalanche as avalancheNetwork,
   base as baseNetwork,
   bsc as bscNetwork,
+  gnosis as gnosisNetwork,
+  mainnet as mainnetNetwork,
+  optimism as optimismNetwork,
   polygon as polygonNetwork,
+  worldchain as worldchainNetwork,
 } from "@reown/appkit/networks";
 import { createAppKit } from "@reown/appkit/react";
 import { http } from "viem";
-import { base, bsc, mainnet, polygon } from "wagmi/chains";
+import {
+  arbitrum,
+  avalanche,
+  base,
+  bsc,
+  gnosis,
+  mainnet,
+  optimism,
+  polygon,
+  worldchain,
+} from "wagmi/chains";
 import { injected } from "wagmi/connectors";
 
 // WalletConnect v2 Project ID - you should get your own from https://cloud.walletconnect.com
@@ -16,25 +32,51 @@ const WALLETCONNECT_PROJECT_ID =
 
 // 2. Create a metadata object - optional
 const metadata = {
-  name: "Banana DApp",
-  description: "Banana DApp - Generate and manage your digital bananas",
+  name: "Rozo Rewards",
+  description: "Rozo Rewards - Earn rewards at your favorite restaurants",
   url:
     typeof window !== "undefined"
       ? window.location.origin
-      : "https://b.rozo.ai",
+      : "https://rewards.rozo.ai",
   icons: ["https://avatars.githubusercontent.com/u/37784886"],
 };
 
 // 3. Create Wagmi Adapter
 export const wagmiAdapter = new WagmiAdapter({
-  networks: [baseNetwork, polygonNetwork, bscNetwork],
+  networks: [
+    arbitrumNetwork,
+    avalancheNetwork,
+    baseNetwork,
+    bscNetwork,
+    gnosisNetwork,
+    mainnetNetwork,
+    optimismNetwork,
+    polygonNetwork,
+    worldchainNetwork,
+  ],
   projectId: WALLETCONNECT_PROJECT_ID,
   ssr: true,
-  chains: [mainnet, base, polygon, bsc],
+  chains: [
+    arbitrum,
+    avalanche,
+    base,
+    bsc,
+    gnosis,
+    mainnet,
+    optimism,
+    polygon,
+    worldchain,
+  ],
   transports: {
+    [arbitrum.id]: http(),
+    [avalanche.id]: http(),
     [base.id]: http(),
-    [polygon.id]: http(),
     [bsc.id]: http(),
+    [gnosis.id]: http(),
+    [mainnet.id]: http(),
+    [optimism.id]: http(),
+    [polygon.id]: http(),
+    [worldchain.id]: http(),
   },
   connectors: [
     injected({

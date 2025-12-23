@@ -579,17 +579,14 @@ export default function AIServiceDetailPage() {
                 appId={appId}
                 intent={`Pay for ${service.name} - ${service.duration_months} months`}
                 toAddress="0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897"
-                toChain={8453}
-                toToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+                toChain={baseUSDC.chainId}
+                toToken={baseUSDC.token}
                 {...(service.price_in_usd && {
                   toUnits: service.price_in_usd.toString(),
                 })}
                 metadata={metadata as any}
                 onPaymentStarted={() => {
                   setPaymentLoading(true);
-                }}
-                onPaymentBounced={() => {
-                  setPaymentLoading(false);
                 }}
                 onPaymentCompleted={handlePaymentCompleted}
               >
