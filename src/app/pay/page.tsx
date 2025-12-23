@@ -248,7 +248,7 @@ function ScanResult({
           </Button>
         ) : (
           <RozoPayButton.Custom
-            appId={"rozoPay"}
+            appId={"rozoInvoice"}
             toAddress={destinationAddress}
             toChain={Number(getDestinationToken?.chainId)}
             toToken={getDestinationToken?.token || selectedToken?.token || ""}
