@@ -9,6 +9,7 @@ import {
   Solana,
   Stellar,
 } from "@/components/chainLogo";
+import ChainsStacked from "@/components/ChainStacked";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -139,7 +140,7 @@ function ScanResult({
         return false;
       })
       .map(([, tokens]) =>
-        tokens.filter((token) => token.symbol !== TokenSymbol.EURC)
+        tokens.filter((token) => token.symbol === TokenSymbol.USDC)
       )
       .flat();
   }, [data.type]);
@@ -160,6 +161,17 @@ function ScanResult({
       destinationTokenAddress
     );
   }, [paymentData, destinationTokenAddress, data]);
+
+  // Auto-select token if only one option is available
+  useEffect(() => {
+    if (
+      !getDestinationToken &&
+      availableTokens.length === 1 &&
+      !selectedToken
+    ) {
+      setSelectedToken(availableTokens[0]);
+    }
+  }, [availableTokens, getDestinationToken, selectedToken]);
 
   const formattedAmount = useMemo(() => {
     if (!paymentData?.amount || !getDestinationToken) return "";
@@ -345,6 +357,17 @@ function ScanResult({
                   </p>
                 </div>
               </div>
+            ) : availableTokens.length === 0 ? (
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1.5 block">
+                  Token
+                </Label>
+                <div className="p-2.5 bg-muted/50 rounded-md">
+                  <p className="text-xs text-muted-foreground">
+                    No tokens available for this chain type
+                  </p>
+                </div>
+              </div>
             ) : (
               <div>
                 <Label className="text-xs text-muted-foreground mb-1.5 block">
@@ -359,7 +382,7 @@ function ScanResult({
                     )
                   }
                 >
-                  <SelectTrigger className="h-9 text-xs">
+                  <SelectTrigger className="h-9 text-xs w-full">
                     <SelectValue placeholder="Select Token" />
                   </SelectTrigger>
                   <SelectContent>
@@ -485,8 +508,12 @@ function PayPageContent() {
           {!scannedData && (
             <>
               <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-foreground mb-2">Pay</h1>
-                <p className="text-muted-foreground mb-4">
+                {/* Supported Chains */}
+                <div className="flex items-center justify-center gap-3 mt-6 mb-4">
+                  <ChainsStacked />
+                </div>
+
+                <p className="text-muted-foreground mb-4 text-lg">
                   Scan QR codes to send payments across any chains
                 </p>
               </div>
