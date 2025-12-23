@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Binoculars, StoreIcon, User } from "lucide-react";
+import { Binoculars, QrCodeIcon, StoreIcon, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -31,7 +31,6 @@ export function BottomNavbar() {
               ? "text-primary dark:text-primary font-bold"
               : "text-gray-500 hover:text-gray-900 focus:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 dark:focus:text-gray-50"
           )}
-          prefetch={false}
         >
           <StoreIcon className="h-5 w-5 sm:h-6 sm:w-6" />
           <span className="text-xs font-medium">Lifestyle</span>
@@ -44,12 +43,23 @@ export function BottomNavbar() {
               ? "text-primary dark:text-primary font-bold"
               : "text-gray-500 hover:text-gray-900 focus:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 dark:focus:text-gray-50"
           )}
-          prefetch={false}
         >
           <Binoculars className="h-5 w-5 sm:h-6 sm:w-6" />
           <span className="text-xs font-medium" suppressHydrationWarning>
             Discovery
           </span>
+        </Link>
+        <Link
+          href="/pay"
+          className={cn(
+            "flex flex-col items-center justify-center gap-1 transition-colors min-w-0",
+            isActive("/pay")
+              ? "text-primary dark:text-primary font-bold"
+              : "text-gray-500 hover:text-gray-900 focus:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 dark:focus:text-gray-50"
+          )}
+        >
+          <QrCodeIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+          <span className="text-xs font-medium">Scan QR</span>
         </Link>
         <Link
           href="/profile"
@@ -59,7 +69,6 @@ export function BottomNavbar() {
               ? "text-primary dark:text-primary font-bold"
               : "text-gray-500 hover:text-gray-900 focus:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 dark:focus:text-gray-50"
           )}
-          prefetch={false}
         >
           <User className="h-5 w-5 sm:h-6 sm:w-6" />
           <span className="text-xs font-medium">Profile</span>

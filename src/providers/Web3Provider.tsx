@@ -4,6 +4,7 @@ import { initializeAppKit, wagmiAdapter } from "@/lib/appkit";
 import { AppKitProvider } from "@reown/appkit/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { base } from "viem/chains";
 import { Config, cookieToInitialState, WagmiProvider } from "wagmi";
 
 const queryClient = new QueryClient();
@@ -41,7 +42,9 @@ export default function Web3Provider({
       initialState={initialState}
     >
       <QueryClientProvider client={queryClient}>
-        <AppKitProvider {...appKitInstance}>{children}</AppKitProvider>
+        <AppKitProvider {...appKitInstance} defaultNetwork={base}>
+          {children}
+        </AppKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
