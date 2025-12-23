@@ -333,6 +333,9 @@ export default function RestaurantDetailPage() {
   const handlePaymentCompleted = (args: PaymentCompletedEvent) => {
     if (!restaurant) return;
 
+    // Prefetch and navigate to receipt page
+    router.prefetch("/receipt");
+
     toast.success(`Payment successful to ${restaurant.name}!`, {
       description:
         "Your payment has been processed successfully. Redirecting to receipt...",
@@ -360,11 +363,9 @@ export default function RestaurantDetailPage() {
 
     sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
 
-    handleClearPayment();
-
-    // Prefetch and navigate to receipt page
-    router.prefetch("/receipt");
     setTimeout(() => {
+      handleClearPayment();
+      setLoading(false);
       router.push("/receipt");
     }, 2000);
   };
@@ -591,10 +592,6 @@ export default function RestaurantDetailPage() {
                   onPaymentStarted={() => {
                     setLoading(true);
                     setPaymentLoading(true);
-                  }}
-                  onPaymentBounced={() => {
-                    setLoading(false);
-                    setPaymentLoading(false);
                   }}
                   onPaymentCompleted={handlePaymentCompleted}
                 >

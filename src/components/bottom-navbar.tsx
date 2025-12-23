@@ -1,6 +1,5 @@
 "use client";
 
-import { useBookmarks } from "@/contexts/BookmarkContext";
 import { cn } from "@/lib/utils";
 import { Binoculars, StoreIcon, User } from "lucide-react";
 import Link from "next/link";
@@ -8,7 +7,6 @@ import { usePathname } from "next/navigation";
 
 export function BottomNavbar() {
   const pathname = usePathname();
-  const { bookmarks } = useBookmarks();
 
   const isActive = (href: string) => {
     if (href === "/") {
