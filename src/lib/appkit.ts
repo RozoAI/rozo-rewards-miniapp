@@ -104,6 +104,7 @@ export function initializeAppKit() {
       coinbasePreference: "all",
       enableCoinbase: true,
       themeMode: "light",
+      defaultNetwork: baseNetwork,
     });
   }
   return appKitInstance;
