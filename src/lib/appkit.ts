@@ -105,6 +105,7 @@ export function initializeAppKit() {
       enableCoinbase: true,
       themeMode: "light",
       defaultNetwork: baseNetwork,
+      allowUnsupportedChain: true,
     });
   }
   return appKitInstance;
