@@ -315,8 +315,8 @@ export default function RestaurantDetailPage() {
     const payment = await createPayment({
       appId: appId,
       toAddress: toAddress,
-      toChain: rozoStellarUSDC.chainId,
-      toToken: rozoStellarUSDC.token,
+      toChain: baseUSDC.chainId,
+      toToken: baseUSDC.token,
       toUnits: amount,
       preferredChain: rozoStellarUSDC.chainId,
       preferredTokenAddress: rozoStellarUSDC.token,
