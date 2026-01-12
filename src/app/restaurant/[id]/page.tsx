@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useBookmarks } from "@/contexts/BookmarkContext";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
+import { useRozoWallet } from "@/hooks/useRozoWallet";
 import {
   convertToUSD,
   EXCHANGE_RATES,
@@ -27,7 +28,12 @@ import {
 } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
 import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
-import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
+import {
+  baseUSDC,
+  createPayment,
+  PaymentCompletedEvent,
+  rozoStellarUSDC,
+} from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPay, useRozoPayUI } from "@rozoai/intent-pay";
 
 import { PaymentData } from "@/app/receipt/receipt-content";
@@ -47,7 +53,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import data from "../../../../public/coffee_mapdata.json";
 
@@ -62,6 +68,15 @@ export default function RestaurantDetailPage() {
   const { isInMiniApp } = useIsInMiniApp();
   const { composeCast } = useComposeCast();
   const { isBookmarked, toggleBookmark } = useBookmarks();
+  const {
+    isAvailable: isRozoWalletAvailable,
+    isConnected: isRozoWalletConnected,
+    walletAddress: rozoWalletAddress,
+    balance: rozoWalletBalance,
+    isLoading: rozoWalletLoading,
+    transferUSDC: rozoWalletTransfer,
+    refreshData: refreshRozoWallet,
+  } = useRozoWallet();
 
   const [restaurant, setRestaurant] = React.useState<Restaurant | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -73,12 +88,18 @@ export default function RestaurantDetailPage() {
   const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
   const [dialogLoading, setDialogLoading] = React.useState(false);
   const [showFullAddress, setShowFullAddress] = React.useState(false);
+  const [isRozoWalletPaymentLoading, setIsRozoWalletPaymentLoading] =
+    React.useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastResetAmountRef = useRef<string>("");
   const [appId, setAppId] = React.useState<string>("");
 
   const merchantOrderId = `${restaurant?.handle.toUpperCase()}-${new Date().getTime()}`;
   const receiptUrl = `https://ns.rozo.ai/payment/success?order_id=${merchantOrderId}`;
+
+  const toAddress = useMemo(() => {
+    return restaurant?.payTo ?? "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897";
+  }, [restaurant]);
 
   const generateMetadata = (amountLocal: string, currencyLocal: string) => {
     const displayCurrency = getDisplayCurrency(currencyLocal);
@@ -276,6 +297,98 @@ export default function RestaurantDetailPage() {
     } catch {
       toast.error("Failed to spend points");
       setDialogLoading(false);
+    }
+  };
+
+  // Pay with Rozo Wallet (Stellar USDC)
+  // Only shown when page is opened in Rozo Wallet mobile app
+  // Uses window.rozo provider for gasless USDC transfers
+  const generateBridgeAddress = async (
+    amount: string
+  ): Promise<{
+    amount: string;
+    bridgeAddress: string;
+    memo: string;
+  }> => {
+    const displayCurrency = getDisplayCurrency(restaurant?.currency);
+
+    const payment = await createPayment({
+      appId: appId,
+      toAddress: toAddress,
+      toChain: rozoStellarUSDC.chainId,
+      toToken: rozoStellarUSDC.token,
+      toUnits: amount,
+      preferredChain: rozoStellarUSDC.chainId,
+      preferredTokenAddress: rozoStellarUSDC.token,
+      metadata: generateMetadata(amount, displayCurrency) as any,
+      title: `Pay for ${restaurant?.name} - ${displayCurrency} ${amount}`,
+    });
+
+    if (
+      !payment.source.receiverAddress ||
+      !payment.source.amount ||
+      !payment.source.receiverMemo
+    ) {
+      throw new Error("Failed to generate bridge address");
+    }
+
+    return {
+      amount: payment.source.amount,
+      bridgeAddress: payment.source.receiverAddress,
+      memo: payment.source.receiverMemo,
+    };
+  };
+
+  const handlePayWithRozoWallet = async () => {
+    if (!restaurant || !paymentAmount) return;
+
+    try {
+      setIsRozoWalletPaymentLoading(true);
+
+      const displayCurrency = getDisplayCurrency(restaurant.currency);
+      const usdAmount = convertToUSD(paymentAmount, displayCurrency);
+
+      // Transfer USDC on Stellar network
+      const { amount, bridgeAddress, memo } =
+        await generateBridgeAddress(usdAmount);
+
+      const result = await rozoWalletTransfer(amount, bridgeAddress, memo);
+
+      if (result.hash) {
+        // Store receipt data
+        const receiptData: PaymentData = {
+          from_address: rozoWalletAddress || "",
+          to_handle:
+            restaurant.handle ||
+            restaurant.name.toLowerCase().replace(/\s+/g, ""),
+          amount_usd_cents: parseFloat(usdAmount) * 100,
+          amount_local: parseFloat(paymentAmount),
+          currency_local: displayCurrency,
+          timestamp: Date.now(),
+          order_id: merchantOrderId,
+          about: `Pay for ${restaurant.name} - ${displayCurrency} ${paymentAmount}`,
+          restaurant_name: restaurant.name,
+          restaurant_address: restaurant.address_line1,
+          is_using_points: false,
+        };
+
+        sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
+
+        toast.success(`Payment successful to ${restaurant.name}!`);
+        router.push("/receipt");
+      }
+    } catch (error: any) {
+      console.error("Rozo Wallet payment error:", error);
+
+      if (error.message.includes("User rejected")) {
+        toast.error("Payment cancelled");
+      } else if (error.message.includes("Insufficient balance")) {
+        toast.error("Insufficient USDC balance");
+      } else {
+        toast.error("Payment failed. Please try again.");
+      }
+    } finally {
+      setIsRozoWalletPaymentLoading(false);
     }
   };
 
@@ -568,124 +681,174 @@ export default function RestaurantDetailPage() {
                   )}
                 </div>
 
-                {/* Payment Button */}
-                <RozoPayButton.Custom
-                  resetOnSuccess
-                  appId={appId}
-                  toAddress={
-                    (restaurant.payTo ??
-                      "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897") as `0x${string}`
-                  }
-                  toChain={baseUSDC.chainId}
-                  {...(paymentAmount && parseFloat(paymentAmount) > 0
-                    ? {
-                        toUnits: convertToUSD(
-                          paymentAmount,
-                          getDisplayCurrency(restaurant?.currency)
-                        ),
-                      }
-                    : {})}
-                  toToken={baseUSDC.token as `0x${string}`}
-                  intent={`Pay for ${restaurant.name} - ${getDisplayCurrency(
-                    restaurant?.currency
-                  )} ${paymentAmount}`}
-                  onPaymentStarted={() => {
-                    setLoading(true);
-                    setPaymentLoading(true);
-                  }}
-                  onPaymentCompleted={handlePaymentCompleted}
-                >
-                  {({ show }) => {
-                    const usdAmount = convertToUSD(
-                      paymentAmount,
-                      getDisplayCurrency(restaurant?.currency)
-                    );
-
-                    return (
-                      <Button
-                        variant="default"
-                        className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
-                        onClick={show}
-                        disabled={
-                          isDebouncing ||
-                          loading ||
-                          !paymentAmount ||
-                          parseFloat(paymentAmount) <= 0 ||
-                          isNaN(parseFloat(paymentAmount)) ||
-                          paymentState !== "preview"
-                        }
-                        size="lg"
-                      >
-                        {loading ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                        )}
-                        Pay ${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount}{" "}
-                        with Crypto
-                      </Button>
-                    );
-                  }}
-                </RozoPayButton.Custom>
-
-                {/* Pay with Points Button */}
-                {points > 0 && (
+                {/* Payment Buttons - Conditional based on Rozo Wallet availability */}
+                {isRozoWalletAvailable && isRozoWalletConnected ? (
+                  // Pay with Rozo Wallet (Stellar USDC) - REPLACES other payment methods
                   <div className="space-y-2">
+                    {/* Balance Display */}
+                    {rozoWalletBalance && (
+                      <p className="text-xs text-muted-foreground text-center">
+                        Rozo Wallet Balance: {rozoWalletBalance} USDC (Stellar)
+                      </p>
+                    )}
+
+                    {/* Pay with Rozo Wallet Button */}
                     <Button
-                      className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
-                      size="lg"
-                      onClick={handlePayWithPoints}
-                      variant="outline"
+                      variant="default"
+                      className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
+                      onClick={handlePayWithRozoWallet}
                       disabled={
+                        isRozoWalletPaymentLoading ||
                         !paymentAmount ||
                         parseFloat(paymentAmount) <= 0 ||
-                        isNaN(parseFloat(paymentAmount)) ||
-                        points <
-                          parseFloat(
-                            convertToUSD(
-                              paymentAmount,
-                              getDisplayCurrency(restaurant?.currency)
-                            )
-                          )
+                        isNaN(parseFloat(paymentAmount))
                       }
+                      size="lg"
                     >
-                      <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                      Pay with{" "}
-                      {new Intl.NumberFormat("en-US", {
-                        style: "decimal",
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      }).format(
-                        isNaN(
-                          parseFloat(
-                            convertToUSD(
-                              paymentAmount || "0",
-                              getDisplayCurrency(restaurant?.currency)
-                            )
+                      {isRozoWalletPaymentLoading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                      )}
+                      Pay $
+                      {isNaN(
+                        parseFloat(
+                          convertToUSD(
+                            paymentAmount || "0",
+                            getDisplayCurrency(restaurant?.currency)
                           )
                         )
-                          ? 0
-                          : parseFloat(
-                              convertToUSD(
-                                paymentAmount || "0",
-                                getDisplayCurrency(restaurant?.currency)
-                              )
-                            ) * 100
-                      )}{" "}
-                      Points
+                      )
+                        ? "0.00"
+                        : convertToUSD(
+                            paymentAmount || "0",
+                            getDisplayCurrency(restaurant?.currency)
+                          )}{" "}
+                      with Rozo Wallet
                     </Button>
-                    <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-                      Available Points: {Number((points ?? 0) * 100).toFixed(2)}{" "}
-                      pts
-                      <CustomTooltip
-                        content="Explore all the benefits of Rozo. Rozo points are the rewards for your purchases."
-                        position="top"
-                        className="w-48 sm:w-[20rem] ml-1.5"
-                      >
-                        <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
-                      </CustomTooltip>
-                    </div>
                   </div>
+                ) : (
+                  <>
+                    {/* Original Payment Buttons - ONLY shown when Rozo Wallet NOT available */}
+
+                    {/* Payment Button */}
+                    <RozoPayButton.Custom
+                      resetOnSuccess
+                      appId={appId}
+                      toAddress={toAddress}
+                      toChain={baseUSDC.chainId}
+                      {...(paymentAmount && parseFloat(paymentAmount) > 0
+                        ? {
+                            toUnits: convertToUSD(
+                              paymentAmount,
+                              getDisplayCurrency(restaurant?.currency)
+                            ),
+                          }
+                        : {})}
+                      toToken={baseUSDC.token}
+                      intent={`Pay for ${restaurant.name} - ${getDisplayCurrency(
+                        restaurant?.currency
+                      )} ${paymentAmount}`}
+                      onPaymentStarted={() => {
+                        setLoading(true);
+                        setPaymentLoading(true);
+                      }}
+                      onPaymentCompleted={handlePaymentCompleted}
+                    >
+                      {({ show }) => {
+                        const usdAmount = convertToUSD(
+                          paymentAmount,
+                          getDisplayCurrency(restaurant?.currency)
+                        );
+
+                        return (
+                          <Button
+                            variant="default"
+                            className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
+                            onClick={show}
+                            disabled={
+                              isDebouncing ||
+                              loading ||
+                              !paymentAmount ||
+                              parseFloat(paymentAmount) <= 0 ||
+                              isNaN(parseFloat(paymentAmount)) ||
+                              paymentState !== "preview"
+                            }
+                            size="lg"
+                          >
+                            {loading ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                              <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                            )}
+                            Pay $
+                            {isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount}{" "}
+                            with Crypto
+                          </Button>
+                        );
+                      }}
+                    </RozoPayButton.Custom>
+
+                    {/* Pay with Points Button */}
+                    {points > 0 && (
+                      <div className="space-y-2">
+                        <Button
+                          className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
+                          size="lg"
+                          onClick={handlePayWithPoints}
+                          variant="outline"
+                          disabled={
+                            !paymentAmount ||
+                            parseFloat(paymentAmount) <= 0 ||
+                            isNaN(parseFloat(paymentAmount)) ||
+                            points <
+                              parseFloat(
+                                convertToUSD(
+                                  paymentAmount,
+                                  getDisplayCurrency(restaurant?.currency)
+                                )
+                              )
+                          }
+                        >
+                          <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                          Pay with{" "}
+                          {new Intl.NumberFormat("en-US", {
+                            style: "decimal",
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0,
+                          }).format(
+                            isNaN(
+                              parseFloat(
+                                convertToUSD(
+                                  paymentAmount || "0",
+                                  getDisplayCurrency(restaurant?.currency)
+                                )
+                              )
+                            )
+                              ? 0
+                              : parseFloat(
+                                  convertToUSD(
+                                    paymentAmount || "0",
+                                    getDisplayCurrency(restaurant?.currency)
+                                  )
+                                ) * 100
+                          )}{" "}
+                          Points
+                        </Button>
+                        <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+                          Available Points:{" "}
+                          {Number((points ?? 0) * 100).toFixed(2)} pts
+                          <CustomTooltip
+                            content="Explore all the benefits of Rozo. Rozo points are the rewards for your purchases."
+                            position="top"
+                            className="w-48 sm:w-[20rem] ml-1.5"
+                          >
+                            <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
+                          </CustomTooltip>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
