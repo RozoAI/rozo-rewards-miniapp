@@ -385,7 +385,7 @@ export default function RestaurantDetailPage() {
       } else if (error.message.includes("Insufficient balance")) {
         toast.error("Insufficient USDC balance");
       } else {
-        toast.error(`Payment failed. Please try again. ${error.message}`);
+        toast.error(`Payment failed. Please try again.`);
       }
     } finally {
       setIsRozoWalletPaymentLoading(false);

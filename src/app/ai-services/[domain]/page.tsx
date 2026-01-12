@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useBookmarks } from "@/contexts/BookmarkContext";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
+import { useRozoWallet } from "@/hooks/useRozoWallet";
 import {
   convertToUSD,
   getDisplayCurrency,
@@ -27,7 +28,12 @@ import {
 } from "@/lib/utils";
 import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { useAppKitAccount } from "@reown/appkit/react";
-import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
+import {
+  baseUSDC,
+  createPayment,
+  PaymentCompletedEvent,
+  rozoStellarUSDC,
+} from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPayUI } from "@rozoai/intent-pay";
 import {
   ArrowLeft,
@@ -73,6 +79,8 @@ type PaymentIntentProps = {
   toToken: string;
 };
 
+const toAddress = "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897";
+
 export default function AIServiceDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -83,6 +91,15 @@ export default function AIServiceDetailPage() {
   const { resetPayment } = useRozoPayUI();
   const { getPoints, spendPoints } = useRozoPointAPI();
   const { address, isConnected } = useAppKitAccount();
+  const {
+    isAvailable: isRozoWalletAvailable,
+    isConnected: isRozoWalletConnected,
+    walletAddress: rozoWalletAddress,
+    balance: rozoWalletBalance,
+    isLoading: rozoWalletLoading,
+    transferUSDC: rozoWalletTransfer,
+    refreshData: refreshRozoWallet,
+  } = useRozoWallet();
 
   const [service, setService] = React.useState<CatalogItem | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -92,6 +109,8 @@ export default function AIServiceDetailPage() {
   const [pointsLoading, setPointsLoading] = React.useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
   const [dialogLoading, setDialogLoading] = React.useState(false);
+  const [isRozoWalletPaymentLoading, setIsRozoWalletPaymentLoading] =
+    React.useState(false);
   const [appId, setAppId] = React.useState<string>("");
   const [userEmail, setUserEmail] = React.useState<string>("");
   const [emailError, setEmailError] = React.useState<string>("");
@@ -256,6 +275,93 @@ export default function AIServiceDetailPage() {
     } else {
       toast.error("Failed to spend points");
       setDialogLoading(false);
+    }
+  };
+
+  // Pay with Rozo Wallet (Stellar USDC)
+  // Only shown when page is opened in Rozo Wallet mobile app
+  // Uses window.rozo provider for gasless USDC transfers
+
+  const generateBridgeAddress = async (
+    amount: string
+  ): Promise<{
+    amount: string;
+    bridgeAddress: string;
+    memo: string;
+  }> => {
+    const payment = await createPayment({
+      appId: appId,
+      toAddress: toAddress,
+      toChain: baseUSDC.chainId,
+      toToken: baseUSDC.token,
+      toUnits: amount,
+      preferredChain: rozoStellarUSDC.chainId,
+      preferredTokenAddress: rozoStellarUSDC.token,
+      metadata: metadata as any,
+      title: `Pay for ${service?.name} - ${service?.duration_months} months`,
+    });
+
+    if (
+      !payment.source.receiverAddress ||
+      !payment.source.amount ||
+      !payment.source.receiverMemo
+    ) {
+      throw new Error("Failed to generate bridge address");
+    }
+
+    return {
+      amount: payment.source.amount,
+      bridgeAddress: payment.source.receiverAddress,
+      memo: payment.source.receiverMemo,
+    };
+  };
+
+  const handlePayWithRozoWallet = async () => {
+    if (!service || !validateEmailInput()) return;
+
+    try {
+      setIsRozoWalletPaymentLoading(true);
+
+      const usdAmount = service.price_in_usd.toString();
+
+      const { amount, bridgeAddress, memo } =
+        await generateBridgeAddress(usdAmount);
+
+      const result = await rozoWalletTransfer(amount, bridgeAddress, memo);
+
+      if (result.hash) {
+        // Store receipt data
+        const receiptData = {
+          from_address: rozoWalletAddress || "",
+          to_handle: service.domain,
+          amount_usd_cents: service.price_in_usd * 100,
+          amount_local: service.price_in_usd,
+          currency_local: "USD",
+          timestamp: Date.now(),
+          order_id: merchantOrderId,
+          about: `Pay for ${service.name} - ${service.duration_months} months`,
+          service_name: service.name,
+          service_domain: service.domain,
+          is_using_points: false,
+        };
+
+        sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
+
+        toast.success(`Payment successful to ${service.name}!`);
+        router.push("/receipt");
+      }
+    } catch (error: any) {
+      console.error("Rozo Wallet payment error:", error);
+
+      if (error.message.includes("User rejected")) {
+        toast.error("Payment cancelled");
+      } else if (error.message.includes("Insufficient balance")) {
+        toast.error("Insufficient USDC balance");
+      } else {
+        toast.error("Payment failed. Please try again.");
+      }
+    } finally {
+      setIsRozoWalletPaymentLoading(false);
     }
   };
 
@@ -572,85 +678,123 @@ export default function AIServiceDetailPage() {
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-3">
-            {/* Intent SDK for non mini app */}
-            {!service.sold_out && (
-              <RozoPayButton.Custom
-                resetOnSuccess
-                appId={appId}
-                intent={`Pay for ${service.name} - ${service.duration_months} months`}
-                toAddress="0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897"
-                toChain={baseUSDC.chainId}
-                toToken={baseUSDC.token}
-                {...(service.price_in_usd && {
-                  toUnits: service.price_in_usd.toString(),
-                })}
-                metadata={metadata as any}
-                onPaymentStarted={() => {
-                  setPaymentLoading(true);
-                }}
-                onPaymentCompleted={handlePaymentCompleted}
-              >
-                {({ show }) => (
-                  <div className="m-auto flex w-full flex-col gap-2">
-                    <Button
-                      className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
-                      size={"lg"}
-                      onClick={() => {
-                        if (!validateEmailInput()) {
-                          return;
-                        }
-                        show();
-                      }}
-                      disabled={paymentLoading}
-                    >
-                      {paymentLoading ? (
-                        <>
-                          <Wallet className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
-                          Processing Payment...
-                        </>
-                      ) : (
-                        <>
-                          <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
-                          Pay with Crypto
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </RozoPayButton.Custom>
-            )}
+            {/* Payment Buttons - Conditional based on Rozo Wallet availability */}
+            {!service.sold_out &&
+              (isRozoWalletAvailable && isRozoWalletConnected ? (
+                // Pay with Rozo Wallet (Stellar USDC) - REPLACES other payment methods
+                <div className="space-y-2">
+                  {/* Balance Display */}
+                  {rozoWalletBalance && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      Rozo Wallet Balance: {rozoWalletBalance} USDC (Stellar)
+                    </p>
+                  )}
 
-            {/* Pay with Points Button */}
-            {!service.sold_out && points > 0 && (
-              <div className="space-y-2">
-                <Button
-                  className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
-                  size={"lg"}
-                  onClick={handlePayWithPoints}
-                  variant="outline"
-                  disabled={points < service.price_in_usd}
-                >
-                  <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
-                  Pay with{" "}
-                  {new Intl.NumberFormat("en-US", {
-                    style: "decimal",
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  }).format(service.price_in_usd * 100)}{" "}
-                  Points
-                </Button>
-                <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-                  Available Points: {Number((points ?? 0) * 100).toFixed(2)} pts
-                  <CustomTooltip
-                    content="Explore all the benefits of Rozo. Rozo points are the rewards for your purchases."
-                    position="top"
-                    className="w-48 sm:w-[20rem] ml-1.5"
+                  {/* Pay with Rozo Wallet Button */}
+                  <Button
+                    variant="default"
+                    className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
+                    onClick={handlePayWithRozoWallet}
+                    disabled={isRozoWalletPaymentLoading}
+                    size="lg"
                   >
-                    <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
-                  </CustomTooltip>
+                    {isRozoWalletPaymentLoading ? (
+                      <>
+                        <Wallet className="mr-2 h-4 w-4 animate-pulse" />
+                        Processing Payment...
+                      </>
+                    ) : (
+                      <>
+                        <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                        Pay ${service.price_in_usd} with Rozo Wallet
+                      </>
+                    )}
+                  </Button>
                 </div>
-              </div>
-            )}
+              ) : (
+                <>
+                  {/* Original Payment Buttons - ONLY shown when Rozo Wallet NOT available */}
+
+                  {/* Intent SDK for non mini app */}
+                  <RozoPayButton.Custom
+                    resetOnSuccess
+                    appId={appId}
+                    intent={`Pay for ${service.name} - ${service.duration_months} months`}
+                    toAddress={toAddress}
+                    toChain={baseUSDC.chainId}
+                    toToken={baseUSDC.token}
+                    {...(service.price_in_usd && {
+                      toUnits: service.price_in_usd.toString(),
+                    })}
+                    metadata={metadata as any}
+                    onPaymentStarted={() => {
+                      setPaymentLoading(true);
+                    }}
+                    onPaymentCompleted={handlePaymentCompleted}
+                  >
+                    {({ show }) => (
+                      <div className="m-auto flex w-full flex-col gap-2">
+                        <Button
+                          className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
+                          size={"lg"}
+                          onClick={() => {
+                            if (!validateEmailInput()) {
+                              return;
+                            }
+                            show();
+                          }}
+                          disabled={paymentLoading}
+                        >
+                          {paymentLoading ? (
+                            <>
+                              <Wallet className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
+                              Processing Payment...
+                            </>
+                          ) : (
+                            <>
+                              <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
+                              Pay with Crypto
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </RozoPayButton.Custom>
+
+                  {/* Pay with Points Button */}
+                  {points > 0 && (
+                    <div className="space-y-2">
+                      <Button
+                        className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
+                        size={"lg"}
+                        onClick={handlePayWithPoints}
+                        variant="outline"
+                        disabled={points < service.price_in_usd}
+                      >
+                        <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
+                        Pay with{" "}
+                        {new Intl.NumberFormat("en-US", {
+                          style: "decimal",
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        }).format(service.price_in_usd * 100)}{" "}
+                        Points
+                      </Button>
+                      <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+                        Available Points:{" "}
+                        {Number((points ?? 0) * 100).toFixed(2)} pts
+                        <CustomTooltip
+                          content="Explore all the benefits of Rozo. Rozo points are the rewards for your purchases."
+                          position="top"
+                          className="w-48 sm:w-[20rem] ml-1.5"
+                        >
+                          <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
+                        </CustomTooltip>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ))}
 
             {/* Sold Out State */}
             {service.sold_out && (
