@@ -385,7 +385,9 @@ export default function RestaurantDetailPage() {
       } else if (error.message.includes("Insufficient balance")) {
         toast.error("Insufficient USDC balance");
       } else {
-        toast.error(`Payment failed. Please try again.`);
+        toast.error(
+          `Payment failed. Please try again. Message: ${error.message}`
+        );
       }
     } finally {
       setIsRozoWalletPaymentLoading(false);
@@ -542,7 +544,9 @@ export default function RestaurantDetailPage() {
   return (
     <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
       {/* Header */}
-      {isRozoWalletAvailable && isRozoWalletConnected ? null : (
+      {isRozoWalletAvailable && isRozoWalletConnected ? (
+        <PageHeader title="Back to DApps" isBackButton />
+      ) : (
         <PageHeader title="Back to Lifestyle" isBackButton />
       )}
 
