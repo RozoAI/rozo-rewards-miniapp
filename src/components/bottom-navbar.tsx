@@ -24,6 +24,7 @@ export function BottomNavbar() {
   if (
     pathname === "/dapp" ||
     pathname === "/wallet" ||
+    pathname === "/qr" ||
     (isRozoWalletAvailable && isRozoWalletConnected)
   ) {
     return null;
