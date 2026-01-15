@@ -1,5 +1,6 @@
 "use client";
 
+import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { cn } from "@/lib/utils";
 import { Binoculars, StoreIcon, User, Wallet } from "lucide-react";
 import Link from "next/link";
@@ -7,6 +8,10 @@ import { usePathname } from "next/navigation";
 
 export function BottomNavbar() {
   const pathname = usePathname();
+  const {
+    isAvailable: isRozoWalletAvailable,
+    isConnected: isRozoWalletConnected,
+  } = useRozoWallet();
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -16,7 +21,12 @@ export function BottomNavbar() {
   };
 
   // Hide navbar on /dapp route
-  if (pathname === "/dapp" || pathname === "/wallet") {
+  if (
+    pathname === "/dapp" ||
+    pathname === "/wallet" ||
+    pathname === "/qr" ||
+    (isRozoWalletAvailable && isRozoWalletConnected)
+  ) {
     return null;
   }
 

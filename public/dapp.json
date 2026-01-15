@@ -26,5 +26,12 @@
     "domain": "https://earn.rozo.ai/",
     "description": "Earn up to 16% APY with multichain support",
     "logo_url": "https://imagedelivery.net/AKLvTMvIg6yc9W08fHl1Tg/fdfef53e-91c2-4abc-aec0-6902a26d6c00/80x"
+  },
+  {
+    "id": "Rozo Studio (Test)",
+    "name": "Rozo Studio (Test)",
+    "domain": "https://rewards.rozo.ai/restaurant/18c62be12697d882a8b03e60",
+    "description": "Test restaurant for Rozo Studio",
+    "logo_url": "https://imagedelivery.net/AKLvTMvIg6yc9W08fHl1Tg/fdfef53e-91c2-4abc-aec0-6902a26d6c00/80x"
   }
 ]
