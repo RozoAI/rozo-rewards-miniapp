@@ -44,12 +44,15 @@ export default function DappPage() {
 
   const filtered = useMemo(() => {
     if (filter === "united-states")
-      return restaurants.filter((r) => !r.currency);
+      return restaurants.filter(
+        (r) => !r.currency && false
+      );
     if (filter === "network-states")
       return restaurants.filter(
-        (r) => r.handle === "cafe" || r.handle === "zen"
+        (r) => r.handle === "cafe" || r.handle === "ride" || r.handle === "zen"
       );
-    return restaurants;
+    // return restaurants;
+    return [];
   }, [restaurants, filter]);
 
   return (
@@ -161,7 +164,7 @@ export default function DappPage() {
             <div className="text-center py-8 px-4">
               <Globe className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">
-                No restaurants found
+                Coming soon
               </h3>
               <p className="text-muted-foreground">
                 Try changing the filter region.
