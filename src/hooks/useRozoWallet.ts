@@ -1,15 +1,4 @@
-import { Memo } from "@stellar/stellar-sdk";
 import { useEffect, useState } from "react";
-
-// Stellar USDC contract addresses
-const USDC_CONTRACTS = {
-  PUBLIC: "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
-  TESTNET: "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
-};
-
-// Temporary Stellar destination address (will be bridged to Base later)
-const TEMP_STELLAR_DESTINATION =
-  "GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOUJ3UBSIB3GN5QA";
 
 /**
  * Convert USDC amount to Stellar stroops (7 decimals)
@@ -146,31 +135,24 @@ export function useRozoWallet() {
 
       // Get wallet and network info
       const { address: fromAddress } = await window.rozo.getAddress();
-      const { sorobanRpcUrl, networkPassphrase, network } =
+      const { sorobanRpcUrl, networkPassphrase } =
         await window.rozo.getNetworkDetails();
-
-      console.log("Network:", network);
-      console.log("From:", fromAddress);
-      console.log("To:", toAddress);
-      console.log("Amount:", amount);
-      console.log("Memo:", memo);
 
       // Setup RPC and contract
       const server = new Server(sorobanRpcUrl);
-      const usdcContractId =
-        network === "PUBLIC" ? USDC_CONTRACTS.PUBLIC : USDC_CONTRACTS.TESTNET;
-      const usdcContract = new Contract(usdcContractId);
+      // Contract ID for pay function
+      const payContractId = "CCRLTS3CMJHYHFD7MYRBJPNW6R3LCXNDO2B6TK6AS6FSXAHR6GBMGLRE";
+      const payContract = new Contract(payContractId);
 
       // Convert amount to stroops (7 decimals)
       const amountStroops = toStroops(amount);
-      console.log("Amount (stroops):", amountStroops.toString());
 
-      // Build USDC transfer operation
-      const hostFunction = usdcContract.call(
-        "transfer",
+      // Build pay function call: pay(env, from: Address, amount: i128, memo: String)
+      const hostFunction = payContract.call(
+        "pay",
         new Address(fromAddress).toScVal(),
-        new Address(toAddress).toScVal(),
-        nativeToScVal(amountStroops, { type: "i128" })
+        nativeToScVal(amountStroops, { type: "i128" }),
+        nativeToScVal(memo, { type: "string" })
       );
 
       // Create dummy source for simulation (Relayer will set the real source)
@@ -184,7 +166,6 @@ export function useRozoWallet() {
         fee: "100",
         networkPassphrase,
       })
-        .addMemo(Memo.text(String(memo)))
         .addOperation(hostFunction)
         .setTimeout(30)
         .build();
@@ -220,7 +201,7 @@ export function useRozoWallet() {
       const result = await window.rozo.signAuthEntry(authEntryXdr, {
         func: funcXdr,
         submit: true, // Submit via OpenZeppelin Relayer (gasless!)
-        message: `Transfer ${amount} USDC`,
+        message: `Pay ${amount} USDC`,
       });
 
       if (!result.hash) {
