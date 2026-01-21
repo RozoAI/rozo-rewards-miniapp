@@ -309,6 +309,8 @@ export default function RestaurantDetailPage() {
     amount: string;
     bridgeAddress: string;
     memo: string;
+    receiverAddressContract?: string;
+receiverMemoContract?: string;
   }> => {
     const displayCurrency = getDisplayCurrency(restaurant?.currency);
 
@@ -336,6 +338,8 @@ export default function RestaurantDetailPage() {
       amount: payment.source.amount,
       bridgeAddress: payment.source.receiverAddress,
       memo: payment.source.receiverMemo,
+      receiverAddressContract: payment.source.receiverAddressContract,
+      receiverMemoContract: payment.source.receiverMemoContract,
     };
   };
 
@@ -349,10 +353,10 @@ export default function RestaurantDetailPage() {
       const usdAmount = convertToUSD(paymentAmount, displayCurrency);
 
       // Transfer USDC on Stellar network
-      const { amount, bridgeAddress, memo } =
+      const { amount, receiverAddressContract, receiverMemoContract } =
         await generateBridgeAddress(usdAmount);
 
-      const result = await rozoWalletTransfer(amount, bridgeAddress, memo);
+      const result = await rozoWalletTransfer(amount, receiverAddressContract, receiverMemoContract);
 
       if (result.hash) {
         // Store receipt data

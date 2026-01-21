@@ -111,11 +111,15 @@ export function useRozoWallet() {
    */
   const transferUSDC = async (
     amount: string,
-    toAddress: string,
-    memo: string
+    receiverAddressContract?: string,
+    receiverMemoContract?: string
   ): Promise<TransferResult> => {
     if (!window.rozo) {
       throw new Error("Rozo Wallet not available");
+    }
+
+    if (!receiverAddressContract || !receiverMemoContract) {
+      throw new Error("Receiver address and memo contract are required");
     }
 
     if (!isConnected) {
@@ -142,8 +146,7 @@ export function useRozoWallet() {
       // Setup RPC and contract
       const server = new Server(sorobanRpcUrl);
       // Contract ID for pay function
-      const payContractId = "CCRLTS3CMJHYHFD7MYRBJPNW6R3LCXNDO2B6TK6AS6FSXAHR6GBMGLRE";
-      const payContract = new Contract(payContractId);
+      const payContract = new Contract(receiverAddressContract);
 
       // Convert amount to stroops (7 decimals)
       const amountStroops = toStroops(amount);
@@ -153,7 +156,7 @@ export function useRozoWallet() {
         "pay",
         new Address(fromAddress).toScVal(),
         nativeToScVal(amountStroops, { type: "i128" }),
-        nativeToScVal(`memo_${memo}`, { type: "string" })
+        nativeToScVal(receiverMemoContract, { type: "string" })
       );
 
       // Create dummy source for simulation (Relayer will set the real source)
@@ -168,7 +171,7 @@ export function useRozoWallet() {
         networkPassphrase,
       })
         .addOperation(hostFunction)
-        .addMemo(Memo.text(`memo_${memo}`))
+        .addMemo(Memo.text(receiverMemoContract))
         .setTimeout(30)
         .build();
 

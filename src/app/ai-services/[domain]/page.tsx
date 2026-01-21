@@ -288,6 +288,8 @@ export default function AIServiceDetailPage() {
     amount: string;
     bridgeAddress: string;
     memo: string;
+    receiverAddressContract?: string;
+    receiverMemoContract?: string;
   }> => {
     const payment = await createPayment({
       appId: appId,
@@ -313,6 +315,8 @@ export default function AIServiceDetailPage() {
       amount: payment.source.amount,
       bridgeAddress: payment.source.receiverAddress,
       memo: payment.source.receiverMemo,
+      receiverAddressContract: payment.source.receiverAddressContract,
+      receiverMemoContract: payment.source.receiverMemoContract,
     };
   };
 
@@ -324,10 +328,10 @@ export default function AIServiceDetailPage() {
 
       const usdAmount = service.price_in_usd.toString();
 
-      const { amount, bridgeAddress, memo } =
+      const { amount,  receiverAddressContract, receiverMemoContract } =
         await generateBridgeAddress(usdAmount);
 
-      const result = await rozoWalletTransfer(amount, bridgeAddress, memo);
+      const result = await rozoWalletTransfer(amount, receiverAddressContract, receiverMemoContract);
 
       if (result.hash) {
         // Store receipt data
