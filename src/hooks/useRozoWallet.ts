@@ -1,3 +1,4 @@
+import { Memo } from "@stellar/stellar-sdk";
 import { useEffect, useState } from "react";
 
 /**
@@ -152,7 +153,7 @@ export function useRozoWallet() {
         "pay",
         new Address(fromAddress).toScVal(),
         nativeToScVal(amountStroops, { type: "i128" }),
-        nativeToScVal(memo, { type: "string" })
+        nativeToScVal(`memo_${memo}`, { type: "string" })
       );
 
       // Create dummy source for simulation (Relayer will set the real source)
@@ -167,6 +168,7 @@ export function useRozoWallet() {
         networkPassphrase,
       })
         .addOperation(hostFunction)
+        .addMemo(Memo.text(`memo_${memo}`))
         .setTimeout(30)
         .build();
 

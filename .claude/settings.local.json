@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(bun lint:*)"
+      "Bash(bun lint:*)",
+      "Bash(ls:*)"
     ]
   }
 }
