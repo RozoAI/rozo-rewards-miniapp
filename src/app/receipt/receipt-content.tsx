@@ -27,6 +27,7 @@ export type PaymentData = {
 export default function ReceiptContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const withRozoWallet = Boolean(searchParams.get("withRozoWallet"));
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasChecked, setHasChecked] = useState(false);
@@ -90,7 +91,11 @@ export default function ReceiptContent() {
   };
 
   const handleBackToHome = () => {
-    router.push("/");
+    if (withRozoWallet) {
+      router.push("/dapp");
+    } else {
+      router.push("/");
+    }
   };
 
   if (isLoading || !paymentData) {

@@ -270,7 +270,7 @@ export default function RestaurantDetailPage() {
         currency_local: displayCurrency,
         timestamp: Date.now(),
         order_id: merchantOrderId,
-        about: `Pay for ${restaurant.name} - ${displayCurrency} ${paymentAmount}`,
+        about: `Pay for ${restaurant.name} - $${paymentAmount}`,
       };
       router.prefetch("/receipt");
       const response = await spendPoints(paymentData);
@@ -323,7 +323,7 @@ receiverMemoContract?: string;
       preferredChain: rozoStellarUSDC.chainId,
       preferredTokenAddress: rozoStellarUSDC.token,
       metadata: generateMetadata(amount, displayCurrency) as any,
-      title: `Pay for ${restaurant?.name} - ${displayCurrency} ${amount}`,
+      title: `Pay for ${restaurant?.name} - $${amount}`,
     });
 
     if (
@@ -379,7 +379,7 @@ receiverMemoContract?: string;
         sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
 
         toast.success(`Payment successful to ${restaurant.name}!`);
-        router.push("/receipt");
+        router.push("/receipt?withRozoWallet=true");
       }
     } catch (error: any) {
       console.error("Rozo Wallet payment error:", error);
