@@ -81,7 +81,7 @@ function QRPageContent() {
 
   if (!value) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-4 mt-4">
         <QrCode className="size-16 text-muted-foreground mb-4" />
         <h2 className="text-xl font-semibold mb-2">No QR Data</h2>
         <p className="text-muted-foreground text-center mb-6">
@@ -95,7 +95,7 @@ function QRPageContent() {
   }
 
   return (
-    <div className="flex flex-col gap-4 pb-24">
+    <div className="flex flex-col gap-4 pb-24 mt-4">
       <PageHeader title="QR Code" icon={<QrCode className="size-5" />} />
 
       {/* Warning Banner */}
@@ -160,7 +160,7 @@ export default function QRPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex flex-col gap-4 pb-24">
+        <div className="flex flex-col gap-4 pb-24 mt-4">
           <PageHeader title="QR Code" />
           <div className="mx-4 sm:mx-0 bg-card rounded-xl border p-4 animate-pulse">
             <div className="h-4 bg-muted rounded w-1/3 mb-2" />
