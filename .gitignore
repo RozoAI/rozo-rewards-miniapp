@@ -113,3 +113,6 @@ docs/.doctrees/
 .cache/
 .parcel-cache/
 .eslintcache
+
+.serena/
+.claude/
