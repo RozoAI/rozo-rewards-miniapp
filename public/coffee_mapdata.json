@@ -81,6 +81,26 @@
       "price": "$$"
     },
     {
+      "_id": "58c62be12697d882a8b03e60",
+      "name": "Paper Cottage",
+      "handle": "paper",
+      "currency": "USD",
+      "formatted": "248 RM for 1 Stop. 2 for 263 RM, 3 for 278 RM (7 Seats) Carol +60192551688",
+      "address_line1": "Forest City Marina Hotel",
+      "address_line2": " Jalan Forest City",
+      "lat": 1.3359,
+      "lon": 103.5938,
+      "payTo": "0x157D4d35d8963dAF9Fc636A090AD69d0BD9fd60c",
+      "createdAt": "2025-08-09T12:21:20.572Z",
+      "updatedAt": "2025-08-09T12:21:20.572Z",
+      "__v": 0,
+      "logo_url": "https://www.papercottage.site/planner-1.jpg",
+      "cashback_rate": 1,
+      "is_live": true,
+      "ns_id": "paper",
+      "price": "$"
+    },
+    {
       "_id": "18c62be12697d882a8b03e60",
       "name": "Rozo Studio",
       "handle": "zen",

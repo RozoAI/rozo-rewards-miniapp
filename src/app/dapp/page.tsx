@@ -49,7 +49,7 @@ export default function DappPage() {
       );
     if (filter === "network-states")
       return restaurants.filter(
-        (r) => r.handle === "cafe" || r.handle === "ride" || r.handle === "zen"
+        (r) => r.handle === "cafe" || r.handle === "ride" || r.handle === "paper" || r.handle === "zen"
       );
     // return restaurants;
     return [];
