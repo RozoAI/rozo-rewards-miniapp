@@ -37,11 +37,12 @@ interface WindowRozoProvider {
       func: string;
       submit: boolean;
       message: string;
-    }
+    },
   ): Promise<{
     signedAuthEntry: string;
     hash: string;
     status: string;
+    error?: string;
   }>;
 }
 

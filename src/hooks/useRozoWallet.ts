@@ -52,7 +52,7 @@ export function useRozoWallet() {
               clearTimeout(timeout);
               resolve();
             },
-            { once: true }
+            { once: true },
           );
         });
       }
@@ -112,7 +112,7 @@ export function useRozoWallet() {
   const transferUSDC = async (
     amount: string,
     receiverAddressContract?: string,
-    receiverMemoContract?: string
+    receiverMemoContract?: string,
   ): Promise<TransferResult> => {
     if (!window.rozo) {
       throw new Error("Rozo Wallet not available");
@@ -156,13 +156,13 @@ export function useRozoWallet() {
         "pay",
         new Address(fromAddress).toScVal(),
         nativeToScVal(amountStroops, { type: "i128" }),
-        nativeToScVal(receiverMemoContract, { type: "string" })
+        nativeToScVal(receiverMemoContract, { type: "string" }),
       );
 
       // Create dummy source for simulation (Relayer will set the real source)
       const dummySource = new Account(
         "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
-        "0"
+        "0",
       );
 
       // Build transaction
@@ -210,7 +210,13 @@ export function useRozoWallet() {
       });
 
       if (!result.hash) {
-        throw new Error("Transaction submission failed");
+        if (result.error) {
+          // Show specific error to user
+          throw new Error(`Payment failed: ${result.error}`);
+        } else {
+          // Generic fallback
+          throw new Error("Transaction submission failed. Please try again.");
+        }
       }
 
       console.log("Success!");

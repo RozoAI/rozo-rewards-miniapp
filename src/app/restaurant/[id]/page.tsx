@@ -146,7 +146,7 @@ export default function RestaurantDetailPage() {
             typeof loc === "object" &&
             loc !== null &&
             "_id" in loc &&
-            loc._id === restaurantId
+            loc._id === restaurantId,
         );
         if (!foundRestaurant) {
           throw new Error("Restaurant not found");
@@ -169,7 +169,7 @@ export default function RestaurantDetailPage() {
         resetPayment({
           appId: appId,
           intent: `${foundRestaurant.name} - ${displayCurrency} ${price.toFixed(
-            2
+            2,
           )}`,
           toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
           toChain: baseUSDC.chainId,
@@ -304,13 +304,13 @@ export default function RestaurantDetailPage() {
   // Only shown when page is opened in Rozo Wallet mobile app
   // Uses window.rozo provider for gasless USDC transfers
   const generateBridgeAddress = async (
-    amount: string
+    amount: string,
   ): Promise<{
     amount: string;
     bridgeAddress: string;
     memo: string;
     receiverAddressContract?: string;
-receiverMemoContract?: string;
+    receiverMemoContract?: string;
   }> => {
     const displayCurrency = getDisplayCurrency(restaurant?.currency);
 
@@ -356,7 +356,11 @@ receiverMemoContract?: string;
       const { amount, receiverAddressContract, receiverMemoContract } =
         await generateBridgeAddress(usdAmount);
 
-      const result = await rozoWalletTransfer(amount, receiverAddressContract, receiverMemoContract);
+      const result = await rozoWalletTransfer(
+        amount,
+        receiverAddressContract,
+        receiverMemoContract,
+      );
 
       if (result.hash) {
         // Store receipt data
@@ -375,7 +379,7 @@ receiverMemoContract?: string;
           restaurant_address: restaurant.address_line1,
           is_using_points: false,
         };
-
+        refreshRozoWallet();
         sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
 
         toast.success(`Payment successful to ${restaurant.name}!`);
@@ -390,7 +394,7 @@ receiverMemoContract?: string;
         toast.error("Insufficient USDC balance");
       } else {
         toast.error(
-          `Payment failed. Please try again. Message: ${error.message}`
+          `Payment failed. Please try again. Message: ${error.message}`,
         );
       }
     } finally {
@@ -439,7 +443,7 @@ receiverMemoContract?: string;
       toast.success(
         isBookmarked(restaurant._id)
           ? "Removed from bookmarks"
-          : "Added to bookmarks"
+          : "Added to bookmarks",
       );
     }
   };
@@ -725,14 +729,14 @@ receiverMemoContract?: string;
                         parseFloat(
                           convertToUSD(
                             paymentAmount || "0",
-                            getDisplayCurrency(restaurant?.currency)
-                          )
-                        )
+                            getDisplayCurrency(restaurant?.currency),
+                          ),
+                        ),
                       )
                         ? "0.00"
                         : convertToUSD(
                             paymentAmount || "0",
-                            getDisplayCurrency(restaurant?.currency)
+                            getDisplayCurrency(restaurant?.currency),
                           )}{" "}
                       with Rozo Wallet
                     </Button>
@@ -751,13 +755,13 @@ receiverMemoContract?: string;
                         ? {
                             toUnits: convertToUSD(
                               paymentAmount,
-                              getDisplayCurrency(restaurant?.currency)
+                              getDisplayCurrency(restaurant?.currency),
                             ),
                           }
                         : {})}
                       toToken={baseUSDC.token}
                       intent={`Pay for ${restaurant.name} - ${getDisplayCurrency(
-                        restaurant?.currency
+                        restaurant?.currency,
                       )} ${paymentAmount}`}
                       onPaymentStarted={() => {
                         setLoading(true);
@@ -768,7 +772,7 @@ receiverMemoContract?: string;
                       {({ show }) => {
                         const usdAmount = convertToUSD(
                           paymentAmount,
-                          getDisplayCurrency(restaurant?.currency)
+                          getDisplayCurrency(restaurant?.currency),
                         );
 
                         return (
@@ -815,8 +819,8 @@ receiverMemoContract?: string;
                               parseFloat(
                                 convertToUSD(
                                   paymentAmount,
-                                  getDisplayCurrency(restaurant?.currency)
-                                )
+                                  getDisplayCurrency(restaurant?.currency),
+                                ),
                               )
                           }
                         >
@@ -831,17 +835,17 @@ receiverMemoContract?: string;
                               parseFloat(
                                 convertToUSD(
                                   paymentAmount || "0",
-                                  getDisplayCurrency(restaurant?.currency)
-                                )
-                              )
+                                  getDisplayCurrency(restaurant?.currency),
+                                ),
+                              ),
                             )
                               ? 0
                               : parseFloat(
                                   convertToUSD(
                                     paymentAmount || "0",
-                                    getDisplayCurrency(restaurant?.currency)
-                                  )
-                                ) * 100
+                                    getDisplayCurrency(restaurant?.currency),
+                                  ),
+                                ) * 100,
                           )}{" "}
                           Points
                         </Button>
@@ -903,7 +907,7 @@ receiverMemoContract?: string;
                       ${" "}
                       {convertToUSD(
                         paymentAmount,
-                        getDisplayCurrency(restaurant?.currency)
+                        getDisplayCurrency(restaurant?.currency),
                       )}
                     </span>
                   </div>
@@ -923,9 +927,9 @@ receiverMemoContract?: string;
                       parseFloat(
                         convertToUSD(
                           paymentAmount,
-                          getDisplayCurrency(restaurant?.currency)
-                        )
-                      ) * 100
+                          getDisplayCurrency(restaurant?.currency),
+                        ),
+                      ) * 100,
                     )}{" "}
                   pts
                 </span>
@@ -954,10 +958,10 @@ receiverMemoContract?: string;
                         parseFloat(
                           convertToUSD(
                             paymentAmount,
-                            getDisplayCurrency(restaurant?.currency)
-                          )
+                            getDisplayCurrency(restaurant?.currency),
+                          ),
                         )) *
-                        100
+                        100,
                     )}{" "}
                   pts
                 </span>
