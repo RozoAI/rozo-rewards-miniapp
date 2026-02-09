@@ -612,7 +612,7 @@ export default function RestaurantDetailPage() {
                 className="text-xl sm:text-2xl font-bold leading-tight"
                 title={restaurant.name}
               >
-                {restaurant.name} {merchantOrderId}
+                {restaurant.name}
               </h2>
               <div className="flex items-start gap-2 text-muted-foreground group">
                 <MapPin className="h-4 w-4 mt-0.5 shrink-0 group-hover:text-blue-600 transition-colors" />
