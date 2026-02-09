@@ -70,7 +70,9 @@ export function PageHeader({
           <PaymentHistoryList
             onSelectPayment={(paymentId) => {
               setIsHistoryOpen(false);
-              router.push(`/receipt?payment_id=${paymentId}`);
+              router.push(
+                `/receipt?payment_id=${paymentId}&withRozoWallet=true`,
+              );
             }}
           />
         </SheetContent>
