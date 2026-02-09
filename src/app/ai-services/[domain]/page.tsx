@@ -21,11 +21,8 @@ import { Label } from "@/components/ui/label";
 import { useBookmarks } from "@/contexts/BookmarkContext";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
-import {
-  convertToUSD,
-  getDisplayCurrency,
-  getFirstTwoWordInitialsFromName,
-} from "@/lib/utils";
+import { savePaymentReceipt } from "@/lib/payment-storage";
+import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { useAppKitAccount } from "@reown/appkit/react";
 import {
@@ -258,7 +255,7 @@ export default function AIServiceDetailPage() {
     const response = await spendPoints(paymentData);
 
     if (response && response.status === "success") {
-      // Store payment data in sessionStorage for receipt page
+      // Store payment data in localStorage for receipt page
       const receiptData = {
         ...response.data,
         service_name: service.name,
@@ -266,12 +263,17 @@ export default function AIServiceDetailPage() {
         is_using_points: true,
       };
 
-      sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
+      console.log("[AI Services] Pay with Points - About to save receipt:", {
+        merchantOrderId,
+        receiptData,
+      });
+      savePaymentReceipt(merchantOrderId, receiptData);
+      console.log("[AI Services] Pay with Points - Receipt saved, navigating to /receipt?payment_id=" + merchantOrderId);
 
       setShowConfirmDialog(false);
 
       // Navigate to receipt page
-      router.push("/receipt");
+      router.push(`/receipt?payment_id=${merchantOrderId}`);
     } else {
       toast.error("Failed to spend points");
       setDialogLoading(false);
@@ -283,7 +285,7 @@ export default function AIServiceDetailPage() {
   // Uses window.rozo provider for gasless USDC transfers
 
   const generateBridgeAddress = async (
-    amount: string
+    amount: string,
   ): Promise<{
     amount: string;
     bridgeAddress: string;
@@ -328,10 +330,14 @@ export default function AIServiceDetailPage() {
 
       const usdAmount = service.price_in_usd.toString();
 
-      const { amount,  receiverAddressContract, receiverMemoContract } =
+      const { amount, receiverAddressContract, receiverMemoContract } =
         await generateBridgeAddress(usdAmount);
 
-      const result = await rozoWalletTransfer(amount, receiverAddressContract, receiverMemoContract);
+      const result = await rozoWalletTransfer(
+        amount,
+        receiverAddressContract,
+        receiverMemoContract,
+      );
 
       if (result.hash) {
         // Store receipt data
@@ -349,10 +355,15 @@ export default function AIServiceDetailPage() {
           is_using_points: false,
         };
 
-        sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
+        console.log("[AI Services] Pay with Rozo Wallet - About to save receipt:", {
+          merchantOrderId,
+          receiptData,
+        });
+        savePaymentReceipt(merchantOrderId, receiptData);
+        console.log("[AI Services] Pay with Rozo Wallet - Receipt saved, navigating to /receipt?payment_id=" + merchantOrderId);
 
         toast.success(`Payment successful to ${service.name}!`);
-        router.push("/receipt");
+        router.push(`/receipt?payment_id=${merchantOrderId}`);
       }
     } catch (error: any) {
       console.error("Rozo Wallet payment error:", error);
@@ -411,7 +422,7 @@ export default function AIServiceDetailPage() {
       toast.success(
         isBookmarked(service.domain)
           ? "Removed from bookmarks"
-          : "Added to bookmarks"
+          : "Added to bookmarks",
       );
     }
   };
@@ -425,20 +436,14 @@ export default function AIServiceDetailPage() {
       duration: 2000,
     });
 
-    // Store payment data in sessionStorage for receipt page
-    const displayCurrency = getDisplayCurrency();
-    const usdAmount = convertToUSD(
-      service.price_in_usd.toString(),
-      displayCurrency
-    );
-
+    // Store payment data in localStorage for receipt page
     const receiptData: PaymentData = {
       from_address: address || "",
       to_handle:
         service.domain || service.name.toLowerCase().replace(/\s+/g, ""),
-      amount_usd_cents: parseFloat(usdAmount) * 100,
-      amount_local: parseFloat(service.price_in_usd.toString()),
-      currency_local: displayCurrency,
+      amount_usd_cents: service.price_in_usd * 100,
+      amount_local: service.price_in_usd,
+      currency_local: "USD",
       timestamp: Date.now(),
       order_id: merchantOrderId,
       about: `Pay for ${service.name} - ${service.duration_months} months`,
@@ -447,13 +452,18 @@ export default function AIServiceDetailPage() {
       is_using_points: false,
     };
 
-    sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
+    console.log("[AI Services] Pay with Crypto - About to save receipt:", {
+      merchantOrderId,
+      receiptData,
+    });
+    savePaymentReceipt(merchantOrderId, receiptData);
+    console.log("[AI Services] Pay with Crypto - Receipt saved, navigating to /receipt?payment_id=" + merchantOrderId);
 
     // Prefetch and navigate to receipt page
     router.prefetch("/receipt");
     setTimeout(() => {
-      router.push("/receipt");
-    }, 2000);
+      router.push(`/receipt?payment_id=${merchantOrderId}`);
+    }, 1000);
   };
 
   if (loading) {

@@ -8,7 +8,6 @@ import { calculateDistance, cn } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
 import { MapPin, RefreshCw, Search } from "lucide-react";
 import * as React from "react";
-import data from "../../../public/coffee_mapdata.json";
 import { RestaurantList } from "./restaurant-list";
 
 export function RestaurantsContent({ className }: { className?: string }) {
@@ -29,12 +28,14 @@ export function RestaurantsContent({ className }: { className?: string }) {
 
     async function load() {
       try {
-        // const res = await fetch("/coffee_mapdata.json");
-        // if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        // const data = await res.json();
+        const res = await fetch("/coffee_mapdata.json");
+        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+        const data = await res.json();
+
         if (!data || !Array.isArray(data.locations)) {
           throw new Error("Invalid data shape");
         }
+
         if (isMounted) setLocations(data.locations as Restaurant[]);
       } catch (err) {
         if (isMounted)

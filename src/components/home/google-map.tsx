@@ -17,11 +17,52 @@ import {
   Map,
   MapProps,
 } from "@vis.gl/react-google-maps";
-import { BadgePercent } from "lucide-react";
+import { BadgePercent, MapPinOff } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { Component, useState } from "react";
 import { MapPin } from "../map-pin";
 import { Badge } from "../ui/badge";
+
+// Error boundary for Google Maps
+class GoogleMapErrorBoundary extends Component<
+  { children: React.ReactNode; fallback: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode; fallback: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error("Google Maps Error:", error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
+
+// Fallback UI when map fails to load
+function MapErrorFallback() {
+  return (
+    <div className="h-full w-full flex items-center justify-center bg-muted/30">
+      <div className="text-center p-6 max-w-sm">
+        <MapPinOff className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        <h3 className="font-semibold text-lg mb-2">Map Unavailable</h3>
+        <p className="text-sm text-muted-foreground">
+          Unable to load the map. You can still browse restaurants below.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export function GoogleMap({
   defaultCenter,
@@ -37,129 +78,149 @@ export function GoogleMap({
   const [, setIsMounted] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null);
+  const [mapError, setMapError] = useState(false);
+
+  // Don't render map if API key is missing
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAP_API_KEY;
+  if (!apiKey || apiKey === "" || apiKey === "undefined") {
+    console.warn("Google Maps API key is not configured");
+    return <MapErrorFallback />;
+  }
+
+  if (mapError) {
+    return <MapErrorFallback />;
+  }
 
   return (
-    <APIProvider
-      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAP_API_KEY as string}
-      onLoad={() => {
-        setIsMounted(true);
-      }}
-    >
-      <Map
-        defaultCenter={defaultCenter}
-        defaultZoom={12}
-        mapId="ac70144e8f27638734b58d39"
-        className="h-full w-full"
-        disableDefaultUI={true}
-        zoomControl={true}
-        mapTypeControl={false}
-        scaleControl={false}
-        streetViewControl={false}
-        rotateControl={false}
-        fullscreenControl={false}
-        zoomControlOptions={{
-          position:
-            typeof google !== "undefined" && google.maps.ControlPosition
-              ? google.maps.ControlPosition.TOP_RIGHT
-              : undefined,
+    <GoogleMapErrorBoundary fallback={<MapErrorFallback />}>
+      <APIProvider
+        apiKey={apiKey}
+        onLoad={() => {
+          setIsMounted(true);
         }}
-        {...mapProps}
+        onError={(error) => {
+          console.error("Google Maps API Error:", error);
+          setMapError(true);
+        }}
       >
-        {restaurants.map((restaurant) => (
-          <AdvancedMarker
-            key={restaurant._id}
-            position={{ lat: restaurant.lat, lng: restaurant.lon }}
-          >
-            <Sheet>
-              <SheetTrigger asChild>
-                <button
-                  className="bg-blue-200/80 p-2 rounded-full hover:bg-blue-300/80 transition-colors cursor-pointer"
-                  onClick={() => setSelectedRestaurant(restaurant)}
+      <GoogleMapErrorBoundary fallback={<MapErrorFallback />}>
+        <Map
+          defaultCenter={defaultCenter}
+          defaultZoom={12}
+          mapId="ac70144e8f27638734b58d39"
+          className="h-full w-full"
+          disableDefaultUI={true}
+          zoomControl={true}
+          mapTypeControl={false}
+          scaleControl={false}
+          streetViewControl={false}
+          rotateControl={false}
+          fullscreenControl={false}
+          zoomControlOptions={{
+            position:
+              typeof google !== "undefined" && google.maps.ControlPosition
+                ? google.maps.ControlPosition.TOP_RIGHT
+                : undefined,
+          }}
+          {...mapProps}
+        >
+          {restaurants.map((restaurant) => (
+            <AdvancedMarker
+              key={restaurant._id}
+              position={{ lat: restaurant.lat, lng: restaurant.lon }}
+            >
+              <Sheet>
+                <SheetTrigger asChild>
+                  <button
+                    className="bg-blue-200/80 p-2 rounded-full hover:bg-blue-300/80 transition-colors cursor-pointer"
+                    onClick={() => setSelectedRestaurant(restaurant)}
+                  >
+                    <MapPin className="h-5 w-5 text-blue-600" />
+                  </button>
+                </SheetTrigger>
+                <SheetContent
+                  side="bottom"
+                  className="h-auto max-h-[60vh] rounded-t-3xl border-t-2 p-0"
+                  onOpenAutoFocus={(e) => e.preventDefault()}
                 >
-                  <MapPin className="h-5 w-5 text-blue-600" />
-                </button>
-              </SheetTrigger>
-              <SheetContent
-                side="bottom"
-                className="h-auto max-h-[60vh] rounded-t-3xl border-t-2 p-0"
-                onOpenAutoFocus={(e) => e.preventDefault()}
-              >
-                <div className="flex flex-col">
-                  {/* Handle bar */}
-                  <div className="flex justify-center py-3">
-                    <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
-                  </div>
+                  <div className="flex flex-col">
+                    {/* Handle bar */}
+                    <div className="flex justify-center py-3">
+                      <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
+                    </div>
 
-                  <SheetHeader className="px-4 pb-2">
-                    <SheetTitle className="text-left">
-                      {restaurant.name}
-                    </SheetTitle>
-                  </SheetHeader>
+                    <SheetHeader className="px-4 pb-2">
+                      <SheetTitle className="text-left">
+                        {restaurant.name}
+                      </SheetTitle>
+                    </SheetHeader>
 
-                  <div className="px-4 pb-4">
-                    <div className="flex items-start gap-3">
-                      <Avatar className="size-12 rounded-lg ring-1 ring-border bg-muted flex-shrink-0">
-                        <AvatarImage
-                          src={restaurant.logo_url}
-                          alt={restaurant.name}
-                        />
-                        <AvatarFallback
-                          title={restaurant.name}
-                          className="font-medium text-sm"
-                        >
-                          {getFirstTwoWordInitialsFromName(restaurant.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1 space-y-2">
-                        {/* Address details */}
-                        <div className="text-xs text-muted-foreground space-y-1">
-                          <div>{restaurant.address_line1}</div>
-                          {restaurant.address_line2 && (
-                            <div>{restaurant.address_line2}</div>
-                          )}
+                    <div className="px-4 pb-4">
+                      <div className="flex items-start gap-3">
+                        <Avatar className="size-12 rounded-lg ring-1 ring-border bg-muted flex-shrink-0">
+                          <AvatarImage
+                            src={restaurant.logo_url}
+                            alt={restaurant.name}
+                          />
+                          <AvatarFallback
+                            title={restaurant.name}
+                            className="font-medium text-sm"
+                          >
+                            {getFirstTwoWordInitialsFromName(restaurant.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1 space-y-2">
+                          {/* Address details */}
+                          <div className="text-xs text-muted-foreground space-y-1">
+                            <div>{restaurant.address_line1}</div>
+                            {restaurant.address_line2 && (
+                              <div>{restaurant.address_line2}</div>
+                            )}
+                          </div>
+
+                          {/* Distance and price */}
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            {restaurant.distance && (
+                              <span>{restaurant.distance}km away</span>
+                            )}
+                          </div>
+
+                          {/* Cashback rate */}
+                          <div className="flex items-center gap-3">
+                            {restaurant.price && (
+                              <p className="text-xs text-muted-foreground">
+                                Price: <b>{restaurant.price}</b>
+                              </p>
+                            )}
+                            {restaurant.cashback_rate > 0 && (
+                              <Badge
+                                variant="default"
+                                className="text-xs bg-green-100 text-green-800 rounded-full"
+                              >
+                                <BadgePercent className="size-3" />
+                                Cashback: <b>{restaurant.cashback_rate}%</b>
+                              </Badge>
+                            )}
+                          </div>
+
+                          <Button asChild size="sm" className="w-full mt-3">
+                            <Link href={`/restaurant/${restaurant._id}`}>
+                              View Details
+                            </Link>
+                          </Button>
                         </div>
-
-                        {/* Distance and price */}
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          {restaurant.distance && (
-                            <span>{restaurant.distance}km away</span>
-                          )}
-                        </div>
-
-                        {/* Cashback rate */}
-                        <div className="flex items-center gap-3">
-                          {restaurant.price && (
-                            <p className="text-xs text-muted-foreground">
-                              Price: <b>{restaurant.price}</b>
-                            </p>
-                          )}
-                          {restaurant.cashback_rate > 0 && (
-                            <Badge
-                              variant="default"
-                              className="text-xs bg-green-100 text-green-800 rounded-full"
-                            >
-                              <BadgePercent className="size-3" />
-                              Cashback: <b>{restaurant.cashback_rate}%</b>
-                            </Badge>
-                          )}
-                        </div>
-
-                        <Button asChild size="sm" className="w-full mt-3">
-                          <Link href={`/restaurant/${restaurant._id}`}>
-                            View Details
-                          </Link>
-                        </Button>
                       </div>
                     </div>
                   </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </AdvancedMarker>
-        ))}
+                </SheetContent>
+              </Sheet>
+            </AdvancedMarker>
+          ))}
 
-        {selectedLocation && <AdvancedMarker position={selectedLocation} />}
-      </Map>
-    </APIProvider>
+          {selectedLocation && <AdvancedMarker position={selectedLocation} />}
+        </Map>
+      </GoogleMapErrorBoundary>
+      </APIProvider>
+    </GoogleMapErrorBoundary>
   );
 }

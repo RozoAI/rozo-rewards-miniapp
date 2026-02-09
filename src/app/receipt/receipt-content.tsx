@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { getPaymentReceipt } from "@/lib/payment-storage";
 import { getDisplayCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 import { ArrowLeftIcon, Check } from "lucide-react";
@@ -33,48 +34,80 @@ export default function ReceiptContent() {
   const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
-    // Small delay to ensure sessionStorage is available (helps with SSR/hydration)
+    // Small delay to ensure storage is available (helps with SSR/hydration)
     const checkPaymentData = () => {
       if (hasChecked) return; // Prevent multiple checks
 
-      // First try sessionStorage
+      console.log("[Receipt] Checking for payment data...");
+
+      // Primary: Get payment ID from query param and retrieve from localStorage
+      const paymentId = searchParams.get("payment_id");
+      console.log("[Receipt] Payment ID from query params:", paymentId);
+
+      if (paymentId) {
+        console.log("[Receipt] Looking up payment data for ID:", paymentId);
+        const data = getPaymentReceipt(paymentId);
+        if (data) {
+          console.log("[Receipt] Payment data found in localStorage:", data);
+          setPaymentData(data);
+          setIsLoading(false);
+          setHasChecked(true);
+          return;
+        } else {
+          console.log("[Receipt] Payment data NOT found in localStorage for ID:", paymentId);
+        }
+      }
+
+      // Fallback 1: Try old sessionStorage key (backward compatibility)
+      console.log("[Receipt] Trying fallback: sessionStorage");
       const storedData = sessionStorage.getItem("payment_receipt");
 
       if (storedData) {
+        console.log("[Receipt] Found data in sessionStorage:", storedData);
         try {
           const data = JSON.parse(storedData);
+          console.log("[Receipt] Successfully parsed sessionStorage data:", data);
           setPaymentData(data);
           setIsLoading(false);
           setHasChecked(true);
           return;
         } catch (error) {
           console.error(
-            "Error parsing payment data from sessionStorage:",
-            error
+            "[Receipt] Error parsing payment data from sessionStorage:",
+            error,
           );
         }
+      } else {
+        console.log("[Receipt] No data in sessionStorage");
       }
 
-      // Fallback: Try URL parameters
+      // Fallback 2: Try URL parameters
+      console.log("[Receipt] Trying fallback: URL data parameter");
       const dataParam = searchParams.get("data");
       if (dataParam) {
+        console.log("[Receipt] Found data in URL params:", dataParam);
         try {
           const data = JSON.parse(decodeURIComponent(dataParam));
+          console.log("[Receipt] Successfully parsed URL param data:", data);
           setPaymentData(data);
           setIsLoading(false);
           setHasChecked(true);
           return;
         } catch (error) {
-          console.error("Error parsing payment data from URL params:", error);
+          console.error("[Receipt] Error parsing payment data from URL params:", error);
         }
+      } else {
+        console.log("[Receipt] No data in URL params");
       }
 
+      // No payment data found - redirect to home
+      console.log("[Receipt] No payment data found in any source - redirecting to home");
       setIsLoading(false);
       setHasChecked(true);
 
       setTimeout(() => {
         router.push("/");
-      }, 2000);
+      }, 1000);
     };
 
     // Check immediately and also after a small delay
@@ -83,8 +116,6 @@ export default function ReceiptContent() {
 
     return () => clearTimeout(timeoutId);
   }, [router, hasChecked, searchParams]);
-
-  // Note: We don't clear sessionStorage to ensure data persists
 
   const formatDate = (timestamp: number) => {
     return format(new Date(timestamp), "MM dd yyyy HH:mm");

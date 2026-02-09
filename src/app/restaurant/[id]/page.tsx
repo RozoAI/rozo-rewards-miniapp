@@ -37,6 +37,7 @@ import {
 import { RozoPayButton, useRozoPay, useRozoPayUI } from "@rozoai/intent-pay";
 
 import { PaymentData } from "@/app/receipt/receipt-content";
+import { savePaymentReceipt } from "@/lib/payment-storage";
 import { useAppKitAccount } from "@reown/appkit/react";
 import {
   BadgePercent,
@@ -55,7 +56,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
-import data from "../../../../public/coffee_mapdata.json";
 
 export default function RestaurantDetailPage() {
   const params = useParams();
@@ -94,7 +94,9 @@ export default function RestaurantDetailPage() {
   const lastResetAmountRef = useRef<string>("");
   const [appId, setAppId] = React.useState<string>("");
 
-  const merchantOrderId = `${restaurant?.handle.toUpperCase()}-${new Date().getTime()}`;
+  const [merchantOrderId, setMerchantOrderId] = React.useState<string>(
+    `${restaurant?.handle.toUpperCase()}-${new Date().getTime()}`,
+  );
   const receiptUrl = `https://ns.rozo.ai/payment/success?order_id=${merchantOrderId}`;
 
   const toAddress = useMemo(() => {
@@ -137,12 +139,12 @@ export default function RestaurantDetailPage() {
   useEffect(() => {
     async function loadRestaurant() {
       try {
-        // const res = await fetch("/coffee_mapdata.json", { cache: "no-store" });
-        // if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        // const data = await res.json();
+        const res = await fetch("/coffee_mapdata.json", { cache: "no-store" });
+        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+        const data = await res.json();
 
         const foundRestaurant = data.locations.find(
-          (loc) =>
+          (loc: any) =>
             typeof loc === "object" &&
             loc !== null &&
             "_id" in loc &&
@@ -153,6 +155,9 @@ export default function RestaurantDetailPage() {
         }
 
         setRestaurant(foundRestaurant as Restaurant);
+        setMerchantOrderId(
+          `${foundRestaurant.handle.toUpperCase()}-${new Date().getTime()}`,
+        );
 
         let price = 0;
         if (foundRestaurant.price && !isNaN(Number(foundRestaurant.price))) {
@@ -189,6 +194,8 @@ export default function RestaurantDetailPage() {
 
     if (restaurantId) {
       loadRestaurant();
+
+      router.prefetch("/receipt");
     }
   }, [restaurantId]);
 
@@ -272,11 +279,10 @@ export default function RestaurantDetailPage() {
         order_id: merchantOrderId,
         about: `Pay for ${restaurant.name} - $${paymentAmount}`,
       };
-      router.prefetch("/receipt");
       const response = await spendPoints(paymentData);
 
       if (response && response.status === "success") {
-        // Store payment data in sessionStorage for receipt page
+        // Store payment data in localStorage for receipt page
         const receiptData: PaymentData = {
           ...response.data,
           restaurant_name: restaurant.name,
@@ -284,12 +290,20 @@ export default function RestaurantDetailPage() {
           is_using_points: true,
         };
 
-        sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
+        console.log("[Restaurant] Pay with Points - About to save receipt:", {
+          merchantOrderId,
+          receiptData,
+        });
+        savePaymentReceipt(merchantOrderId, receiptData);
+        console.log(
+          "[Restaurant] Pay with Points - Receipt saved, navigating to /receipt?payment_id=" +
+            merchantOrderId,
+        );
 
         setShowConfirmDialog(false);
         toast.success("Points spent successfully");
         // Navigate to receipt page
-        router.push("/receipt");
+        router.push(`/receipt?payment_id=${merchantOrderId}`);
       } else {
         toast.error("Failed to spend points");
         setDialogLoading(false);
@@ -343,65 +357,6 @@ export default function RestaurantDetailPage() {
     };
   };
 
-  const handlePayWithRozoWallet = async () => {
-    if (!restaurant || !paymentAmount) return;
-
-    try {
-      setIsRozoWalletPaymentLoading(true);
-
-      const displayCurrency = getDisplayCurrency(restaurant.currency);
-      const usdAmount = convertToUSD(paymentAmount, displayCurrency);
-
-      // Transfer USDC on Stellar network
-      const { amount, receiverAddressContract, receiverMemoContract } =
-        await generateBridgeAddress(usdAmount);
-
-      const result = await rozoWalletTransfer(
-        amount,
-        receiverAddressContract,
-        receiverMemoContract,
-      );
-
-      if (result.hash) {
-        // Store receipt data
-        const receiptData: PaymentData = {
-          from_address: rozoWalletAddress || "",
-          to_handle:
-            restaurant.handle ||
-            restaurant.name.toLowerCase().replace(/\s+/g, ""),
-          amount_usd_cents: parseFloat(usdAmount) * 100,
-          amount_local: parseFloat(paymentAmount),
-          currency_local: displayCurrency,
-          timestamp: Date.now(),
-          order_id: merchantOrderId,
-          about: `Pay for ${restaurant.name} - ${displayCurrency} ${paymentAmount}`,
-          restaurant_name: restaurant.name,
-          restaurant_address: restaurant.address_line1,
-          is_using_points: false,
-        };
-        refreshRozoWallet();
-        sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
-
-        toast.success(`Payment successful to ${restaurant.name}!`);
-        router.push("/receipt?withRozoWallet=true");
-      }
-    } catch (error: any) {
-      console.error("Rozo Wallet payment error:", error);
-
-      if (error.message.includes("User rejected")) {
-        toast.error("Payment cancelled");
-      } else if (error.message.includes("Insufficient balance")) {
-        toast.error("Insufficient USDC balance");
-      } else {
-        toast.error(
-          `Payment failed. Please try again. Message: ${error.message}`,
-        );
-      }
-    } finally {
-      setIsRozoWalletPaymentLoading(false);
-    }
-  };
-
   const handleShare = () => {
     const text = `Check out ${restaurant?.name} at ${
       restaurant?.address_line1
@@ -453,11 +408,84 @@ export default function RestaurantDetailPage() {
     setPaymentLoading(false);
   };
 
-  const handlePaymentCompleted = (args: PaymentCompletedEvent) => {
-    if (!restaurant) return;
+  const handlePayWithRozoWallet = async () => {
+    if (!restaurant || !paymentAmount) return;
 
-    // Prefetch and navigate to receipt page
-    router.prefetch("/receipt");
+    try {
+      setIsRozoWalletPaymentLoading(true);
+
+      const displayCurrency = getDisplayCurrency(restaurant.currency);
+      const usdAmount = convertToUSD(paymentAmount, displayCurrency);
+
+      // Transfer USDC on Stellar network
+      const { amount, receiverAddressContract, receiverMemoContract } =
+        await generateBridgeAddress(usdAmount);
+
+      const result = await rozoWalletTransfer(
+        amount,
+        receiverAddressContract,
+        receiverMemoContract,
+      );
+
+      if (result.hash) {
+        // Store receipt data
+        const receiptData: PaymentData = {
+          from_address: rozoWalletAddress || "",
+          to_handle:
+            restaurant.handle ||
+            restaurant.name.toLowerCase().replace(/\s+/g, ""),
+          amount_usd_cents: parseFloat(usdAmount) * 100,
+          amount_local: parseFloat(paymentAmount),
+          currency_local: displayCurrency,
+          timestamp: Date.now(),
+          order_id: merchantOrderId,
+          about: `Pay for ${restaurant.name} - ${displayCurrency} ${paymentAmount}`,
+          restaurant_name: restaurant.name,
+          restaurant_address: restaurant.address_line1,
+          is_using_points: false,
+        };
+        refreshRozoWallet();
+
+        console.log(
+          "[Restaurant] Pay with Rozo Wallet - About to save receipt:",
+          {
+            merchantOrderId,
+            receiptData,
+          },
+        );
+        savePaymentReceipt(merchantOrderId, receiptData);
+        console.log(
+          "[Restaurant] Pay with Rozo Wallet - Receipt saved, navigating to /receipt?payment_id=" +
+            merchantOrderId +
+            "&withRozoWallet=true",
+        );
+
+        toast.success(`Payment successful to ${restaurant.name}!`);
+        router.push(
+          `/receipt?payment_id=${merchantOrderId}&withRozoWallet=true`,
+        );
+      }
+    } catch (error: any) {
+      console.error("Rozo Wallet payment error:", error);
+
+      if (error.message.includes("User rejected")) {
+        toast.error("Payment cancelled");
+      } else if (error.message.includes("Insufficient balance")) {
+        toast.error("Insufficient USDC balance");
+      } else {
+        toast.error(
+          `Payment failed. Please try again. Message: ${error.message}`,
+        );
+      }
+    } finally {
+      setIsRozoWalletPaymentLoading(false);
+    }
+  };
+
+  const handlePaymentCompleted = (args?: PaymentCompletedEvent) => {
+    console.log("[Restaurant] Payment completed:", args);
+
+    if (!restaurant) return;
 
     toast.success(`Payment successful to ${restaurant.name}!`, {
       description:
@@ -484,13 +512,21 @@ export default function RestaurantDetailPage() {
       is_using_points: false,
     };
 
-    sessionStorage.setItem("payment_receipt", JSON.stringify(receiptData));
+    console.log("[Restaurant] Pay with Crypto - About to save receipt:", {
+      merchantOrderId,
+      receiptData,
+    });
+    savePaymentReceipt(merchantOrderId, receiptData);
+    console.log(
+      "[Restaurant] Pay with Crypto - Receipt saved, navigating to /receipt?payment_id=" +
+        merchantOrderId,
+    );
 
     setTimeout(() => {
       handleClearPayment();
       setLoading(false);
-      router.push("/receipt");
-    }, 2000);
+      router.push(`/receipt?payment_id=${merchantOrderId}`);
+    }, 1000);
   };
 
   if (loading) {
@@ -576,7 +612,7 @@ export default function RestaurantDetailPage() {
                 className="text-xl sm:text-2xl font-bold leading-tight"
                 title={restaurant.name}
               >
-                {restaurant.name}
+                {restaurant.name} {merchantOrderId}
               </h2>
               <div className="flex items-start gap-2 text-muted-foreground group">
                 <MapPin className="h-4 w-4 mt-0.5 shrink-0 group-hover:text-blue-600 transition-colors" />
@@ -715,7 +751,8 @@ export default function RestaurantDetailPage() {
                         isRozoWalletPaymentLoading ||
                         !paymentAmount ||
                         parseFloat(paymentAmount) <= 0 ||
-                        isNaN(parseFloat(paymentAmount))
+                        isNaN(parseFloat(paymentAmount)) ||
+                        rozoWalletLoading
                       }
                       size="lg"
                     >
@@ -767,7 +804,9 @@ export default function RestaurantDetailPage() {
                         setLoading(true);
                         setPaymentLoading(true);
                       }}
-                      onPaymentCompleted={handlePaymentCompleted}
+                      onPaymentCompleted={(args: PaymentCompletedEvent) => {
+                        handlePaymentCompleted(args);
+                      }}
                     >
                       {({ show }) => {
                         const usdAmount = convertToUSD(

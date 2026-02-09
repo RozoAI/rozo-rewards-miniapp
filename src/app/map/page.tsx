@@ -7,7 +7,6 @@ import { calculateDistance, cn } from "@/lib/utils";
 import { Coins, Loader2, MapPin, RefreshCw } from "lucide-react";
 import dynamic from "next/dynamic";
 import React from "react";
-import data from "../../../public/coffee_mapdata.json";
 
 // Simple map component using dynamic import
 const MapComponent = dynamic(
@@ -56,12 +55,14 @@ export default function MapPage() {
 
     async function loadLocations() {
       try {
-        // const res = await fetch("/coffee_mapdata.json");
-        // if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        // const data = await res.json();
+        const res = await fetch("/coffee_mapdata.json");
+        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+        const data = await res.json();
+
         if (!data || !Array.isArray(data.locations)) {
           throw new Error("Invalid data shape");
         }
+
         if (isMounted) {
           // Filter and process locations, providing fallback logo_url for null values
           const processedLocations = data.locations

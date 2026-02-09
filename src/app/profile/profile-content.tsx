@@ -4,14 +4,12 @@ import { FabActions } from "@/components/fab-actions";
 import RozoMembershipRewards from "@/components/RozoMembershipRewards";
 // Badge component not available, using span instead
 import { WalletComponents } from "@/components/wallet-connect-button";
-import { useCredit } from "@/contexts/CreditContext";
 import { useHasMounted } from "@/hooks/useHasMounted";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { useUSDCBalance } from "@/hooks/useUSDCBalance";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { Loader2, User } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useConnect, useDisconnect } from "wagmi";
@@ -36,15 +34,11 @@ export default function ProfilePageContent({ isBeta }: { isBeta: boolean }) {
 function ProfilePageContentInternal({ isBeta }: { isBeta: boolean }) {
   const { address, isConnected, status } = useAppKitAccount();
   const { disconnect } = useDisconnect();
-  const { connectors, connect } = useConnect();
-  const router = useRouter();
-  const [rozoBalance, setRozoBalance] = useState<number>(0);
-  const [showNSCafe, setShowNSCafe] = useState(false);
-  const { availableCredit, setAvailableCredit, deductCredit } = useCredit();
-  const { getPoints, isLoading } = useRozoPointAPI();
+  const { connectors } = useConnect();
+  const { getPoints } = useRozoPointAPI();
   const [pfpUrl, setPfpUrl] = useState<string | null>(null);
 
-  const { usdcBalance, isLoading: usdcLoading } = useUSDCBalance();
+  const { isLoading: usdcLoading } = useUSDCBalance();
   const [pointsLoading, setPointsLoading] = useState(false);
   const [points, setPoints] = useState(0);
 
@@ -78,33 +72,6 @@ function ProfilePageContentInternal({ isBeta }: { isBeta: boolean }) {
       navigator.clipboard.writeText(address);
       toast.success("Address copied to clipboard");
     }
-  };
-
-  const handleAuthorizationComplete = (data: any) => {
-    toast.success("Payment authorization successfully set up!");
-    console.log("Authorization complete:", data);
-  };
-
-  const handleBalanceUpdate = (balance: number) => {
-    setRozoBalance(balance);
-  };
-
-  const handleCreditUpdate = (credit: number) => {
-    // setAvailableCredit(credit); // This line was removed as per the edit hint
-  };
-
-  const handlePaymentSuccess = (data: any) => {
-    toast.success(`Payment successful! Earned ${data.cashback_earned} ROZO!`);
-
-    // Deduct the payment amount from available credit
-    if (data.amount_paid_usd) {
-      // deductCredit(data.amount_paid_usd); // This line was removed as per the edit hint
-    }
-
-    // Refresh balance display
-    setTimeout(() => {
-      window.location.reload(); // Simple refresh for now
-    }, 2000);
   };
 
   return (

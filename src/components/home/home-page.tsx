@@ -1,7 +1,6 @@
 "use client";
 
-import coffeeData from "@/../public/coffee_mapdata.json";
-import { GoogleMap } from "@/components/home/google-map";
+import dynamic from "next/dynamic";
 import { MapPin } from "@/components/map-pin";
 import { RestaurantsContent } from "@/components/restaurants/restaurants-content";
 import { Card } from "@/components/ui/card";
@@ -13,15 +12,31 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { type Restaurant } from "@/types/restaurant";
 import { ChevronUp, MapPinIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FabActions } from "../fab-actions";
 import { Button } from "../ui/button";
 import { WalletComponents } from "../wallet-connect-button";
 
+import { type Restaurant } from "@/types/restaurant";
+
+const GoogleMap = dynamic(
+  () =>
+    import("@/components/home/google-map").then((mod) => ({
+      default: mod.GoogleMap,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-full w-full bg-muted/40 flex items-center justify-center">
+        <span className="text-sm text-muted-foreground">Loading map...</span>
+      </div>
+    ),
+  }
+);
+
 export default function HomePage() {
-  const restaurants: Restaurant[] = coffeeData.locations as Restaurant[];
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lng: number;
@@ -50,7 +65,7 @@ export default function HomePage() {
     }
   };
 
-  const requestLocationAccess = async (forceGPS = false) => {
+  const requestLocationAccess = useCallback(async (forceGPS = false) => {
     try {
       // If Chrome on macOS and not forcing GPS, skip geolocation
       if (isChromeOnMacOS() && !forceGPS) {
@@ -118,7 +133,36 @@ export default function HomePage() {
       setLocationError("Geolocation is not supported by this browser.");
       setUserLocation({ lat: 37.7749, lng: -122.4194 });
     }
-  };
+  }, []);
+
+  // Load restaurants from static JSON at runtime to avoid bundling large data
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadRestaurants() {
+      try {
+        const res = await fetch("/coffee_mapdata.json");
+        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+        const data = await res.json();
+
+        if (!data || !Array.isArray(data.locations)) {
+          throw new Error("Invalid restaurant data shape");
+        }
+
+        if (isMounted) {
+          setRestaurants(data.locations as Restaurant[]);
+        }
+      } catch (error) {
+        console.error("Error loading restaurants:", error);
+      }
+    }
+
+    loadRestaurants();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Check location permission on component mount
   useEffect(() => {
@@ -137,7 +181,7 @@ export default function HomePage() {
       // If permissions API is not available, try to get location directly
       setUserLocation({ lat: 37.7749, lng: -122.4194 });
     }
-  }, []);
+  }, [requestLocationAccess]);
 
   return (
     <div className="relative h-screen w-full">
@@ -168,7 +212,7 @@ export default function HomePage() {
       )}
 
       {/* Full screen map */}
-      {userLocation && locationPermission === "granted" && (
+      {userLocation && (
         <GoogleMap
           defaultCenter={userLocation}
           restaurants={restaurants}
