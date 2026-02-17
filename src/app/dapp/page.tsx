@@ -50,7 +50,9 @@ export default function DappPage() {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          setRecentIds(parsed.filter((id): id is string => typeof id === "string"));
+          setRecentIds(
+            parsed.filter((id): id is string => typeof id === "string"),
+          );
         }
       }
     } catch {
@@ -62,10 +64,10 @@ export default function DappPage() {
 
   const handleRestaurantClick = (id: string) => {
     setRecentIds((prev) => {
-      const next = [id, ...prev.filter((existingId) => existingId !== id)].slice(
-        0,
-        MAX_RECENT_ITEMS
-      );
+      const next = [
+        id,
+        ...prev.filter((existingId) => existingId !== id),
+      ].slice(0, MAX_RECENT_ITEMS);
 
       if (typeof window !== "undefined") {
         try {
@@ -86,7 +88,7 @@ export default function DappPage() {
 
     if (filter === "united-states") {
       return restaurants.filter(
-        (r) => !r.currency && r.formatted.includes("United States")
+        (r) => !r.currency && r.formatted.includes("United States"),
       );
     }
 
@@ -96,7 +98,7 @@ export default function DappPage() {
           r.handle === "cafe" ||
           r.handle === "ride" ||
           r.handle === "paper" ||
-          r.handle === "zen"
+          r.handle === "zen",
       );
     }
 
@@ -110,12 +112,12 @@ export default function DappPage() {
 
   const recentRestaurants = useMemo(() => {
     if (!recentIds.length) return [];
-    const byId = new Map(filtered.map((r) => [r._id, r]));
+    const byId = new Map(restaurants.map((r) => [r._id, r]));
 
     return recentIds
       .map((id) => byId.get(id))
       .filter((r): r is Restaurant => Boolean(r));
-  }, [filtered, recentIds]);
+  }, [restaurants, recentIds]);
 
   const remainingRestaurants = useMemo(() => {
     if (!recentRestaurants.length) return filtered;
@@ -134,7 +136,7 @@ export default function DappPage() {
           className={cn(
             "flex items-start gap-3 px-4 py-4",
             "hover:bg-muted/50 transition-colors",
-            "active:bg-muted"
+            "active:bg-muted",
           )}
         >
           <Avatar className="size-12 rounded-lg ring-1 ring-border bg-muted shrink-0">
