@@ -29,7 +29,7 @@ export function calculateDistance(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
 ): number {
   const R = 3959; // Radius of the Earth in miles
   const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -60,14 +60,14 @@ export function formatDistance(distanceMiles: number): string {
 
 // Currency conversion utilities
 export const EXCHANGE_RATES: Record<string, number> = {
-  RM: 4.2,
+  RM: 3.9,
   SGD: 1.29,
   USD: 1.0,
 };
 
 export function convertToUSD(
   amountLocal: string,
-  currencyLocal: string
+  currencyLocal: string,
 ): string {
   const numAmount = parseFloat(amountLocal);
   if (isNaN(numAmount)) return "0.00";
