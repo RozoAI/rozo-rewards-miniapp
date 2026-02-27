@@ -450,7 +450,6 @@ export default function RestaurantDetailPage() {
           restaurant_address: restaurant.address_line1,
           is_using_points: false,
         };
-        refreshRozoWallet();
 
         console.log(
           "[Restaurant] Pay with Rozo Wallet - About to save receipt:",
