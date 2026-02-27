@@ -96,7 +96,9 @@ export default function RestaurantDetailPage() {
 
   // Prefer Rozo Wallet account when available, otherwise fall back to EVM account
   const activeAddress =
-    (isRozoWalletConnected && rozoWalletAddress) || (isConnected && address) || "";
+    (isRozoWalletConnected && rozoWalletAddress) ||
+    (isConnected && address) ||
+    "";
 
   const [merchantOrderId, setMerchantOrderId] = React.useState<string>(
     `${restaurant?.handle.toUpperCase()}-${new Date().getTime()}`,
@@ -757,7 +759,9 @@ export default function RestaurantDetailPage() {
                         !paymentAmount ||
                         parseFloat(paymentAmount) <= 0 ||
                         isNaN(parseFloat(paymentAmount)) ||
-                        rozoWalletLoading
+                        rozoWalletLoading ||
+                        (!!rozoWalletBalance &&
+                          parseFloat(rozoWalletBalance) <= 0)
                       }
                       size="lg"
                     >
@@ -766,21 +770,31 @@ export default function RestaurantDetailPage() {
                       ) : (
                         <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                       )}
-                      Pay $
-                      {isNaN(
-                        parseFloat(
-                          convertToUSD(
-                            paymentAmount || "0",
-                            getDisplayCurrency(restaurant?.currency),
-                          ),
-                        ),
-                      )
-                        ? "0.00"
-                        : convertToUSD(
-                            paymentAmount || "0",
-                            getDisplayCurrency(restaurant?.currency),
-                          )}{" "}
-                      with Rozo Wallet
+                      {!!rozoWalletBalance &&
+                      parseFloat(rozoWalletBalance) > 0 ? (
+                        <>
+                          Pay $
+                          {isNaN(
+                            parseFloat(
+                              convertToUSD(
+                                paymentAmount || "0",
+                                getDisplayCurrency(restaurant?.currency),
+                              ),
+                            ),
+                          )
+                            ? "0.00"
+                            : convertToUSD(
+                                paymentAmount || "0",
+                                getDisplayCurrency(restaurant?.currency),
+                              )}{" "}
+                          with Rozo Wallet
+                        </>
+                      ) : (
+                        <>
+                          <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                          Insufficient Rozo Wallet Balance
+                        </>
+                      )}
                     </Button>
                   </div>
                 ) : (
