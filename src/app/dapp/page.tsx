@@ -4,7 +4,9 @@ import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
-import { Globe, MapPin } from "lucide-react";
+import { Globe } from "lucide-react";
+import { useRozoWallet } from "@/hooks/useRozoWallet";
+import { useAppKitAccount } from "@reown/appkit/react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -21,65 +23,81 @@ interface Restaurant {
 
 type FilterRegion = "worldwide" | "united-states" | "network-states" | null;
 
-const RECENT_STORAGE_KEY = "rozo_dapp_recent_restaurants";
-const MAX_RECENT_ITEMS = 5;
+// Recently used feature (temporarily disabled)
+// const RECENT_STORAGE_KEY = "rozo_dapp_recent_restaurants";
+// const MAX_RECENT_ITEMS = 5;
+const VISIBLE_HANDLES = ["cafe", "paper", "ride", "zen"];
 
 export default function DappPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [filter, setFilter] = useState<FilterRegion>(null);
   const [loading, setLoading] = useState(true);
-  const [recentIds, setRecentIds] = useState<string[]>([]);
-  const [isHydrated, setIsHydrated] = useState(false);
+  // const [recentIds, setRecentIds] = useState<string[]>([]);
+  // const [isHydrated, setIsHydrated] = useState(false);
+
+  const { walletAddress, isConnected: isRozoWalletConnected } = useRozoWallet();
+  const { address, isConnected } = useAppKitAccount();
+
+  // Prefer Rozo Wallet account when available, otherwise fall back to EVM account
+  const activeAddress =
+    (isRozoWalletConnected && walletAddress) || (isConnected && address) || "";
 
   useEffect(() => {
     fetch("/coffee_mapdata.json")
       .then((res) => res.json())
       .then((data) => {
-        setRestaurants(data.locations || []);
+        const locations: Restaurant[] = data.locations || [];
+        // Only show the limited set of visible handles
+        setRestaurants(
+          locations.filter((location) =>
+            VISIBLE_HANDLES.includes(location.handle),
+          ),
+        );
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
 
-  // Hydrate recently used restaurants from localStorage
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    try {
-      const stored = window.localStorage.getItem(RECENT_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setRecentIds(
-            parsed.filter((id): id is string => typeof id === "string"),
-          );
-        }
-      }
-    } catch {
-      // ignore malformed storage
-    } finally {
-      setIsHydrated(true);
-    }
-  }, []);
-
-  const handleRestaurantClick = (id: string) => {
-    setRecentIds((prev) => {
-      const next = [
-        id,
-        ...prev.filter((existingId) => existingId !== id),
-      ].slice(0, MAX_RECENT_ITEMS);
-
-      if (typeof window !== "undefined") {
-        try {
-          window.localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(next));
-        } catch {
-          // ignore storage errors
-        }
-      }
-
-      return next;
-    });
-  };
+  // Recently used feature (temporarily disabled)
+  // // Hydrate recently used restaurants from localStorage
+  // useEffect(() => {
+  //   if (typeof window === "undefined") return;
+  //
+  //   try {
+  //     const stored = window.localStorage.getItem(RECENT_STORAGE_KEY);
+  //     if (stored) {
+  //       const parsed = JSON.parse(stored);
+  //       if (Array.isArray(parsed)) {
+  //         setRecentIds(
+  //           parsed.filter((id): id is string => typeof id === "string"),
+  //         );
+  //       }
+  //     }
+  //   } catch {
+  //     // ignore malformed storage
+  //   } finally {
+  //     setIsHydrated(true);
+  //   }
+  // }, []);
+  //
+  // const handleRestaurantClick = (id: string) => {
+  //   setRecentIds((prev) => {
+  //     const next = [
+  //       id,
+  //       ...prev.filter((existingId) => existingId !== id),
+  //     ].slice(0, MAX_RECENT_ITEMS);
+  //
+  //     if (typeof window !== "undefined") {
+  //       try {
+  //         window.localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(next));
+  //       } catch {
+  //         // ignore storage errors
+  //       }
+  //     }
+  //
+  //     return next;
+  //   });
+  // };
 
   const filtered = useMemo(() => {
     if (!filter) {
@@ -110,20 +128,21 @@ export default function DappPage() {
     return restaurants;
   }, [restaurants, filter]);
 
-  const recentRestaurants = useMemo(() => {
-    if (!recentIds.length) return [];
-    const byId = new Map(restaurants.map((r) => [r._id, r]));
-
-    return recentIds
-      .map((id) => byId.get(id))
-      .filter((r): r is Restaurant => Boolean(r));
-  }, [restaurants, recentIds]);
-
-  const remainingRestaurants = useMemo(() => {
-    if (!recentRestaurants.length) return filtered;
-    const recentIdSet = new Set(recentRestaurants.map((r) => r._id));
-    return filtered.filter((r) => !recentIdSet.has(r._id));
-  }, [filtered, recentRestaurants]);
+  // Recently used feature (temporarily disabled)
+  // const recentRestaurants = useMemo(() => {
+  //   if (!recentIds.length) return [];
+  //   const byId = new Map(restaurants.map((r) => [r._id, r]));
+  //
+  //   return recentIds
+  //     .map((id) => byId.get(id))
+  //     .filter((r): r is Restaurant => Boolean(r));
+  // }, [restaurants, recentIds]);
+  //
+  // const remainingRestaurants = useMemo(() => {
+  //   if (!recentRestaurants.length) return filtered;
+  //   const recentIdSet = new Set(recentRestaurants.map((r) => r._id));
+  //   return filtered.filter((r) => !recentIdSet.has(r._id));
+  // }, [filtered, recentRestaurants]);
 
   const renderRestaurantItem = (restaurant: Restaurant) => {
     const initials = getFirstTwoWordInitialsFromName(restaurant.name);
@@ -132,7 +151,6 @@ export default function DappPage() {
       <li key={restaurant._id}>
         <Link
           href={`/restaurant/${restaurant._id}`}
-          onClick={() => handleRestaurantClick(restaurant._id)}
           className={cn(
             "flex items-start gap-3 px-4 py-4",
             "hover:bg-muted/50 transition-colors",
@@ -149,12 +167,12 @@ export default function DappPage() {
             <h3 className="font-semibold text-foreground truncate">
               {restaurant.name}
             </h3>
-            <div className="flex items-start gap-1 mt-0.5">
+            {/* <div className="flex items-start gap-1 mt-0.5">
               <MapPin className="size-3.5 text-muted-foreground shrink-0 mt-0.5" />
               <p className="text-sm text-muted-foreground line-clamp-2">
                 {restaurant.formatted}
               </p>
-            </div>
+            </div> */}
             <div className="flex items-center gap-2 mt-1">
               <span className="text-xs text-emerald-600 font-medium">
                 {restaurant.cashback_rate}% cashback
@@ -172,7 +190,11 @@ export default function DappPage() {
 
   return (
     <div className="w-full flex flex-col gap-4 mt-4">
-      <PageHeader title="DApps" icon={<Globe className="size-6" />} />
+      <PageHeader
+        title="DApps"
+        icon={<Globe className="size-6" />}
+        paymentHistoryAddress={activeAddress}
+      />
 
       <div className="px-4 sm:px-0">
         <div className="flex gap-2 overflow-x-auto sm:overflow-visible">
@@ -228,7 +250,8 @@ export default function DappPage() {
         </div>
       ) : (
         <div className="px-4 sm:px-0">
-          {isHydrated && recentRestaurants.length > 0 && (
+          {/* Recently used feature (temporarily disabled) */}
+          {/* {isHydrated && recentRestaurants.length > 0 && (
             <div className="mb-4">
               <div className="mb-2 text-xs font-semibold text-muted-foreground">
                 Recently used
@@ -237,10 +260,10 @@ export default function DappPage() {
                 {recentRestaurants.map(renderRestaurantItem)}
               </ul>
             </div>
-          )}
+          )} */}
 
           <ul className="divide-y rounded-md border bg-card">
-            {remainingRestaurants.map(renderRestaurantItem)}
+            {filtered.map(renderRestaurantItem)}
           </ul>
 
           {filtered.length === 0 && (

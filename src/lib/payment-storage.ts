@@ -46,6 +46,53 @@ function getAllPayments(): PaymentData[] {
 }
 
 /**
+ * Retrieves all payment receipts for a specific wallet address.
+ *
+ * This helper scopes the global payment history to a single account so that
+ * users only see receipts for the currently selected wallet (Rozo Wallet or EVM).
+ *
+ * @param address - Wallet address (case-insensitive for EVM addresses)
+ * @returns Array of payments made from the given address
+ */
+export function getPaymentsForAddress(address: string): PaymentData[] {
+  console.log("[PaymentStorage] getPaymentsForAddress - START");
+  console.log("[PaymentStorage] getPaymentsForAddress - Address:", address);
+
+  if (!address) {
+    console.log(
+      "[PaymentStorage] getPaymentsForAddress - Empty address, returning []",
+    );
+    return [];
+  }
+
+  try {
+    const normalized = address.toLowerCase();
+    const payments = getAllPayments();
+
+    const scoped = payments.filter((payment) => {
+      if (typeof payment.from_address !== "string") return false;
+
+      // Case-insensitive match to support EVM addresses;
+      // Stellar addresses are typically case-sensitive but comparing
+      // in lowercase is safe because we normalize both sides.
+      return payment.from_address.toLowerCase() === normalized;
+    });
+
+    console.log(
+      "[PaymentStorage] getPaymentsForAddress - Found",
+      scoped.length,
+      "payments for address",
+      address,
+    );
+
+    return scoped;
+  } catch (error) {
+    console.error("[PaymentStorage] getPaymentsForAddress - Error:", error);
+    return [];
+  }
+}
+
+/**
  * Saves all payment receipts to localStorage
  */
 function saveAllPayments(payments: PaymentData[]): void {

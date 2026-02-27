@@ -94,6 +94,10 @@ export default function RestaurantDetailPage() {
   const lastResetAmountRef = useRef<string>("");
   const [appId, setAppId] = React.useState<string>("");
 
+  // Prefer Rozo Wallet account when available, otherwise fall back to EVM account
+  const activeAddress =
+    (isRozoWalletConnected && rozoWalletAddress) || (isConnected && address) || "";
+
   const [merchantOrderId, setMerchantOrderId] = React.useState<string>(
     `${restaurant?.handle.toUpperCase()}-${new Date().getTime()}`,
   );
@@ -532,10 +536,7 @@ export default function RestaurantDetailPage() {
   if (loading) {
     return (
       <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="w-8 h-8 bg-muted animate-pulse rounded-md" />
-          <div className="h-5 w-32 bg-muted animate-pulse rounded" />
-        </div>
+        <PageHeader title="Back to Lifestyle" isBackButton />
         <Card className="w-full">
           <CardHeader className="space-y-4 pb-4">
             <div className="flex items-start gap-3">
@@ -589,7 +590,11 @@ export default function RestaurantDetailPage() {
     <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
       {/* Header */}
       {isRozoWalletAvailable && isRozoWalletConnected ? (
-        <PageHeader title="Back to DApps" isBackButton />
+        <PageHeader
+          title="Back to DApps"
+          isBackButton
+          paymentHistoryAddress={activeAddress}
+        />
       ) : (
         <PageHeader title="Back to Lifestyle" isBackButton />
       )}

@@ -3,6 +3,7 @@
 import {
   getAllPaymentIds,
   getPaymentReceipt,
+  getPaymentsForAddress,
   PaymentData,
 } from "@/lib/payment-storage";
 import { getDisplayCurrency } from "@/lib/utils";
@@ -14,25 +15,44 @@ import { ScrollArea } from "./ui/scroll-area";
 
 interface PaymentHistoryListProps {
   onSelectPayment: (paymentId: string) => void;
+  /**
+   * Optional wallet address to scope history to.
+   * - When provided, only payments for this address are shown.
+   * - When omitted/empty, all stored payments are shown (web behavior).
+   */
+  address?: string | null;
 }
 
 export function PaymentHistoryList({
   onSelectPayment,
+  address,
 }: PaymentHistoryListProps) {
   const [payments, setPayments] = useState<PaymentData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     console.log("[PaymentHistory] Loading payment history...");
+    console.log("[PaymentHistory] Scoped address:", address);
+
     const loadPayments = () => {
       try {
-        const paymentIds = getAllPaymentIds();
-        console.log("[PaymentHistory] Found payment IDs:", paymentIds);
+        let paymentsData: PaymentData[] = [];
 
-        const paymentsData = paymentIds
-          .map((id) => getPaymentReceipt(id))
-          .filter((payment): payment is PaymentData => payment !== null)
-          .sort((a, b) => b.timestamp - a.timestamp); // Most recent first
+        if (address && address.trim() !== "") {
+          // Scoped history for a specific wallet (used in Rozo Wallet app)
+          paymentsData = getPaymentsForAddress(address).sort(
+            (a, b) => b.timestamp - a.timestamp,
+          );
+        } else {
+          // Global history (used on web)
+          const paymentIds = getAllPaymentIds();
+          console.log("[PaymentHistory] Found payment IDs:", paymentIds);
+
+          paymentsData = paymentIds
+            .map((id) => getPaymentReceipt(id))
+            .filter((payment): payment is PaymentData => payment !== null)
+            .sort((a, b) => b.timestamp - a.timestamp);
+        }
 
         console.log("[PaymentHistory] Loaded payments:", paymentsData);
         setPayments(paymentsData);
@@ -43,8 +63,9 @@ export function PaymentHistoryList({
       }
     };
 
+    setIsLoading(true);
     loadPayments();
-  }, []);
+  }, [address]);
 
   if (isLoading) {
     return (
