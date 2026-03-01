@@ -176,7 +176,6 @@ export function useRozoWallet() {
         .build();
 
       // Simulate transaction to get auth entries
-      console.log("Simulating transaction...");
       const simulation = await server.simulateTransaction(tx);
 
       if ("error" in simulation) {
@@ -199,9 +198,6 @@ export function useRozoWallet() {
       const opXdr = txXdr.operations()[0].body().invokeHostFunctionOp();
       const funcXdr = opXdr.hostFunction().toXDR("base64");
 
-      console.log("Auth entries:", authEntries.length);
-      console.log("Calling window.rozo.signAuthEntry...");
-
       // Sign and submit via window.rozo (gasless!)
       const result = await window.rozo.signAuthEntry(authEntryXdr, {
         func: funcXdr,
@@ -219,12 +215,10 @@ export function useRozoWallet() {
         }
       }
 
-      console.log("Success!");
-      console.log("Hash:", result.hash);
-      console.log("Status:", result.status);
-
       // Refresh balance after successful payment
-      await refreshData();
+      refreshData().catch((error) => {
+        console.error("Failed to refresh balance:", error);
+      });
 
       return result;
     } catch (error: any) {

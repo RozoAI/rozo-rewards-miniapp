@@ -53,11 +53,13 @@ import {
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
 export default function RestaurantDetailPage() {
+  const searchParams = useSearchParams();
+  const isDapp = searchParams.get("dapp") === "true";
   const params = useParams();
   const router = useRouter();
   const restaurantId = params.id as string;
@@ -93,6 +95,12 @@ export default function RestaurantDetailPage() {
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastResetAmountRef = useRef<string>("");
   const [appId, setAppId] = React.useState<string>("");
+
+  // Prefer Rozo Wallet account when available, otherwise fall back to EVM account
+  const activeAddress =
+    (isRozoWalletConnected && rozoWalletAddress) ||
+    (isConnected && address) ||
+    "";
 
   const [merchantOrderId, setMerchantOrderId] = React.useState<string>(
     `${restaurant?.handle.toUpperCase()}-${new Date().getTime()}`,
@@ -444,7 +452,6 @@ export default function RestaurantDetailPage() {
           restaurant_address: restaurant.address_line1,
           is_using_points: false,
         };
-        refreshRozoWallet();
 
         console.log(
           "[Restaurant] Pay with Rozo Wallet - About to save receipt:",
@@ -532,10 +539,7 @@ export default function RestaurantDetailPage() {
   if (loading) {
     return (
       <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="w-8 h-8 bg-muted animate-pulse rounded-md" />
-          <div className="h-5 w-32 bg-muted animate-pulse rounded" />
-        </div>
+        <PageHeader title="Back to Lifestyle" isBackButton />
         <Card className="w-full">
           <CardHeader className="space-y-4 pb-4">
             <div className="flex items-start gap-3">
@@ -589,7 +593,11 @@ export default function RestaurantDetailPage() {
     <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
       {/* Header */}
       {isRozoWalletAvailable && isRozoWalletConnected ? (
-        <PageHeader title="Back to DApps" isBackButton />
+        <PageHeader
+          title="Back to DApps"
+          isBackButton
+          paymentHistoryAddress={activeAddress}
+        />
       ) : (
         <PageHeader title="Back to Lifestyle" isBackButton />
       )}
@@ -614,37 +622,39 @@ export default function RestaurantDetailPage() {
               >
                 {restaurant.name}
               </h2>
-              <div className="flex items-start gap-2 text-muted-foreground group">
-                <MapPin className="h-4 w-4 mt-0.5 shrink-0 group-hover:text-blue-600 transition-colors" />
-                <div className="text-sm leading-relaxed flex-1">
-                  <div className="flex items-center gap-1">
-                    <Link
-                      href={`https://maps.google.com/?q=${restaurant.lat},${restaurant.lon}`}
-                      target="_blank"
-                      className="font-medium hover:text-foreground hover:underline transition-colors flex-1"
-                    >
-                      {restaurant.address_line1}
-                    </Link>
-                    {restaurant.address_line2 && (
-                      <button
-                        onClick={() => setShowFullAddress(!showFullAddress)}
-                        className="p-1 hover:text-foreground transition-colors"
+              {!isDapp && (
+                <div className="flex items-start gap-2 text-muted-foreground group">
+                  <MapPin className="h-4 w-4 mt-0.5 shrink-0 group-hover:text-blue-600 transition-colors" />
+                  <div className="text-sm leading-relaxed flex-1">
+                    <div className="flex items-center gap-1">
+                      <Link
+                        href={`https://maps.google.com/?q=${restaurant.lat},${restaurant.lon}`}
+                        target="_blank"
+                        className="font-medium hover:text-foreground hover:underline transition-colors flex-1"
                       >
-                        {showFullAddress ? (
-                          <ChevronUp className="h-3 w-3" />
-                        ) : (
-                          <ChevronDown className="h-3 w-3" />
-                        )}
-                      </button>
+                        {restaurant.address_line1}
+                      </Link>
+                      {restaurant.address_line2 && (
+                        <button
+                          onClick={() => setShowFullAddress(!showFullAddress)}
+                          className="p-1 hover:text-foreground transition-colors"
+                        >
+                          {showFullAddress ? (
+                            <ChevronUp className="h-3 w-3" />
+                          ) : (
+                            <ChevronDown className="h-3 w-3" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                    {restaurant.address_line2 && showFullAddress && (
+                      <p className="text-muted-foreground mt-1">
+                        {restaurant.address_line2}
+                      </p>
                     )}
                   </div>
-                  {restaurant.address_line2 && showFullAddress && (
-                    <p className="text-muted-foreground mt-1">
-                      {restaurant.address_line2}
-                    </p>
-                  )}
                 </div>
-              </div>
+              )}
               {/* Price and Cashback Details */}
               <div className="flex items-center gap-3 pt-1">
                 {restaurant.cashback_rate > 0 && (
@@ -738,7 +748,7 @@ export default function RestaurantDetailPage() {
                     {/* Balance Display */}
                     {rozoWalletBalance && (
                       <p className="text-xs text-muted-foreground text-center">
-                        Rozo Wallet Balance: {rozoWalletBalance} USDC (Stellar)
+                        Rozo Wallet Balance: {(Math.floor(Number(rozoWalletBalance) * 100) / 100).toFixed(2)} USDC (Stellar)
                       </p>
                     )}
 
@@ -752,7 +762,9 @@ export default function RestaurantDetailPage() {
                         !paymentAmount ||
                         parseFloat(paymentAmount) <= 0 ||
                         isNaN(parseFloat(paymentAmount)) ||
-                        rozoWalletLoading
+                        rozoWalletLoading ||
+                        (!!rozoWalletBalance &&
+                          parseFloat(rozoWalletBalance) <= 0)
                       }
                       size="lg"
                     >
@@ -761,21 +773,31 @@ export default function RestaurantDetailPage() {
                       ) : (
                         <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                       )}
-                      Pay $
-                      {isNaN(
-                        parseFloat(
-                          convertToUSD(
-                            paymentAmount || "0",
-                            getDisplayCurrency(restaurant?.currency),
-                          ),
-                        ),
-                      )
-                        ? "0.00"
-                        : convertToUSD(
-                            paymentAmount || "0",
-                            getDisplayCurrency(restaurant?.currency),
-                          )}{" "}
-                      with Rozo Wallet
+                      {!!rozoWalletBalance &&
+                      parseFloat(rozoWalletBalance) > 0 ? (
+                        <>
+                          Pay $
+                          {isNaN(
+                            parseFloat(
+                              convertToUSD(
+                                paymentAmount || "0",
+                                getDisplayCurrency(restaurant?.currency),
+                              ),
+                            ),
+                          )
+                            ? "0.00"
+                            : convertToUSD(
+                                paymentAmount || "0",
+                                getDisplayCurrency(restaurant?.currency),
+                              )}{" "}
+                          with Rozo Wallet
+                        </>
+                      ) : (
+                        <>
+                          <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                          Insufficient Rozo Wallet Balance
+                        </>
+                      )}
                     </Button>
                   </div>
                 ) : (

@@ -117,6 +117,10 @@ export default function AIServiceDetailPage() {
   const merchantOrderId = `${service?.domain.toUpperCase()}-${new Date().getTime()}`;
   const receiptUrl = `https://ns.rozo.ai/payment/success?order_id=${merchantOrderId}`;
 
+  // Prefer Rozo Wallet account when available, otherwise fall back to EVM account
+  const activeAddress =
+    (isRozoWalletConnected && rozoWalletAddress) || (isConnected && address) || "";
+
   const metadata = useMemo(() => {
     const baseMetadata = {
       amount_local: service?.price_in_usd,
@@ -469,10 +473,7 @@ export default function AIServiceDetailPage() {
   if (loading) {
     return (
       <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="w-8 h-8 bg-muted animate-pulse rounded-md" />
-          <div className="h-5 w-32 bg-muted animate-pulse rounded" />
-        </div>
+        <PageHeader title="Back to Discovery" isBackButton />
         <Card className="w-full">
           <CardHeader className="space-y-4 pb-4">
             <div className="flex items-start gap-3">
@@ -501,17 +502,7 @@ export default function AIServiceDetailPage() {
   if (error || !service) {
     return (
       <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
-        <div className="flex items-center gap-2 mb-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.back()}
-            className="shrink-0 h-8 w-8"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-lg sm:text-2xl font-bold">AI Service Details</h1>
-        </div>
+        <PageHeader title="Back to Discovery" isBackButton />
         <Card className="w-full">
           <CardContent className="flex flex-col items-center justify-center p-8 text-center">
             <p className="text-destructive text-lg font-medium mb-2">
@@ -538,7 +529,11 @@ export default function AIServiceDetailPage() {
   return (
     <div className="w-full mb-16 flex flex-col gap-4 sm:gap-6 mt-4 px-3 sm:px-4 max-w-4xl mx-auto">
       {/* Header */}
-      <PageHeader title="Back to Discovery" isBackButton />
+      <PageHeader
+        title="Back to Discovery"
+        isBackButton
+        paymentHistoryAddress={activeAddress}
+      />
 
       {/* Service Info Card */}
       <Card className="w-full overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm shadow-sm gap-0">

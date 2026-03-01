@@ -19,10 +19,17 @@ export function PageHeader({
   title,
   icon,
   isBackButton,
+  paymentHistoryAddress,
 }: {
   title: string;
   icon?: React.ReactNode;
   isBackButton?: boolean;
+  /**
+   * Optional wallet address used to scope the payment history sheet.
+   * - When provided, history will only show receipts for this address.
+   * - When omitted, history shows all stored receipts (web behavior).
+   */
+  paymentHistoryAddress?: string | null;
 }) {
   const router = useRouter();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -68,6 +75,7 @@ export function PageHeader({
             </SheetDescription>
           </SheetHeader>
           <PaymentHistoryList
+            address={paymentHistoryAddress}
             onSelectPayment={(paymentId) => {
               setIsHistoryOpen(false);
               router.push(
