@@ -1,9 +1,10 @@
-import { FabActions } from "@/components/fab-actions";
 import { RozoPayClientWrapper } from "@/components/RozoPayClientWrapper";
 import { createMiniAppMetadata } from "@/lib/miniapp-embed";
 import { Restaurant } from "@/types/restaurant";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import data from "../../../../public/coffee_mapdata.json";
+import { FabActionsOrNothing } from "./FabActionsOrNothing";
 
 type CoffeeMapResponse = {
   locations: Restaurant[];
@@ -85,7 +86,7 @@ export async function generateMetadata({
             "geo:longitude": restaurant.lon.toString(),
           }
         : undefined,
-    }
+    },
   );
 }
 
@@ -98,7 +99,9 @@ export default function RestaurantDetailLayout({
     <RozoPayClientWrapper>
       <div className="relative w-full">
         {children}
-        <FabActions className="fixed" />
+        <Suspense fallback={null}>
+          <FabActionsOrNothing />
+        </Suspense>
       </div>
     </RozoPayClientWrapper>
   );

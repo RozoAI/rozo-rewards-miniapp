@@ -3,10 +3,10 @@
 import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
-import { Globe } from "lucide-react";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
+import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { useAppKitAccount } from "@reown/appkit/react";
+import { Globe } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -150,7 +150,7 @@ export default function DappPage() {
     return (
       <li key={restaurant._id}>
         <Link
-          href={`/restaurant/${restaurant._id}`}
+          href={`/restaurant/${restaurant._id}?dapp=true`}
           className={cn(
             "flex items-start gap-3 px-4 py-4",
             "hover:bg-muted/50 transition-colors",

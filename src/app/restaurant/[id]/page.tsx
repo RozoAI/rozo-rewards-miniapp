@@ -53,11 +53,13 @@ import {
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
 export default function RestaurantDetailPage() {
+  const searchParams = useSearchParams();
+  const isDapp = searchParams.get("dapp") === "true";
   const params = useParams();
   const router = useRouter();
   const restaurantId = params.id as string;
@@ -620,37 +622,39 @@ export default function RestaurantDetailPage() {
               >
                 {restaurant.name}
               </h2>
-              <div className="flex items-start gap-2 text-muted-foreground group">
-                <MapPin className="h-4 w-4 mt-0.5 shrink-0 group-hover:text-blue-600 transition-colors" />
-                <div className="text-sm leading-relaxed flex-1">
-                  <div className="flex items-center gap-1">
-                    <Link
-                      href={`https://maps.google.com/?q=${restaurant.lat},${restaurant.lon}`}
-                      target="_blank"
-                      className="font-medium hover:text-foreground hover:underline transition-colors flex-1"
-                    >
-                      {restaurant.address_line1}
-                    </Link>
-                    {restaurant.address_line2 && (
-                      <button
-                        onClick={() => setShowFullAddress(!showFullAddress)}
-                        className="p-1 hover:text-foreground transition-colors"
+              {!isDapp && (
+                <div className="flex items-start gap-2 text-muted-foreground group">
+                  <MapPin className="h-4 w-4 mt-0.5 shrink-0 group-hover:text-blue-600 transition-colors" />
+                  <div className="text-sm leading-relaxed flex-1">
+                    <div className="flex items-center gap-1">
+                      <Link
+                        href={`https://maps.google.com/?q=${restaurant.lat},${restaurant.lon}`}
+                        target="_blank"
+                        className="font-medium hover:text-foreground hover:underline transition-colors flex-1"
                       >
-                        {showFullAddress ? (
-                          <ChevronUp className="h-3 w-3" />
-                        ) : (
-                          <ChevronDown className="h-3 w-3" />
-                        )}
-                      </button>
+                        {restaurant.address_line1}
+                      </Link>
+                      {restaurant.address_line2 && (
+                        <button
+                          onClick={() => setShowFullAddress(!showFullAddress)}
+                          className="p-1 hover:text-foreground transition-colors"
+                        >
+                          {showFullAddress ? (
+                            <ChevronUp className="h-3 w-3" />
+                          ) : (
+                            <ChevronDown className="h-3 w-3" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                    {restaurant.address_line2 && showFullAddress && (
+                      <p className="text-muted-foreground mt-1">
+                        {restaurant.address_line2}
+                      </p>
                     )}
                   </div>
-                  {restaurant.address_line2 && showFullAddress && (
-                    <p className="text-muted-foreground mt-1">
-                      {restaurant.address_line2}
-                    </p>
-                  )}
                 </div>
-              </div>
+              )}
               {/* Price and Cashback Details */}
               <div className="flex items-center gap-3 pt-1">
                 {restaurant.cashback_rate > 0 && (
@@ -744,7 +748,7 @@ export default function RestaurantDetailPage() {
                     {/* Balance Display */}
                     {rozoWalletBalance && (
                       <p className="text-xs text-muted-foreground text-center">
-                        Rozo Wallet Balance: {rozoWalletBalance} USDC (Stellar)
+                        Rozo Wallet Balance: {(Math.floor(Number(rozoWalletBalance) * 100) / 100).toFixed(2)} USDC (Stellar)
                       </p>
                     )}
 
