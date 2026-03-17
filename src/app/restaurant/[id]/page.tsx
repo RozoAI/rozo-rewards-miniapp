@@ -326,7 +326,11 @@ export default function RestaurantDetailPage() {
   // Only shown when page is opened in Rozo Wallet mobile app
   // Uses window.rozo provider for gasless USDC transfers
   const generateBridgeAddress = async (
-    amount: string,
+    params: {
+      amountUsd: string;
+      amountLocal: string;
+      currencyLocal: string;
+    },
   ): Promise<{
     amount: string;
     bridgeAddress: string;
@@ -334,18 +338,18 @@ export default function RestaurantDetailPage() {
     receiverAddressContract?: string;
     receiverMemoContract?: string;
   }> => {
-    const displayCurrency = getDisplayCurrency(restaurant?.currency);
+    const displayCurrency = getDisplayCurrency(params.currencyLocal);
 
     const payment = await createPayment({
       appId: appId,
       toAddress: toAddress,
       toChain: baseUSDC.chainId,
       toToken: baseUSDC.token,
-      toUnits: amount,
+      toUnits: params.amountUsd,
       preferredChain: rozoStellarUSDC.chainId,
       preferredTokenAddress: rozoStellarUSDC.token,
-      metadata: generateMetadata(amount, displayCurrency) as any,
-      title: `Pay for ${restaurant?.name} - $${amount}`,
+      metadata: generateMetadata(params.amountLocal, displayCurrency) as any,
+      title: `Pay for ${restaurant?.name} - ${displayCurrency} ${params.amountLocal} ($${params.amountUsd})`,
     });
 
     if (
@@ -427,7 +431,11 @@ export default function RestaurantDetailPage() {
 
       // Transfer USDC on Stellar network
       const { amount, receiverAddressContract, receiverMemoContract } =
-        await generateBridgeAddress(usdAmount);
+        await generateBridgeAddress({
+          amountUsd: usdAmount,
+          amountLocal: paymentAmount,
+          currencyLocal: displayCurrency,
+        });
 
       const result = await rozoWalletTransfer(
         amount,
