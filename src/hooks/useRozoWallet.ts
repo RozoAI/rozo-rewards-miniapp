@@ -1,4 +1,3 @@
-import { Memo } from "@stellar/stellar-sdk";
 import { useEffect, useState } from "react";
 
 /**
@@ -156,6 +155,7 @@ export function useRozoWallet() {
         "pay",
         new Address(fromAddress).toScVal(),
         nativeToScVal(amountStroops, { type: "i128" }),
+        // `receiverMemoContract` is guaranteed to be set by the guard above.
         nativeToScVal(receiverMemoContract, { type: "string" }),
       );
 
@@ -171,7 +171,7 @@ export function useRozoWallet() {
         networkPassphrase,
       })
         .addOperation(hostFunction)
-        .addMemo(Memo.text(receiverMemoContract))
+        // .addMemo(Memo.text(receiverMemoContract))
         .setTimeout(30)
         .build();
 
