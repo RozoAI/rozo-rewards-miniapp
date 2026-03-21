@@ -49,16 +49,44 @@
       "description": "Earn up to 16% APY with multichain support"
     },
     {
-      "_id": "Rozo Studio (Test)",
-      "name": "Rozo Studio (Test)",
-      "handle": "rozo-studio-test",
+      "_id": "88c62be12697d882a8b03e60",
+      "name": "NS Cafe",
+      "handle": "cafe",
+      "currency": "RM",
+      "formatted": "Lobby, Forest City Marina Hotel, Jalan Forest City",
+      "logo_url": "https://ns.com/favicon.ico",
+      "cashback_rate": 1,
+      "price": "$"
+    },
+    {
+      "_id": "58c62be12697d882a8b03e60",
+      "name": "Paper Cottage",
+      "handle": "paper",
       "currency": "USD",
-      "formatted": "Test restaurant for Rozo Studio",
-      "logo_url": "https://imagedelivery.net/AKLvTMvIg6yc9W08fHl1Tg/fdfef53e-91c2-4abc-aec0-6902a26d6c00/80x",
-      "cashback_rate": 0,
-      "price": "$",
-      "domain": "https://rewards.rozo.ai/restaurant/18c62be12697d882a8b03e60",
-      "description": "Test restaurant for Rozo Studio"
+      "formatted": "Paper Cottage at Forest City Marina Hotel",
+      "logo_url": "https://imagedelivery.net/AKLvTMvIg6yc9W08fHl1Tg/74ad19ee-1c0f-42fe-eae6-299645d01800/80x",
+      "cashback_rate": 1,
+      "price": "$"
+    },
+    {
+      "_id": "48c62be12697d882a8b03e60",
+      "name": "Ride (Singapore <> Network School)",
+      "handle": "ride",
+      "currency": "RM",
+      "formatted": "Transport between Singapore and Network School",
+      "logo_url": "https://cdn1.npcdn.net/images/1694139822288-Limousine-Service_BUTTON.webp?md5id=cec819fa603e0b3f17e6aeaf4a6e6890&new_width=1600&new_height=1600&size=max&type=8&w=1697996365&off_wm=1&from=png",
+      "cashback_rate": 1,
+      "price": "$$"
+    },
+    {
+      "_id": "18c62be12697d882a8b03e60",
+      "name": "Rozo Studio",
+      "handle": "zen",
+      "currency": "RM",
+      "formatted": "Rozo Studio at Pulau Satu 8",
+      "logo_url": "https://www.rozo.ai/rozo-logo.png",
+      "cashback_rate": 10,
+      "price": "$$"
     }
   ]
 }

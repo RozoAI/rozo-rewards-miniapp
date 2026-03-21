@@ -26,7 +26,17 @@ type FilterRegion = "worldwide" | "united-states" | "network-states" | null;
 // Recently used feature (temporarily disabled)
 // const RECENT_STORAGE_KEY = "rozo_dapp_recent_restaurants";
 // const MAX_RECENT_ITEMS = 5;
-const VISIBLE_HANDLES = ["cafe", "paper", "ride", "zen"];
+const VISIBLE_HANDLES = [
+  "cafe",
+  "paper",
+  "ride",
+  "zen",
+  "openrouter",
+  "baseshop",
+  "rozowallet",
+  "rozoearn",
+  "rozo-studio-test",
+];
 
 export default function DappPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -49,9 +59,10 @@ export default function DappPage() {
         const locations: Restaurant[] = data.locations || [];
         // Only show the limited set of visible handles
         setRestaurants(
-          locations.filter((location) =>
-            VISIBLE_HANDLES.includes(location.handle),
-          ),
+          locations,
+          // locations.filter((location) =>
+          //   VISIBLE_HANDLES.includes(location.handle),
+          // ),
         );
         setLoading(false);
       })
