@@ -43,7 +43,7 @@ export default function DappPage() {
     (isRozoWalletConnected && walletAddress) || (isConnected && address) || "";
 
   useEffect(() => {
-    fetch("/coffee_mapdata.json")
+    fetch("/dapp.json")
       .then((res) => res.json())
       .then((data) => {
         const locations: Restaurant[] = data.locations || [];

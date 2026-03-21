@@ -1,37 +1,64 @@
-[
-  {
-    "id": "OpenRouter",
-    "name": "OpenRouter",
-    "domain": "https://openrouter.ai/",
-    "description": "The Unified Interface For LLMs",
-    "logo_url": "https://openrouter.ai/favicon.ico"
-  },
-  {
-    "id": "BaseShop",
-    "name": "Base Shop",
-    "domain": "https://coinbaseshop.com/",
-    "description": "High quality base inspired merch and gifts.",
-    "logo_url": "https://coinbaseshop.com/cdn/shop/files/Shop_FaviconC.png?crop=center&height=32&v=1744990398&width=32"
-  },
-  {
-    "id": "ROZOwallet",
-    "name": "ROZO Wallet",
-    "domain": "https://wallet.rozo.ai/",
-    "description": "Self custodian wallet",
-    "logo_url": "https://imagedelivery.net/AKLvTMvIg6yc9W08fHl1Tg/fdfef53e-91c2-4abc-aec0-6902a26d6c00/80x"
-  },
-  {
-    "id": "ROZOearn",
-    "name": "ROZO Earn",
-    "domain": "https://earn.rozo.ai/",
-    "description": "Earn up to 16% APY with multichain support",
-    "logo_url": "https://imagedelivery.net/AKLvTMvIg6yc9W08fHl1Tg/fdfef53e-91c2-4abc-aec0-6902a26d6c00/80x"
-  },
-  {
-    "id": "Rozo Studio (Test)",
-    "name": "Rozo Studio (Test)",
-    "domain": "https://rewards.rozo.ai/restaurant/18c62be12697d882a8b03e60",
-    "description": "Test restaurant for Rozo Studio",
-    "logo_url": "https://imagedelivery.net/AKLvTMvIg6yc9W08fHl1Tg/fdfef53e-91c2-4abc-aec0-6902a26d6c00/80x"
-  }
-]
+{
+  "locations": [
+    {
+      "_id": "OpenRouter",
+      "name": "OpenRouter",
+      "handle": "openrouter",
+      "currency": "USD",
+      "formatted": "The Unified Interface For LLMs",
+      "logo_url": "https://openrouter.ai/favicon.ico",
+      "cashback_rate": 0,
+      "price": "$",
+      "domain": "https://openrouter.ai/",
+      "description": "The Unified Interface For LLMs"
+    },
+    {
+      "_id": "BaseShop",
+      "name": "Base Shop",
+      "handle": "baseshop",
+      "currency": "USD",
+      "formatted": "High quality base inspired merch and gifts.",
+      "logo_url": "https://coinbaseshop.com/cdn/shop/files/Shop_FaviconC.png?crop=center&height=32&v=1744990398&width=32",
+      "cashback_rate": 0,
+      "price": "$",
+      "domain": "https://coinbaseshop.com/",
+      "description": "High quality base inspired merch and gifts."
+    },
+    {
+      "_id": "ROZOwallet",
+      "name": "ROZO Wallet",
+      "handle": "rozowallet",
+      "currency": "USD",
+      "formatted": "Self custodian wallet",
+      "logo_url": "https://imagedelivery.net/AKLvTMvIg6yc9W08fHl1Tg/fdfef53e-91c2-4abc-aec0-6902a26d6c00/80x",
+      "cashback_rate": 0,
+      "price": "$",
+      "domain": "https://wallet.rozo.ai/",
+      "description": "Self custodian wallet"
+    },
+    {
+      "_id": "ROZOearn",
+      "name": "ROZO Earn",
+      "handle": "rozoearn",
+      "currency": "USD",
+      "formatted": "Earn up to 16% APY with multichain support",
+      "logo_url": "https://imagedelivery.net/AKLvTMvIg6yc9W08fHl1Tg/fdfef53e-91c2-4abc-aec0-6902a26d6c00/80x",
+      "cashback_rate": 0,
+      "price": "$",
+      "domain": "https://earn.rozo.ai/",
+      "description": "Earn up to 16% APY with multichain support"
+    },
+    {
+      "_id": "Rozo Studio (Test)",
+      "name": "Rozo Studio (Test)",
+      "handle": "rozo-studio-test",
+      "currency": "USD",
+      "formatted": "Test restaurant for Rozo Studio",
+      "logo_url": "https://imagedelivery.net/AKLvTMvIg6yc9W08fHl1Tg/fdfef53e-91c2-4abc-aec0-6902a26d6c00/80x",
+      "cashback_rate": 0,
+      "price": "$",
+      "domain": "https://rewards.rozo.ai/restaurant/18c62be12697d882a8b03e60",
+      "description": "Test restaurant for Rozo Studio"
+    }
+  ]
+}
