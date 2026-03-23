@@ -2,6 +2,7 @@
 
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { calculateDistance } from "@/lib/utils";
+import { VISIBLE_HANDLES } from "@/shared";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Loader2, MapPin } from "lucide-react";
@@ -59,7 +60,11 @@ export function FooterMap({ className }: FooterMapProps) {
           throw new Error("Invalid data shape");
         }
         if (isMounted) {
-          setLocations(data.locations);
+          setLocations(
+            data.locations.filter(
+              (loc: any) => loc.handle && VISIBLE_HANDLES.includes(loc.handle),
+            ),
+          );
           setLoading(false);
         }
       } catch (err) {
@@ -87,7 +92,7 @@ export function FooterMap({ className }: FooterMapProps) {
           coordinates.latitude,
           coordinates.longitude,
           location.lat,
-          location.lon
+          location.lon,
         ),
       }))
       .filter((location) => location.distance <= 10) // Within 10 miles

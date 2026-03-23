@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { calculateDistance, cn } from "@/lib/utils";
+import { VISIBLE_HANDLES } from "@/shared";
 import { Restaurant } from "@/types/restaurant";
 import { MapPin, RefreshCw, Search } from "lucide-react";
 import * as React from "react";
@@ -36,11 +37,16 @@ export function RestaurantsContent({ className }: { className?: string }) {
           throw new Error("Invalid data shape");
         }
 
-        if (isMounted) setLocations(data.locations as Restaurant[]);
+        if (isMounted)
+          setLocations(
+            data.locations.filter(
+              (loc: any) => loc.handle && VISIBLE_HANDLES.includes(loc.handle),
+            ),
+          );
       } catch (err) {
         if (isMounted)
           setErrorMessage(
-            err instanceof Error ? err.message : "Unknown error loading data"
+            err instanceof Error ? err.message : "Unknown error loading data",
           );
       }
     }
@@ -61,7 +67,7 @@ export function RestaurantsContent({ className }: { className?: string }) {
         coordinates.latitude,
         coordinates.longitude,
         location.lat,
-        location.lon
+        location.lon,
       ),
     }));
   }, [locations, coordinates]);
@@ -80,7 +86,7 @@ export function RestaurantsContent({ className }: { className?: string }) {
           location.formatted.toLowerCase().includes(q) ||
           location.address_line1.toLowerCase().includes(q) ||
           (location.address_line2 &&
-            location.address_line2.toLowerCase().includes(q))
+            location.address_line2.toLowerCase().includes(q)),
       );
     }
 

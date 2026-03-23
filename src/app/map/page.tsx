@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { calculateDistance, cn } from "@/lib/utils";
+import { VISIBLE_HANDLES } from "@/shared";
 import { Coins, Loader2, MapPin, RefreshCw } from "lucide-react";
 import dynamic from "next/dynamic";
 import React from "react";
@@ -21,7 +22,7 @@ const MapComponent = dynamic(
         </div>
       </div>
     ),
-  }
+  },
 );
 
 type LocationItem = {
@@ -74,7 +75,10 @@ export default function MapPage() {
                 typeof loc.address_line1 === "string" &&
                 typeof loc.lat === "number" &&
                 typeof loc.lon === "number" &&
-                typeof loc.cashback_rate === "number"
+                typeof loc.cashback_rate === "number",
+            )
+            .filter(
+              (loc: any) => loc.handle && VISIBLE_HANDLES.includes(loc.handle),
             )
             .map((loc: any) => ({
               ...loc,
@@ -109,7 +113,7 @@ export default function MapPage() {
           coordinates.latitude,
           coordinates.longitude,
           location.lat,
-          location.lon
+          location.lon,
         ),
       }))
       .filter((location) => location.distance <= 10) // Within 10 miles
@@ -176,7 +180,7 @@ export default function MapPage() {
               <RefreshCw
                 className={cn(
                   "h-3 w-3 mr-1",
-                  locationLoading && "animate-spin"
+                  locationLoading && "animate-spin",
                 )}
               />
               Retry
@@ -252,7 +256,7 @@ export default function MapPage() {
                 <RefreshCw
                   className={cn(
                     "h-4 w-4 mr-2",
-                    locationLoading && "animate-spin"
+                    locationLoading && "animate-spin",
                   )}
                 />
                 Try Again
