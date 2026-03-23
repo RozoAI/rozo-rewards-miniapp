@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { MapPin } from "@/components/map-pin";
 import { RestaurantsContent } from "@/components/restaurants/restaurants-content";
 import { Card } from "@/components/ui/card";
@@ -13,11 +12,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ChevronUp, MapPinIcon } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 import { FabActions } from "../fab-actions";
 import { Button } from "../ui/button";
 import { WalletComponents } from "../wallet-connect-button";
 
+import { VISIBLE_HANDLES } from "@/shared";
 import { type Restaurant } from "@/types/restaurant";
 
 const GoogleMap = dynamic(
@@ -32,7 +33,7 @@ const GoogleMap = dynamic(
         <span className="text-sm text-muted-foreground">Loading map...</span>
       </div>
     ),
-  }
+  },
 );
 
 export default function HomePage() {
@@ -70,13 +71,13 @@ export default function HomePage() {
       // If Chrome on macOS and not forcing GPS, skip geolocation
       if (isChromeOnMacOS() && !forceGPS) {
         console.warn(
-          "Detected Chrome on macOS — using IP fallback due to Core Location bug"
+          "Detected Chrome on macOS — using IP fallback due to Core Location bug",
         );
         const ipLocation = await fallbackToIPLocation();
         setUserLocation(ipLocation);
         setLocationPermission("approximate");
         setLocationError(
-          "Using approximate location due to browser limitation."
+          "Using approximate location due to browser limitation.",
         );
         return;
       }
@@ -98,13 +99,13 @@ export default function HomePage() {
               case error.PERMISSION_DENIED:
                 setLocationPermission("denied");
                 setLocationError(
-                  "Location access denied. Please enable location permissions in your browser settings."
+                  "Location access denied. Please enable location permissions in your browser settings.",
                 );
                 break;
               case error.POSITION_UNAVAILABLE:
                 setLocationPermission("approximate");
                 setLocationError(
-                  "Location information is unavailable. Using approximate location."
+                  "Location information is unavailable. Using approximate location.",
                 );
                 const ipLocation = await fallbackToIPLocation();
                 setUserLocation(ipLocation);
@@ -116,14 +117,14 @@ export default function HomePage() {
               default:
                 setLocationPermission("unknown");
                 setLocationError(
-                  "An unknown error occurred while retrieving location."
+                  "An unknown error occurred while retrieving location.",
                 );
                 break;
             }
 
             // Final fallback: San Francisco
             setUserLocation({ lat: 37.7749, lng: -122.4194 });
-          }
+          },
         );
       } else {
         setLocationError("Geolocation is not supported by this browser.");
@@ -150,7 +151,11 @@ export default function HomePage() {
         }
 
         if (isMounted) {
-          setRestaurants(data.locations as Restaurant[]);
+          setRestaurants(
+            data.locations.filter(
+              (loc: any) => loc.handle && VISIBLE_HANDLES.includes(loc.handle),
+            ),
+          );
         }
       } catch (error) {
         console.error("Error loading restaurants:", error);

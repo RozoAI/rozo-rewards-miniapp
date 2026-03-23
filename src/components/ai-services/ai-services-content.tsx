@@ -11,13 +11,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
-import data from "../../../public/ai_commerce_catalog.json";
+
 import { AiServicesList, CatalogItem } from "./ai-services-list";
 
-export function AiServicesContent({ className }: { className?: string }) {
+export function AiServicesContent({
+  className,
+  data,
+}: {
+  className?: string;
+  data: CatalogItem[];
+}) {
+  const [items, setItems] = React.useState<CatalogItem[] | null>(data);
   const { bookmarks, removeBookmark } = useBookmarks();
   const router = useRouter();
-  const [items, setItems] = React.useState<CatalogItem[] | null>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 250);
@@ -37,7 +43,7 @@ export function AiServicesContent({ className }: { className?: string }) {
         if (!Array.isArray(data)) throw new Error("Invalid data shape");
         if (isMounted) {
           const filteredData = data.filter(
-            (item) => item.discount_rate && item.discount_rate !== 0
+            (item) => item.discount_rate && item.discount_rate !== 0,
           );
 
           // Add Rozo Banana as the first item
@@ -83,7 +89,7 @@ export function AiServicesContent({ className }: { className?: string }) {
         item.name.toLowerCase().includes(q) ||
         item.category.toLowerCase().includes(q) ||
         item.description.toLowerCase().includes(q) ||
-        item.domain.toLowerCase().includes(q)
+        item.domain.toLowerCase().includes(q),
     );
   }, [items, debouncedSearchQuery]);
 
@@ -172,7 +178,7 @@ export function AiServicesContent({ className }: { className?: string }) {
               {Array.from({
                 length: Math.max(
                   0,
-                  4 - bookmarks.length - (bookmarks.length < 4 ? 1 : 0)
+                  4 - bookmarks.length - (bookmarks.length < 4 ? 1 : 0),
                 ),
               }).map((_, index) => (
                 <div key={`empty-${index}`} className="size-8" />
@@ -292,7 +298,7 @@ export function AiServicesContent({ className }: { className?: string }) {
             {Array.from({
               length: Math.max(
                 0,
-                4 - bookmarks.length - (bookmarks.length < 4 ? 1 : 0)
+                4 - bookmarks.length - (bookmarks.length < 4 ? 1 : 0),
               ),
             }).map((_, index) => (
               <div key={`empty-${index}`} className="size-8" />
