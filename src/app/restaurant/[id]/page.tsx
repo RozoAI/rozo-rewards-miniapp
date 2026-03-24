@@ -179,17 +179,24 @@ export default function RestaurantDetailPage() {
         const appId = `rozoRewardsBNBStellarMP-${foundRestaurant.handle || ""}`;
         setAppId(appId);
 
-        resetPayment({
-          appId: appId,
-          intent: `${foundRestaurant.name} - ${displayCurrency} ${price.toFixed(
-            2,
-          )}`,
-          toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
-          toChain: baseUSDC.chainId,
-          toToken: baseUSDC.token as `0x${string}`,
-          toUnits: usdAmount,
-          metadata: generateMetadata(price.toFixed(2), displayCurrency) as any,
-        });
+        if (
+          !(
+            typeof window !== "undefined" &&
+            new URLSearchParams(window.location.search).get("dapp") === "true"
+          )
+        ) {
+          resetPayment({
+            appId: appId,
+            intent: `${foundRestaurant.name} - ${displayCurrency} ${price.toFixed(
+              2,
+            )}`,
+            toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
+            toChain: baseUSDC.chainId,
+            toToken: baseUSDC.token as `0x${string}`,
+            toUnits: usdAmount,
+            metadata: generateMetadata(price.toFixed(2), displayCurrency) as any,
+          });
+        }
 
         // Store initial amount to prevent unnecessary resets
         lastResetAmountRef.current = price.toFixed(2);
@@ -248,15 +255,22 @@ export default function RestaurantDetailPage() {
       const appId = `rozoRewardsBNBStellarMP-${restaurant.handle || ""}`;
       setAppId(appId);
 
-      resetPayment({
-        appId: appId,
-        intent: `Pay for ${restaurant.name} - ${displayCurrency}${value} ($${usdAmount})`,
-        toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
-        toChain: baseUSDC.chainId,
-        toToken: baseUSDC.token as `0x${string}`,
-        toUnits: usdAmount, // Use USD amount for payment processing
-        metadata: generateMetadata(value, displayCurrency) as any,
-      });
+      if (
+        !(
+          typeof window !== "undefined" &&
+          new URLSearchParams(window.location.search).get("dapp") === "true"
+        )
+      ) {
+        resetPayment({
+          appId: appId,
+          intent: `Pay for ${restaurant.name} - ${displayCurrency}${value} ($${usdAmount})`,
+          toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
+          toChain: baseUSDC.chainId,
+          toToken: baseUSDC.token as `0x${string}`,
+          toUnits: usdAmount, // Use USD amount for payment processing
+          metadata: generateMetadata(value, displayCurrency) as any,
+        });
+      }
       setIsDebouncing(false);
       debounceTimerRef.current = null;
     }, 500);
@@ -325,13 +339,11 @@ export default function RestaurantDetailPage() {
   // Pay with Rozo Wallet (Stellar USDC)
   // Only shown when page is opened in Rozo Wallet mobile app
   // Uses window.rozo provider for gasless USDC transfers
-  const generateBridgeAddress = async (
-    params: {
-      amountUsd: string;
-      amountLocal: string;
-      currencyLocal: string;
-    },
-  ): Promise<{
+  const generateBridgeAddress = async (params: {
+    amountUsd: string;
+    amountLocal: string;
+    currencyLocal: string;
+  }): Promise<{
     amount: string;
     bridgeAddress: string;
     memo: string;
@@ -756,7 +768,11 @@ export default function RestaurantDetailPage() {
                     {/* Balance Display */}
                     {rozoWalletBalance && (
                       <p className="text-xs text-muted-foreground text-center">
-                        Rozo Wallet Balance: {(Math.floor(Number(rozoWalletBalance) * 100) / 100).toFixed(2)} USDC (Stellar)
+                        Rozo Wallet Balance:{" "}
+                        {(
+                          Math.floor(Number(rozoWalletBalance) * 100) / 100
+                        ).toFixed(2)}{" "}
+                        USDC (Stellar)
                       </p>
                     )}
 
@@ -801,10 +817,7 @@ export default function RestaurantDetailPage() {
                           with Rozo Wallet
                         </>
                       ) : (
-                        <>
-                          <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                          Insufficient Rozo Wallet Balance
-                        </>
+                        "Insufficient Rozo Wallet Balance"
                       )}
                     </Button>
                   </div>
