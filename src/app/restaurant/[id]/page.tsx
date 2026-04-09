@@ -194,7 +194,10 @@ export default function RestaurantDetailPage() {
             toChain: baseUSDC.chainId,
             toToken: baseUSDC.token as `0x${string}`,
             toUnits: usdAmount,
-            metadata: generateMetadata(price.toFixed(2), displayCurrency) as any,
+            metadata: generateMetadata(
+              price.toFixed(2),
+              displayCurrency,
+            ) as any,
           });
         }
 
@@ -747,8 +750,7 @@ export default function RestaurantDetailPage() {
                   {getDisplayCurrency(restaurant?.currency) !== "USD" && (
                     <p className="text-xs text-muted-foreground">
                       <span className="text-muted-foreground font-medium">
-                        Exchange rate: 1{" "}
-                        {getDisplayCurrency(restaurant?.currency)} ={" "}
+                        1 {getDisplayCurrency(restaurant?.currency)} ={" "}
                         {(
                           1 /
                           (EXCHANGE_RATES[
@@ -768,11 +770,10 @@ export default function RestaurantDetailPage() {
                     {/* Balance Display */}
                     {rozoWalletBalance && (
                       <p className="text-xs text-muted-foreground text-center">
-                        Rozo Wallet Balance:{" "}
+                        Rozo Wallet Balance: $
                         {(
                           Math.floor(Number(rozoWalletBalance) * 100) / 100
                         ).toFixed(2)}{" "}
-                        USDC (Stellar)
                       </p>
                     )}
 
