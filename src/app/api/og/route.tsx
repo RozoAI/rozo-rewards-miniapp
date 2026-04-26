@@ -163,6 +163,7 @@ export async function GET(req: NextRequest) {
             >
               <img
                 src={finalImage}
+                alt="Offer image"
                 width={320}
                 height={320}
                 style={{
@@ -264,6 +265,7 @@ export async function GET(req: NextRequest) {
                 src={`${
                   process.env.NEXT_PUBLIC_URL || "http://localhost:3000"
                 }/rozo-white.png`}
+                alt="Rozo Rewards card"
                 width={320}
                 height={320}
                 style={{
