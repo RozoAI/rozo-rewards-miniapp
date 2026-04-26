@@ -518,7 +518,7 @@ export default function AIServiceDetailPage() {
   const initials = getFirstTwoWordInitialsFromName(service.name);
 
   return (
-    <div className="w-full mb-16 flex flex-col gap-4 sm:gap-6 mt-4 px-3 sm:px-4 max-w-4xl mx-auto">
+    <div className="w-full mb-20 flex flex-col gap-4 sm:gap-6 mt-4 px-3 sm:px-4 max-w-4xl mx-auto">
       {/* Header */}
       <PageHeader
         title="Back to Discovery"
