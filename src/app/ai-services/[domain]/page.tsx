@@ -529,29 +529,7 @@ export default function AIServiceDetailPage() {
       {/* Service Info Card */}
       <Card className="w-full overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm shadow-sm gap-0">
         <CardHeader className="space-y-4 pb-5">
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              onClick={handleBookmark}
-              variant={isBookmarked(service.id) ? "default" : "outline"}
-              size="icon"
-              title={
-                isBookmarked(service.id)
-                  ? "Remove from bookmarks"
-                  : "Add to bookmarks"
-              }
-            >
-              <Bookmark
-                className={`size-4 ${
-                  isBookmarked(service.id) ? "fill-current" : ""
-                }`}
-              />
-            </Button>
-            <Button onClick={handleShare} variant="default" size="icon">
-              <Share className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
+          <div className="rounded-xl border border-border/60 bg-muted/20">
             <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-lg border border-border/50 bg-background/70 aspect-video">
               <Avatar className="size-full rounded-none">
                 {service.logoUrl ? (
@@ -571,21 +549,47 @@ export default function AIServiceDetailPage() {
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <h2
-              className="text-xl sm:text-2xl font-bold leading-tight"
-              title={service.name}
-            >
-              {service.name}
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {service.long_description}
-            </p>
+          <div className="space-y-1.5 flex flex-row items-start justify-between">
+            <div>
+              <h2
+                className="text-xl sm:text-2xl font-bold leading-tight"
+                title={service.name}
+              >
+                {service.name}
+              </h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {service.long_description}
+              </p>
+            </div>
+            {/* Top right positioning for larger screens */}
+            <div className="mt-2 sm:mt-0 sm:ml-4 sm:self-start">
+              <div className="flex items-center justify-end gap-2">
+                <Button
+                  onClick={handleBookmark}
+                  variant={isBookmarked(service.id) ? "default" : "outline"}
+                  size="icon"
+                  title={
+                    isBookmarked(service.id)
+                      ? "Remove from bookmarks"
+                      : "Add to bookmarks"
+                  }
+                >
+                  <Bookmark
+                    className={`size-4 ${
+                      isBookmarked(service.id) ? "fill-current" : ""
+                    }`}
+                  />
+                </Button>
+                <Button onClick={handleShare} variant="default" size="icon">
+                  <Share className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4 sm:space-y-6 pt-0">
-          <div className="rounded-xl border border-primary/20 bg-primary/10 p-4 sm:p-5">
+          <div className="rounded-xl border border-primary/20 bg-muted/20 p-4 sm:p-5">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-1">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -621,16 +625,16 @@ export default function AIServiceDetailPage() {
               }}
               className={emailError ? "border-destructive" : ""}
             />
-            {emailError && (
+            {/* {emailError && (
               <p className="text-sm text-destructive">{emailError}</p>
-            )}
+            )} */}
             <p className="text-xs text-muted-foreground">
               Required for payment confirmation and receipt delivery
             </p>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 mt-3">
             <p className="text-xs text-muted-foreground text-center">
               Please chat with us first before placing your order.
             </p>
