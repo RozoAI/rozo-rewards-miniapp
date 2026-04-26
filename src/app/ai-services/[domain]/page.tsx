@@ -4,7 +4,6 @@ import { PaymentData } from "@/app/receipt/receipt-content";
 import { ContactSupport } from "@/components/contact-support";
 import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CustomTooltip } from "@/components/ui/custom-tooltip";
@@ -553,13 +552,13 @@ export default function AIServiceDetailPage() {
           </div>
 
           <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
-            <div className="relative mx-auto w-full max-w-lg overflow-hidden rounded-lg border border-border/50 bg-background/70 aspect-video">
+            <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-lg border border-border/50 bg-background/70 aspect-video">
               <Avatar className="size-full rounded-none">
                 {service.logoUrl ? (
                   <AvatarImage
                     src={service.logoUrl}
                     alt={service.name}
-                    className="object-contain p-5 sm:p-7"
+                    className="object-contain p-4 sm:p-6"
                   />
                 ) : null}
                 <AvatarFallback
@@ -586,14 +585,7 @@ export default function AIServiceDetailPage() {
         </CardHeader>
 
         <CardContent className="space-y-4 sm:space-y-6 pt-0">
-          {/* Service Description */}
-          <div className="space-y-1.5">
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              {service.description}
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-primary/20 bg-linear-to-br from-primary/10 via-primary/5 to-transparent p-4 sm:p-5">
+          <div className="rounded-xl border border-primary/20 bg-primary/10 p-4 sm:p-5">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-1">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -602,16 +594,16 @@ export default function AIServiceDetailPage() {
                 <p className="text-3xl sm:text-4xl font-bold leading-none text-foreground">
                   {hasPrice ? `$${service.price_usd}` : "N/A"}
                 </p>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Pay with crypto or use points at 100 pts = $1
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {service.description}
                 </p>
               </div>
-              <Badge
+              {/* <Badge
                 variant={service.sold_out ? "outline" : "secondary"}
                 className="text-xs font-semibold"
               >
                 {service.sold_out ? "Sold Out" : "Available"}
-              </Badge>
+              </Badge> */}
             </div>
           </div>
 
