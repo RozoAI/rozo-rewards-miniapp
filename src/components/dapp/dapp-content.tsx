@@ -7,7 +7,7 @@ import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { VISIBLE_HANDLES } from "@/shared";
 import { useAppKitAccount } from "@reown/appkit/react";
-import { Globe } from "lucide-react";
+import { Globe, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -22,7 +22,15 @@ export interface DappRestaurant {
   price: string;
 }
 
-type FilterRegion = "worldwide" | "united-states" | "network-states" | null;
+interface AiServiceItem {
+  id: string;
+  name: string;
+  description: string;
+  price_usd: number | null;
+  logoUrl: string;
+}
+
+type FilterRegion = "worldwide" | "united-states" | "ai-services" | null;
 
 export interface DappContentProps {
   /** JSON with `{ locations: DappRestaurant[] }`. Defaults to `/coffee_mapdata.json`. */
@@ -41,6 +49,7 @@ export function DappContent({
   isDapp = false,
 }: DappContentProps) {
   const [restaurants, setRestaurants] = useState<DappRestaurant[]>([]);
+  const [aiServices, setAiServices] = useState<AiServiceItem[]>([]);
   const [filter, setFilter] = useState<FilterRegion>(null);
   const [loading, setLoading] = useState(true);
 
@@ -51,18 +60,39 @@ export function DappContent({
     (isRozoWalletConnected && walletAddress) || (isConnected && address) || "";
 
   useEffect(() => {
-    fetch(dataUrl)
-      .then((res) => res.json())
-      .then((data) => {
-        const locations: DappRestaurant[] = data.locations || [];
-        setRestaurants(
-          locations.filter((location) =>
-            VISIBLE_HANDLES.includes(location.handle),
-          ),
-        );
-        setLoading(false);
+    setLoading(true);
+
+    Promise.allSettled([
+      fetch(dataUrl).then((res) => res.json()),
+      fetch("/ai-services/services.json").then((res) => res.json()),
+    ])
+      .then(([dappResult, aiServicesResult]) => {
+        if (dappResult.status === "fulfilled") {
+          const dappData = dappResult.value;
+          const locations: DappRestaurant[] = dappData.locations || [];
+          setRestaurants(
+            locations.filter((location) =>
+              VISIBLE_HANDLES.includes(location.handle),
+            ),
+          );
+        } else {
+          setRestaurants([]);
+        }
+
+        if (aiServicesResult.status === "fulfilled") {
+          const aiServicesData = aiServicesResult.value;
+          setAiServices(Array.isArray(aiServicesData) ? aiServicesData : []);
+        } else {
+          setAiServices([]);
+        }
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setRestaurants([]);
+        setAiServices([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [dataUrl]);
 
   const filtered = useMemo(() => {
@@ -73,16 +103,6 @@ export function DappContent({
     if (filter === "united-states") {
       return restaurants.filter(
         (r) => !r.currency && r.formatted.includes("United States"),
-      );
-    }
-
-    if (filter === "network-states") {
-      return restaurants.filter(
-        (r) =>
-          r.handle === "cafe" ||
-          r.handle === "ride" ||
-          r.handle === "paper" ||
-          r.handle === "zen",
       );
     }
 
@@ -131,8 +151,47 @@ export function DappContent({
     );
   };
 
+  const renderAiServiceItem = (service: AiServiceItem) => {
+    const priceLabel =
+      service.price_usd === null ? "N/A" : `$${service.price_usd}`;
+    const initials = getFirstTwoWordInitialsFromName(service.name);
+
+    return (
+      <li key={service.id}>
+        <Link
+          href={`/ai-services/${encodeURIComponent(service.id)}`}
+          className={cn(
+            "flex items-start gap-3 px-4 py-4",
+            "transition-colors duration-200 hover:bg-muted/40",
+          )}
+        >
+          <Avatar className="size-12 shrink-0">
+            <AvatarImage src={service.logoUrl} alt={`${service.name} logo`} />
+            <AvatarFallback className="rounded-md text-xs font-semibold">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+
+          <div className="min-w-0 flex-1 flex items-center justify-between gap-3">
+            <div className="space-y-1">
+              <h3 className="font-semibold text-foreground truncate leading-tight">
+                {service.name}
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                {service.description}
+              </p>
+            </div>
+            <span className="mb-auto shrink-0 font-semibold text-foreground">
+              {priceLabel}
+            </span>
+          </div>
+        </Link>
+      </li>
+    );
+  };
+
   return (
-    <div className={cn("w-full flex flex-col gap-4 mt-4", className)}>
+    <div className={cn("w-full flex flex-col gap-4 mt-4 mb-20", className)}>
       <PageHeader
         title={title}
         icon={icon}
@@ -147,8 +206,17 @@ export function DappContent({
             className="flex-1 sm:flex-none justify-start"
             onClick={() => setFilter("worldwide")}
           >
-            <span className="mr-2">🌍</span>
+            <span className="">🌍</span>
             <span>Worldwide</span>
+          </Button>
+          <Button
+            variant={filter === "ai-services" ? "default" : "outline"}
+            size="sm"
+            className="flex-1 sm:flex-none justify-start"
+            onClick={() => setFilter("ai-services")}
+          >
+            <Sparkles className="size-4  text-yellow-500" />
+            <span>AI Services</span>
           </Button>
           <Button
             variant={filter === "united-states" ? "default" : "outline"}
@@ -156,23 +224,8 @@ export function DappContent({
             className="flex-1 sm:flex-none justify-start"
             onClick={() => setFilter("united-states")}
           >
-            <span className="mr-2">🇺🇸</span>
+            <span className="">🇺🇸</span>
             <span>United States</span>
-          </Button>
-          <Button
-            variant={filter === "network-states" ? "default" : "outline"}
-            size="sm"
-            className="flex-1 sm:flex-none justify-start"
-            onClick={() => setFilter("network-states")}
-          >
-            <img
-              src="https://ns.com/favicon.ico"
-              alt="Rozo"
-              width={16}
-              height={16}
-              className="rounded mr-2"
-            />
-            <span>Network States</span>
           </Button>
         </div>
       </div>
@@ -194,10 +247,14 @@ export function DappContent({
       ) : (
         <div className="px-4 sm:px-0">
           <ul className="divide-y rounded-md border bg-card">
-            {filtered.map(renderRestaurantItem)}
+            {filter === "ai-services"
+              ? [...aiServices]
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map(renderAiServiceItem)
+              : filtered.map(renderRestaurantItem)}
           </ul>
 
-          {filtered.length === 0 && (
+          {filter !== "ai-services" && filtered.length === 0 && (
             <div className="text-center py-8 px-4">
               <Globe className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">

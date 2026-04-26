@@ -105,7 +105,7 @@ export default async function RootLayout({
                   enableSystem={false}
                   disableTransitionOnChange
                 >
-                  <main className="flex min-h-screen flex-col justify-between md:min-h-screen md:items-center md:justify-center relative">
+                  <main className="flex min-h-screen flex-col justify-between md:min-h-screen md:items-center md:justify-start relative">
                     <NextTopLoader showSpinner={false} />
                     <MiniappPrompt />
                     {children}

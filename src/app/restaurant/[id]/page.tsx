@@ -185,7 +185,7 @@ export default function RestaurantDetailPage() {
             new URLSearchParams(window.location.search).get("dapp") === "true"
           )
         ) {
-          resetPayment({
+          await resetPayment({
             appId: appId,
             intent: `${foundRestaurant.name} - ${displayCurrency} ${price.toFixed(
               2,
@@ -251,7 +251,7 @@ export default function RestaurantDetailPage() {
     }
 
     // Set a new timer
-    debounceTimerRef.current = setTimeout(() => {
+    debounceTimerRef.current = setTimeout(async () => {
       const displayCurrency = getDisplayCurrency(restaurant.currency);
       const usdAmount = convertToUSD(value, displayCurrency);
 
@@ -264,7 +264,7 @@ export default function RestaurantDetailPage() {
           new URLSearchParams(window.location.search).get("dapp") === "true"
         )
       ) {
-        resetPayment({
+        await resetPayment({
           appId: appId,
           intent: `Pay for ${restaurant.name} - ${displayCurrency}${value} ($${usdAmount})`,
           toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",

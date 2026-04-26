@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { useBookmarks } from "@/contexts/BookmarkContext";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
+import { getAiServiceById } from "@/lib/ai-services";
 import { savePaymentReceipt } from "@/lib/payment-storage";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
@@ -33,55 +34,23 @@ import {
 } from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPayUI } from "@rozoai/intent-pay";
 import {
-  ArrowLeft,
   Bookmark,
-  Clock,
   Coins,
   CreditCard,
-  ExternalLink,
   HelpCircle,
   Share,
-  Tag,
   Wallet,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useMemo } from "react";
 import { toast } from "sonner";
-import data from "../../../../public/ai_commerce_catalog.json";
-
-type CatalogItem = {
-  domain: string;
-  name: string;
-  price_in_usd: number;
-  original_value_usd: number;
-  duration_months: number;
-  destination: number;
-  category: string;
-  description: string;
-  offer_description: string;
-  logo_url: string;
-  cashback_rate: number;
-  discount_rate: number;
-  savings_usd: number;
-  source: string;
-  sold_out?: boolean;
-};
-
-type CatalogResponse = CatalogItem[];
-
-type PaymentIntentProps = {
-  toAddress: string;
-  toChain: number;
-  toUnits?: string;
-  toToken: string;
-};
 
 const toAddress = "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897";
 
 export default function AIServiceDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const serviceDomain = params.domain as string;
+  const serviceId = params.domain as string;
   const { isInMiniApp } = useIsInMiniApp();
 
   const { composeCast } = useComposeCast();
@@ -93,17 +62,15 @@ export default function AIServiceDetailPage() {
     isConnected: isRozoWalletConnected,
     walletAddress: rozoWalletAddress,
     balance: rozoWalletBalance,
-    isLoading: rozoWalletLoading,
     transferUSDC: rozoWalletTransfer,
-    refreshData: refreshRozoWallet,
   } = useRozoWallet();
 
-  const [service, setService] = React.useState<CatalogItem | null>(null);
+  const [service, setService] =
+    React.useState<ReturnType<typeof getAiServiceById>>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = React.useState(false);
   const [points, setPoints] = React.useState(0);
-  const [pointsLoading, setPointsLoading] = React.useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
   const [dialogLoading, setDialogLoading] = React.useState(false);
   const [isRozoWalletPaymentLoading, setIsRozoWalletPaymentLoading] =
@@ -114,27 +81,34 @@ export default function AIServiceDetailPage() {
 
   const { toggleBookmark, isBookmarked } = useBookmarks();
 
-  const merchantOrderId = `${service?.domain.toUpperCase()}-${new Date().getTime()}`;
+  const merchantOrderId = useMemo(
+    () => `${(service?.id || "service").toUpperCase()}-${Date.now()}`,
+    [service?.id],
+  );
   const receiptUrl = `https://ns.rozo.ai/payment/success?order_id=${merchantOrderId}`;
+  const priceUsd = service?.price_usd ?? 0;
+  const hasPrice = typeof service?.price_usd === "number";
 
   // Prefer Rozo Wallet account when available, otherwise fall back to EVM account
   const activeAddress =
-    (isRozoWalletConnected && rozoWalletAddress) || (isConnected && address) || "";
+    (isRozoWalletConnected && rozoWalletAddress) ||
+    (isConnected && address) ||
+    "";
 
   const metadata = useMemo(() => {
     const baseMetadata = {
-      amount_local: service?.price_in_usd,
+      amount_local: service?.price_usd,
       currency_local: "USD",
       email: userEmail,
       items: [
         {
           name: service?.name,
-          description: `${service?.price_in_usd} (${service?.price_in_usd} USD)`,
+          description: `${service?.price_usd ?? "N/A"} USD`,
         },
       ],
     };
 
-    if (service?.domain) {
+    if (service?.id) {
       return {
         ...baseMetadata,
         merchant_order_id: merchantOrderId,
@@ -150,28 +124,38 @@ export default function AIServiceDetailPage() {
     }
 
     return baseMetadata;
-  }, [service?.price_in_usd, service?.name, service?.domain, userEmail]);
+  }, [
+    service?.price_usd,
+    service?.name,
+    service?.id,
+    service?.sold_out,
+    userEmail,
+    merchantOrderId,
+    receiptUrl,
+  ]);
 
   useEffect(() => {
     async function loadService() {
       try {
-        const foundService = data.find((item) => item.domain === serviceDomain);
+        const foundService = getAiServiceById(serviceId);
         if (!foundService) {
           throw new Error("AI Service not found");
         }
 
         setService(foundService);
 
-        const appId = `rozoRewardsBNBStellarMP-${foundService.domain || ""}`;
+        const appId = `rozoRewardsBNBStellarMP-${foundService.id || ""}`;
         setAppId(appId);
 
-        resetPayment({
+        await resetPayment({
           appId: appId,
-          intent: `Pay for ${foundService.name} - ${foundService.duration_months} months`,
+          intent: `Pay for ${foundService.name}`,
           toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
           toChain: baseUSDC.chainId,
           toToken: baseUSDC.token as `0x${string}`,
-          toUnits: foundService.price_in_usd?.toString(),
+          ...(typeof foundService.price_usd === "number" && {
+            toUnits: foundService.price_usd.toString(),
+          }),
           metadata: metadata as any,
         });
       } catch (err) {
@@ -181,37 +165,37 @@ export default function AIServiceDetailPage() {
       }
     }
 
-    if (serviceDomain) {
+    if (serviceId) {
       loadService();
     }
-  }, [serviceDomain, userEmail]);
+  }, [serviceId, userEmail, metadata]);
 
   useEffect(() => {
     const fetchPoints = async () => {
       if (!address || !isConnected) return;
 
-      setPointsLoading(true);
       const points = await getPoints(address);
       setPoints(points / 100);
-      setPointsLoading(false);
     };
     fetchPoints();
-  }, [isConnected, address]);
+  }, [isConnected, address, getPoints]);
 
   // Update payment metadata when email changes (but only after initial load)
   useEffect(() => {
     if (userEmail && service && appId) {
       resetPayment({
         appId: appId,
-        intent: `Pay for ${service.name} - ${service.duration_months} months`,
+        intent: `Pay for ${service.name}`,
         toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
         toChain: baseUSDC.chainId,
         toToken: baseUSDC.token as `0x${string}`,
-        toUnits: service.price_in_usd?.toString(),
+        ...(typeof service.price_usd === "number" && {
+          toUnits: service.price_usd.toString(),
+        }),
         metadata: metadata as any,
       });
     }
-  }, [userEmail, service, appId]);
+  }, [userEmail, service, appId, metadata]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -247,13 +231,13 @@ export default function AIServiceDetailPage() {
 
     const paymentData = {
       from_address: address,
-      to_handle: service.domain,
-      amount_usd_cents: service.price_in_usd * 100,
-      amount_local: service.price_in_usd,
+      to_handle: service.id,
+      amount_usd_cents: priceUsd * 100,
+      amount_local: priceUsd,
       currency_local: "USD",
       timestamp: Date.now(),
       order_id: merchantOrderId,
-      about: `Pay for ${service.name} - ${service.duration_months} months`,
+      about: `Pay for ${service.name}`,
     };
 
     const response = await spendPoints(paymentData);
@@ -263,7 +247,7 @@ export default function AIServiceDetailPage() {
       const receiptData = {
         ...response.data,
         service_name: service.name,
-        service_domain: service.domain,
+        service_domain: service.id,
         is_using_points: true,
       };
 
@@ -272,7 +256,10 @@ export default function AIServiceDetailPage() {
         receiptData,
       });
       savePaymentReceipt(merchantOrderId, receiptData);
-      console.log("[AI Services] Pay with Points - Receipt saved, navigating to /receipt?payment_id=" + merchantOrderId);
+      console.log(
+        "[AI Services] Pay with Points - Receipt saved, navigating to /receipt?payment_id=" +
+          merchantOrderId,
+      );
 
       setShowConfirmDialog(false);
 
@@ -306,7 +293,7 @@ export default function AIServiceDetailPage() {
       preferredChain: rozoStellarUSDC.chainId,
       preferredTokenAddress: rozoStellarUSDC.token,
       metadata: metadata as any,
-      title: `Pay for ${service?.name} - ${service?.duration_months} months`,
+      title: `Pay for ${service?.name}`,
     });
 
     if (
@@ -332,7 +319,11 @@ export default function AIServiceDetailPage() {
     try {
       setIsRozoWalletPaymentLoading(true);
 
-      const usdAmount = service.price_in_usd.toString();
+      if (typeof service.price_usd !== "number") {
+        toast.error("Price unavailable for this service");
+        return;
+      }
+      const usdAmount = service.price_usd.toString();
 
       const { amount, receiverAddressContract, receiverMemoContract } =
         await generateBridgeAddress(usdAmount);
@@ -347,24 +338,30 @@ export default function AIServiceDetailPage() {
         // Store receipt data
         const receiptData = {
           from_address: rozoWalletAddress || "",
-          to_handle: service.domain,
-          amount_usd_cents: service.price_in_usd * 100,
-          amount_local: service.price_in_usd,
+          to_handle: service.id,
+          amount_usd_cents: priceUsd * 100,
+          amount_local: priceUsd,
           currency_local: "USD",
           timestamp: Date.now(),
           order_id: merchantOrderId,
-          about: `Pay for ${service.name} - ${service.duration_months} months`,
+          about: `Pay for ${service.name}`,
           service_name: service.name,
-          service_domain: service.domain,
+          service_domain: service.id,
           is_using_points: false,
         };
 
-        console.log("[AI Services] Pay with Rozo Wallet - About to save receipt:", {
-          merchantOrderId,
-          receiptData,
-        });
+        console.log(
+          "[AI Services] Pay with Rozo Wallet - About to save receipt:",
+          {
+            merchantOrderId,
+            receiptData,
+          },
+        );
         savePaymentReceipt(merchantOrderId, receiptData);
-        console.log("[AI Services] Pay with Rozo Wallet - Receipt saved, navigating to /receipt?payment_id=" + merchantOrderId);
+        console.log(
+          "[AI Services] Pay with Rozo Wallet - Receipt saved, navigating to /receipt?payment_id=" +
+            merchantOrderId,
+        );
 
         toast.success(`Payment successful to ${service.name}!`);
         router.push(`/receipt?payment_id=${merchantOrderId}`);
@@ -384,15 +381,8 @@ export default function AIServiceDetailPage() {
     }
   };
 
-  const visitWebsite = () => {
-    if (service) {
-      const url = service.source || `https://${service.domain}`;
-      window.open(url, "_blank");
-    }
-  };
-
   const handleShare = () => {
-    const text = `Check out ${service?.name} - ${service?.duration_months} months for $${service?.price_in_usd}! ${service?.description}.`;
+    const text = `Check out ${service?.name} for ${hasPrice ? `$${service?.price_usd}` : "N/A"}! ${service?.description}.`;
 
     if (isInMiniApp) {
       composeCast({
@@ -418,20 +408,20 @@ export default function AIServiceDetailPage() {
   const handleBookmark = () => {
     if (service) {
       toggleBookmark({
-        id: service.domain,
+        id: service.id,
         title: service.name,
-        logo_url: service.logo_url,
-        url: `/ai-services/${service.domain}`,
+        logo_url: service.logoUrl,
+        url: `/ai-services/${service.id}`,
       });
       toast.success(
-        isBookmarked(service.domain)
+        isBookmarked(service.id)
           ? "Removed from bookmarks"
           : "Added to bookmarks",
       );
     }
   };
 
-  const handlePaymentCompleted = (args: PaymentCompletedEvent) => {
+  const handlePaymentCompleted = (_args: PaymentCompletedEvent) => {
     if (!service) return;
 
     toast.success(`Payment successful to ${service.name}!`, {
@@ -443,16 +433,15 @@ export default function AIServiceDetailPage() {
     // Store payment data in localStorage for receipt page
     const receiptData: PaymentData = {
       from_address: address || "",
-      to_handle:
-        service.domain || service.name.toLowerCase().replace(/\s+/g, ""),
-      amount_usd_cents: service.price_in_usd * 100,
-      amount_local: service.price_in_usd,
+      to_handle: service.id,
+      amount_usd_cents: priceUsd * 100,
+      amount_local: priceUsd,
       currency_local: "USD",
       timestamp: Date.now(),
       order_id: merchantOrderId,
-      about: `Pay for ${service.name} - ${service.duration_months} months`,
+      about: `Pay for ${service.name}`,
       service_name: service.name,
-      service_domain: service.domain,
+      service_domain: service.id,
       is_using_points: false,
     };
 
@@ -461,7 +450,10 @@ export default function AIServiceDetailPage() {
       receiptData,
     });
     savePaymentReceipt(merchantOrderId, receiptData);
-    console.log("[AI Services] Pay with Crypto - Receipt saved, navigating to /receipt?payment_id=" + merchantOrderId);
+    console.log(
+      "[AI Services] Pay with Crypto - Receipt saved, navigating to /receipt?payment_id=" +
+        merchantOrderId,
+    );
 
     // Prefetch and navigate to receipt page
     router.prefetch("/receipt");
@@ -537,66 +529,59 @@ export default function AIServiceDetailPage() {
 
       {/* Service Info Card */}
       <Card className="w-full overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm shadow-sm gap-0">
-        <CardHeader>
-          <div className="flex items-start gap-3 sm:gap-4">
-            <Avatar className="size-16 sm:size-20 rounded-xl ring-1 ring-border/50 bg-muted/50 shrink-0 shadow-sm">
-              {service.logo_url ? (
-                <AvatarImage
-                  src={service.logo_url}
-                  alt={service.name}
-                  className="object-cover"
-                />
-              ) : null}
-              <AvatarFallback
-                title={service.name}
-                className="font-semibold text-base sm:text-lg bg-gradient-to-br from-primary/10 to-primary/5 text-primary"
-              >
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1 space-y-3 flex flex-row justify-between gap-2">
-              <div className="space-y-1 flex-1">
-                <h2
-                  className="text-xl sm:text-2xl font-bold leading-tight"
-                  title={service.name}
-                >
-                  {service.name}
-                </h2>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Tag className="h-4 w-4 shrink-0" />
-                  <div className="text-sm leading-relaxed">
-                    <p className="font-medium">
-                      {service.category} ({service.domain})
-                    </p>
-                  </div>
-                </div>
-              </div>
+        <CardHeader className="space-y-4 pb-5">
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              onClick={handleBookmark}
+              variant={isBookmarked(service.id) ? "default" : "outline"}
+              size="icon"
+              title={
+                isBookmarked(service.id)
+                  ? "Remove from bookmarks"
+                  : "Add to bookmarks"
+              }
+            >
+              <Bookmark
+                className={`size-4 ${
+                  isBookmarked(service.id) ? "fill-current" : ""
+                }`}
+              />
+            </Button>
+            <Button onClick={handleShare} variant="default" size="icon">
+              <Share className="h-4 w-4" />
+            </Button>
+          </div>
 
-              <div className="flex flex-col sm:flex-row items-start  gap-2">
-                <Button
-                  onClick={handleBookmark}
-                  variant={isBookmarked(service.domain) ? "default" : "outline"}
-                  size="icon"
-                  title={
-                    isBookmarked(service.domain)
-                      ? "Remove from bookmarks"
-                      : "Add to bookmarks"
-                  }
-                >
-                  <Bookmark
-                    className={`size-4 ${
-                      isBookmarked(service.domain) ? "fill-current" : ""
-                    }`}
+          <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
+            <div className="relative mx-auto w-full max-w-lg overflow-hidden rounded-lg border border-border/50 bg-background/70 aspect-video">
+              <Avatar className="size-full rounded-none">
+                {service.logoUrl ? (
+                  <AvatarImage
+                    src={service.logoUrl}
+                    alt={service.name}
+                    className="object-contain p-5 sm:p-7"
                   />
-                </Button>
-                <Button onClick={handleShare} variant="default" size="icon">
-                  <Share className="h-4 w-4" />
-                </Button>
-                <Button onClick={visitWebsite} variant="secondary" size="icon">
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
-              </div>
+                ) : null}
+                <AvatarFallback
+                  title={service.name}
+                  className="font-semibold text-2xl bg-linear-to-br from-primary/10 to-primary/5 text-primary"
+                >
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <h2
+              className="text-xl sm:text-2xl font-bold leading-tight"
+              title={service.name}
+            >
+              {service.name}
+            </h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {service.long_description}
+            </p>
           </div>
         </CardHeader>
 
@@ -606,62 +591,29 @@ export default function AIServiceDetailPage() {
             <p className="text-sm leading-relaxed text-muted-foreground">
               {service.description}
             </p>
-            {service.offer_description && service.original_value_usd > 0 && (
-              <p className="text-xs text-muted-foreground/80 italic">
-                {service.offer_description}
-              </p>
-            )}
           </div>
 
-          {/* Bundle Pricing Display */}
-          {service.original_value_usd > 0 && (
-            <div className="bg-gradient-to-br from-primary/5 via-primary/3 to-primary/5 rounded-xl p-4 border border-primary/20 shadow-sm">
-              <div className="flex items-baseline gap-1.5 flex-wrap">
-                <span className="text-2xl sm:text-3xl font-bold text-foreground">
-                  ${service.price_in_usd}
-                </span>
-                <span className="text-sm font-medium text-muted-foreground line-through">
-                  ${service.original_value_usd}
-                </span>
-                {service.duration_months > 0 && (
-                  <span className="text-xs ml-auto text-muted-foreground bg-muted/50 px-2 py-1 rounded-lg flex items-center gap-1 border border-border/50">
-                    <Clock className="size-3" />
-                    {service.duration_months} months
-                  </span>
-                )}
+          <div className="rounded-xl border border-primary/20 bg-linear-to-br from-primary/10 via-primary/5 to-transparent p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Offer Value
+                </p>
+                <p className="text-3xl sm:text-4xl font-bold leading-none text-foreground">
+                  {hasPrice ? `$${service.price_usd}` : "N/A"}
+                </p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Pay with crypto or use points at 100 pts = $1
+                </p>
               </div>
-              <div className="flex items-center justify-between mt-3">
-                <div className="flex items-center gap-2">
-                  {service.sold_out && (
-                    <Badge
-                      variant="outline"
-                      className="text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
-                    >
-                      Sold Out
-                    </Badge>
-                  )}
-
-                  {!service.sold_out && service.discount_rate > 0 && (
-                    <Badge
-                      variant="destructive"
-                      className="text-xs font-semibold bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400 border-red-500/20"
-                    >
-                      {service.discount_rate}% OFF
-                    </Badge>
-                  )}
-
-                  {/* {!service.sold_out && service.cashback_rate > 0 && (
-                     <Badge
-                       variant="secondary"
-                       className="text-xs font-semibold bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400 border-green-500/20"
-                     >
-                       {service.cashback_rate}% Cashback
-                     </Badge>
-                   )} */}
-                </div>
-              </div>
+              <Badge
+                variant={service.sold_out ? "outline" : "secondary"}
+                className="text-xs font-semibold"
+              >
+                {service.sold_out ? "Sold Out" : "Available"}
+              </Badge>
             </div>
-          )}
+          </div>
 
           {/* Email Input */}
           <div className="space-y-2">
@@ -687,6 +639,9 @@ export default function AIServiceDetailPage() {
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-3">
+            <p className="text-xs text-muted-foreground text-center">
+              Please chat with us first before placing your order.
+            </p>
             {/* Payment Buttons - Conditional based on Rozo Wallet availability */}
             {!service.sold_out &&
               (isRozoWalletAvailable && isRozoWalletConnected ? (
@@ -715,7 +670,8 @@ export default function AIServiceDetailPage() {
                     ) : (
                       <>
                         <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                        Pay ${service.price_in_usd} with Rozo Wallet
+                        Pay {hasPrice ? `$${service.price_usd}` : "N/A"} with
+                        Rozo Wallet
                       </>
                     )}
                   </Button>
@@ -728,12 +684,12 @@ export default function AIServiceDetailPage() {
                   <RozoPayButton.Custom
                     resetOnSuccess
                     appId={appId}
-                    intent={`Pay for ${service.name} - ${service.duration_months} months`}
+                    intent={`Pay for ${service.name}`}
                     toAddress={toAddress}
                     toChain={baseUSDC.chainId}
                     toToken={baseUSDC.token}
-                    {...(service.price_in_usd && {
-                      toUnits: service.price_in_usd.toString(),
+                    {...(service.price_usd && {
+                      toUnits: service.price_usd.toString(),
                     })}
                     metadata={metadata as any}
                     onPaymentStarted={() => {
@@ -778,7 +734,7 @@ export default function AIServiceDetailPage() {
                         size={"lg"}
                         onClick={handlePayWithPoints}
                         variant="outline"
-                        disabled={points < service.price_in_usd}
+                        disabled={!hasPrice || points < priceUsd}
                       >
                         <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
                         Pay with{" "}
@@ -786,7 +742,7 @@ export default function AIServiceDetailPage() {
                           style: "decimal",
                           minimumFractionDigits: 0,
                           maximumFractionDigits: 0,
-                        }).format(service.price_in_usd * 100)}{" "}
+                        }).format(priceUsd * 100)}{" "}
                         Points
                       </Button>
                       <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
@@ -814,7 +770,7 @@ export default function AIServiceDetailPage() {
           </div>
 
           {/* Contact & Support */}
-          <ContactSupport />
+          <ContactSupport expanded />
         </CardContent>
       </Card>
 
@@ -826,7 +782,7 @@ export default function AIServiceDetailPage() {
             <DialogDescription>
               You are about to pay for{" "}
               <span className="font-medium text-foreground">
-                {service?.name} ({service?.duration_months} months)
+                {service?.name}
               </span>{" "}
               using your Rozo Points.
             </DialogDescription>
@@ -844,7 +800,7 @@ export default function AIServiceDetailPage() {
                       style: "decimal",
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0,
-                    }).format(service.price_in_usd * 100)}{" "}
+                    }).format(priceUsd * 100)}{" "}
                   pts
                 </span>
               </div>
@@ -867,7 +823,7 @@ export default function AIServiceDetailPage() {
                       style: "decimal",
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0,
-                    }).format((points - service.price_in_usd) * 100)}{" "}
+                    }).format((points - priceUsd) * 100)}{" "}
                   pts
                 </span>
               </div>

@@ -17,7 +17,7 @@ export const metadata: Metadata = createMiniAppMetadata(
       index: false,
       follow: false,
     },
-  }
+  },
 );
 
 export default function AiServicesLayout({
