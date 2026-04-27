@@ -16,7 +16,7 @@ export async function generateMetadata({
       {
         imageUrl: process.env.NEXT_PUBLIC_APP_HERO_IMAGE || "/logo.png",
         buttonTitle: "✨ Discover AI Services",
-        name: "AI Service Not Found",
+        name: "AI Service",
         url: `${process.env.NEXT_PUBLIC_URL}/ai-services/${serviceId}`,
       },
       {
@@ -26,14 +26,16 @@ export async function generateMetadata({
         alternates: {
           canonical: `/ai-services/${serviceId}`,
         },
-      }
+      },
     );
   }
 
   const urlPath = `/ai-services/${serviceId}`;
   const fullUrl = `${process.env.NEXT_PUBLIC_URL}${urlPath}`;
   const priceLabel =
-    service.price_usd === null ? "Price unavailable" : `Only $${service.price_usd}`;
+    service.price_usd === null
+      ? "Price unavailable"
+      : `Only $${service.price_usd}`;
 
   return createMiniAppMetadata(
     {
@@ -62,7 +64,7 @@ export async function generateMetadata({
         "price:amount": service.price_usd?.toString() ?? "N/A",
         "price:currency": "USD",
       },
-    }
+    },
   );
 }
 

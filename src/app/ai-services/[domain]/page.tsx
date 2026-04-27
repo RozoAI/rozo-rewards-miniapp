@@ -543,10 +543,7 @@ export default function AIServiceDetailPage() {
               The AI service you&apos;re looking for doesn&apos;t exist or has
               been removed.
             </p>
-            <Button
-              onClick={() => router.push("/ai-services")}
-              variant="outline"
-            >
+            <Button onClick={() => router.push("/discovery")} variant="outline">
               Back to Discovery
             </Button>
           </CardContent>

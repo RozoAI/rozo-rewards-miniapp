@@ -7,7 +7,7 @@ export function BookmarkRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/ai-services");
+    router.replace("/discovery");
   }, []);
 
   return (
