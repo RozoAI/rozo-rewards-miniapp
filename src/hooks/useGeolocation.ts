@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react";
 
-export interface GeolocationCoordinates {
+interface GeolocationCoordinates {
   latitude: number;
   longitude: number;
 }
 
-export interface UseGeolocationReturn {
+interface UseGeolocationReturn {
   coordinates: GeolocationCoordinates | null;
   loading: boolean;
   error: string | null;

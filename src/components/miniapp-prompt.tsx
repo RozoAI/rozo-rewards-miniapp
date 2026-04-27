@@ -3,7 +3,7 @@
 import { useMiniappStatus } from "@/hooks/useMiniappStatus";
 import { X } from "lucide-react";
 import { useState } from "react";
-import { AddToMiniappButton } from "./AddToMiniappButton";
+import { AddToMiniappButton } from "./add-to-miniapp-button";
 import { Button } from "./ui/button";
 
 /**

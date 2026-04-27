@@ -1,4 +1,4 @@
-import { BookmarkRedirect } from "@/components/BookmarkRedirect";
+import { BookmarkRedirect } from "@/components/bookmark-redirect";
 
 export default function HomePage() {
   return <BookmarkRedirect />;

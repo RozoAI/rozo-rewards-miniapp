@@ -1,6 +1,6 @@
 import { BottomNavbar } from "@/components/bottom-navbar";
 import IntercomInitializer from "@/components/intercom";
-import { MiniappPrompt } from "@/components/MiniappPrompt";
+import { MiniappPrompt } from "@/components/miniapp-prompt";
 import { BookmarkProvider } from "@/contexts/BookmarkContext";
 import { CreditProvider } from "@/contexts/CreditContext";
 import { MiniKitContextProvider } from "@/providers/MiniKitProvider";

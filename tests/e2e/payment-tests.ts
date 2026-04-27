@@ -315,28 +315,3 @@ export class PaymentTestSuite {
   }
 }
 
-// Utility functions for payment testing
-export function calculateExpectedCashback(amount: number, rate: number, tier: string = 'bronze'): number {
-  const tierMultipliers = {
-    bronze: 1.0,
-    silver: 1.2,
-    gold: 1.5,
-    platinum: 2.0
-  };
-  
-  const multiplier = tierMultipliers[tier as keyof typeof tierMultipliers] || 1.0;
-  const finalRate = rate * multiplier;
-  return Math.floor(amount * (finalRate / 100) * 100); // Convert to ROZO
-}
-
-export function validatePaymentResponse(response: any, expectedMethod: string) {
-  assert(response.success !== undefined, 'Response should have success field');
-  
-  if (response.success) {
-    assert(response.data.transaction_id, 'Should have transaction ID');
-    assert(response.data.payment_method === expectedMethod, `Should use ${expectedMethod} method`);
-    assert(typeof response.data.amount_paid_usd === 'number', 'Should have numeric amount');
-    assert(typeof response.data.rozo_balance_change === 'number', 'Should have ROZO balance change');
-    assert(typeof response.data.new_rozo_balance === 'number', 'Should have new ROZO balance');
-  }
-}

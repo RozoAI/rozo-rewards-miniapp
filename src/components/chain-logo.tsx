@@ -78,7 +78,7 @@ export const Solana = ({
 /**
  * USDC token logo
  */
-export const USDC = ({ width = 44, height = 44, ...props }: LogoProps) => (
+const USDC = ({ width = 44, height = 44, ...props }: LogoProps) => (
   <svg
     {...props}
     aria-hidden="true"
@@ -198,7 +198,7 @@ export const Polygon = ({
 /**
  * Optimism blockchain logo
  */
-export const Optimism = ({
+const Optimism = ({
   testnet,
   width = 44,
   height = 44,

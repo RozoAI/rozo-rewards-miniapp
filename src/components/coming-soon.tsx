@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import * as React from "react";
 
-export type ComingSoonProps = {
+type ComingSoonProps = {
   title?: string;
   description?: string;
   eta?: string;
@@ -69,5 +69,3 @@ export function ComingSoon({
     </section>
   );
 }
-
-export default ComingSoon;

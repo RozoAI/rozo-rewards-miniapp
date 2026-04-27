@@ -1,10 +1,10 @@
-import { RozoPayClientWrapper } from "@/components/RozoPayClientWrapper";
+import { RozoPayClientWrapper } from "@/components/rozo-pay-client-wrapper";
 import { createMiniAppMetadata } from "@/lib/miniapp-embed";
 import { Restaurant } from "@/types/restaurant";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import data from "../../../../public/coffee_mapdata.json";
-import { FabActionsOrNothing } from "./FabActionsOrNothing";
+import { FabActionsOrNothing } from "./fab-actions-or-nothing";
 
 type CoffeeMapResponse = {
   locations: Restaurant[];

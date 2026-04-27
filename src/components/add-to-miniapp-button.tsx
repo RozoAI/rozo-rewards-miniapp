@@ -7,7 +7,7 @@ import { sdk } from "@farcaster/miniapp-sdk";
 import { Plus } from "lucide-react";
 import { forwardRef, useState } from "react";
 
-export interface AddToMiniappButtonProps
+interface AddToMiniappButtonProps
   extends Omit<React.ComponentProps<typeof Button>, "onClick" | "onError"> {
   /**
    * Callback function executed when the miniapp is successfully added

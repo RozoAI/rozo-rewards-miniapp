@@ -11,7 +11,7 @@ import { Globe, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-export interface DappRestaurant {
+interface DappRestaurant {
   _id: string;
   name: string;
   handle: string;
@@ -32,7 +32,7 @@ interface AiServiceItem {
 
 type FilterRegion = "worldwide" | "united-states" | "ai-services" | null;
 
-export interface DappContentProps {
+interface DappContentProps {
   /** JSON with `{ locations: DappRestaurant[] }`. Defaults to `/coffee_mapdata.json`. */
   dataUrl?: string;
   className?: string;

@@ -28,7 +28,7 @@ import { injected } from "wagmi/connectors";
 // WalletConnect v2 Project ID - you should get your own from https://cloud.walletconnect.com
 const WALLETCONNECT_PROJECT_ID =
   process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ||
-  "ab8fa47f01e6a72c58bbb76577656051";
+  "900fa460b04774706bd905d17a94d35f";
 
 // 2. Create a metadata object - optional
 const metadata = {
@@ -111,6 +111,6 @@ export function initializeAppKit() {
   return appKitInstance;
 }
 
-export function getAppKitInstance() {
+function getAppKitInstance() {
   return appKitInstance;
 }

@@ -1,4 +1,4 @@
-import { RozoPayClientWrapper } from "@/components/RozoPayClientWrapper";
+import { RozoPayClientWrapper } from "@/components/rozo-pay-client-wrapper";
 import { getAiServiceById } from "@/lib/ai-services";
 import { createMiniAppMetadata } from "@/lib/miniapp-embed";
 import type { Metadata } from "next";

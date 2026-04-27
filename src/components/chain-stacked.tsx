@@ -5,9 +5,9 @@ import {
   rozoSolana,
   rozoStellar,
 } from "@rozoai/intent-common";
-import { Base, Ethereum, Polygon, Solana, Stellar } from "./chainLogo";
+import { Base, Ethereum, Polygon, Solana, Stellar } from "./chain-logo";
 
-export const chainToLogo = {
+const chainToLogo = {
   [base.chainId]: <Base />,
   [ethereum.chainId]: <Ethereum />,
   [polygon.chainId]: <Polygon />,

@@ -8,8 +8,8 @@ import {
   Polygon,
   Solana,
   Stellar,
-} from "@/components/chainLogo";
-import ChainsStacked from "@/components/ChainStacked";
+} from "@/components/chain-logo";
+import ChainsStacked from "@/components/chain-stacked";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
