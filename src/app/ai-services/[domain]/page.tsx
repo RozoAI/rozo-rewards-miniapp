@@ -41,7 +41,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
 const toAddress = "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897";
@@ -77,6 +77,7 @@ export default function AIServiceDetailPage() {
   const [appId, setAppId] = React.useState<string>("");
   const [userEmail, setUserEmail] = React.useState<string>("");
   const [emailError, setEmailError] = React.useState<string>("");
+  const hasAutoOpenedIntercomRef = useRef(false);
 
   const { toggleBookmark, isBookmarked } = useBookmarks();
 
@@ -420,6 +421,32 @@ export default function AIServiceDetailPage() {
     }
   };
 
+  const openIntercomWithMessage = useCallback(
+    (retryCount = 0) => {
+      const message = service
+        ? `Hi, I want to buy ${service.name}.`
+        : "Hi, I want to buy this service.";
+
+      if (typeof window.Intercom === "function") {
+        window.Intercom("showNewMessage", message);
+        return;
+      }
+
+      if (retryCount < 4) {
+        setTimeout(() => openIntercomWithMessage(retryCount + 1), 600);
+      }
+    },
+    [service],
+  );
+
+  useEffect(() => {
+    if (!service?.id) return;
+    if (hasAutoOpenedIntercomRef.current) return;
+
+    hasAutoOpenedIntercomRef.current = true;
+    openIntercomWithMessage();
+  }, [service?.id, openIntercomWithMessage]);
+
   const handlePaymentCompleted = (_args: PaymentCompletedEvent) => {
     if (!service) return;
 
@@ -635,9 +662,15 @@ export default function AIServiceDetailPage() {
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 mt-3">
-            <p className="text-xs text-muted-foreground text-center">
-              Please chat with us first before placing your order.
-            </p>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="w-fit self-center text-xs"
+              onClick={() => openIntercomWithMessage()}
+            >
+              Chat before order
+            </Button>
             {/* Payment Buttons - Conditional based on Rozo Wallet availability */}
             {!service.sold_out &&
               (isRozoWalletAvailable && isRozoWalletConnected ? (
