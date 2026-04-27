@@ -46,10 +46,10 @@ export function BottomNavbar() {
           <span className="text-xs font-medium">Lifestyle</span>
         </Link>
         <Link
-          href="/ai-services"
+          href="/discovery"
           className={cn(
             "flex flex-col items-center justify-center gap-1 transition-colors min-w-0",
-            isActive("/ai-services")
+            isActive("/discovery")
               ? "text-primary dark:text-primary font-bold"
               : "text-gray-500 hover:text-gray-900 focus:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 dark:focus:text-gray-50",
           )}

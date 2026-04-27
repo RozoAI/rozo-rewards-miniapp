@@ -3,12 +3,14 @@
 import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { VISIBLE_HANDLES } from "@/shared";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { Globe, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 interface DappRestaurant {
@@ -27,10 +29,15 @@ interface AiServiceItem {
   name: string;
   description: string;
   price_usd: number | null;
+  original_price_usd?: number | null;
   logoUrl: string;
 }
 
 type FilterRegion = "worldwide" | "united-states" | "ai-services" | null;
+const FILTER_REGIONS = ["worldwide", "united-states", "ai-services"] as const;
+
+const isFilterRegion = (value: string | null): value is (typeof FILTER_REGIONS)[number] =>
+  value !== null && FILTER_REGIONS.includes(value as (typeof FILTER_REGIONS)[number]);
 
 interface DappContentProps {
   /** JSON with `{ locations: DappRestaurant[] }`. Defaults to `/coffee_mapdata.json`. */
@@ -50,8 +57,13 @@ export function DappContent({
 }: DappContentProps) {
   const [restaurants, setRestaurants] = useState<DappRestaurant[]>([]);
   const [aiServices, setAiServices] = useState<AiServiceItem[]>([]);
-  const [filter, setFilter] = useState<FilterRegion>(null);
+  const [searchValue, setSearchValue] = useState("");
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const typeParam = searchParams.get("type");
+  const filter: FilterRegion = isFilterRegion(typeParam) ? typeParam : "worldwide";
 
   const { walletAddress, isConnected: isRozoWalletConnected } = useRozoWallet();
   const { address, isConnected } = useAppKitAccount();
@@ -95,7 +107,22 @@ export function DappContent({
       });
   }, [dataUrl]);
 
-  const filtered = useMemo(() => {
+  useEffect(() => {
+    setSearchValue("");
+  }, [filter]);
+
+  const setFilterInUrl = (nextFilter: Exclude<FilterRegion, null>) => {
+    if (nextFilter === filter) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("type", nextFilter);
+    const nextQuery = params.toString();
+    const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+    router.replace(nextUrl, { scroll: false });
+  };
+
+  const normalizedSearchValue = searchValue.trim().toLowerCase();
+
+  const filteredRestaurants = useMemo(() => {
     if (!filter) {
       return restaurants;
     }
@@ -112,6 +139,34 @@ export function DappContent({
 
     return restaurants;
   }, [restaurants, filter]);
+
+  const searchedRestaurants = useMemo(() => {
+    if (!normalizedSearchValue) {
+      return filteredRestaurants;
+    }
+
+    return filteredRestaurants.filter((restaurant) =>
+      `${restaurant.name} ${restaurant.formatted} ${restaurant.handle}`
+        .toLowerCase()
+        .includes(normalizedSearchValue),
+    );
+  }, [filteredRestaurants, normalizedSearchValue]);
+
+  const searchedAiServices = useMemo(() => {
+    const sortedServices = [...aiServices].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+
+    if (!normalizedSearchValue) {
+      return sortedServices;
+    }
+
+    return sortedServices.filter((service) =>
+      `${service.name} ${service.description}`
+        .toLowerCase()
+        .includes(normalizedSearchValue),
+    );
+  }, [aiServices, normalizedSearchValue]);
 
   const renderRestaurantItem = (restaurant: DappRestaurant) => {
     const initials = getFirstTwoWordInitialsFromName(restaurant.name);
@@ -154,6 +209,17 @@ export function DappContent({
   const renderAiServiceItem = (service: AiServiceItem) => {
     const priceLabel =
       service.price_usd === null ? "N/A" : `$${service.price_usd}`;
+    const hasDiscount =
+      typeof service.price_usd === "number" &&
+      typeof service.original_price_usd === "number" &&
+      service.original_price_usd > service.price_usd;
+    const discountPercent = hasDiscount
+      ? Math.round(
+          ((service.original_price_usd! - service.price_usd!) /
+            service.original_price_usd!) *
+            100,
+        )
+      : null;
     const initials = getFirstTwoWordInitialsFromName(service.name);
 
     return (
@@ -172,7 +238,7 @@ export function DappContent({
             </AvatarFallback>
           </Avatar>
 
-          <div className="min-w-0 flex-1 flex items-center justify-between gap-3">
+          <div className="min-w-0 flex-1 flex items-start justify-between gap-3">
             <div className="space-y-1">
               <h3 className="font-semibold text-foreground truncate leading-tight">
                 {service.name}
@@ -181,9 +247,19 @@ export function DappContent({
                 {service.description}
               </p>
             </div>
-            <span className="mb-auto shrink-0 font-semibold text-foreground">
-              {priceLabel}
-            </span>
+            <div className="mb-auto shrink-0 text-right leading-tight">
+              {hasDiscount && (
+                <p className="text-[11px] text-muted-foreground line-through">
+                  ${service.original_price_usd}
+                </p>
+              )}
+              <p className="font-semibold text-foreground">{priceLabel}</p>
+              {hasDiscount && discountPercent !== null && (
+                <p className="text-[11px] font-medium text-emerald-600">
+                  save {discountPercent}%
+                </p>
+              )}
+            </div>
           </div>
         </Link>
       </li>
@@ -204,7 +280,7 @@ export function DappContent({
             variant={filter === "worldwide" ? "default" : "outline"}
             size="sm"
             className="flex-1 sm:flex-none justify-start"
-            onClick={() => setFilter("worldwide")}
+            onClick={() => setFilterInUrl("worldwide")}
           >
             <span className="">🌍</span>
             <span>Worldwide</span>
@@ -213,7 +289,7 @@ export function DappContent({
             variant={filter === "ai-services" ? "default" : "outline"}
             size="sm"
             className="flex-1 sm:flex-none justify-start"
-            onClick={() => setFilter("ai-services")}
+            onClick={() => setFilterInUrl("ai-services")}
           >
             <Sparkles className="size-4  text-yellow-500" />
             <span>AI Services</span>
@@ -222,12 +298,21 @@ export function DappContent({
             variant={filter === "united-states" ? "default" : "outline"}
             size="sm"
             className="flex-1 sm:flex-none justify-start"
-            onClick={() => setFilter("united-states")}
+            onClick={() => setFilterInUrl("united-states")}
           >
             <span className="">🇺🇸</span>
             <span>United States</span>
           </Button>
         </div>
+      </div>
+
+      <div className="px-4 sm:px-0">
+        <Input
+          value={searchValue}
+          onChange={(event) => setSearchValue(event.target.value)}
+          placeholder={"Search..."}
+          aria-label="Search list"
+        />
       </div>
 
       {loading ? (
@@ -248,13 +333,11 @@ export function DappContent({
         <div className="px-4 sm:px-0">
           <ul className="divide-y rounded-md border bg-card">
             {filter === "ai-services"
-              ? [...aiServices]
-                  .sort((a, b) => a.name.localeCompare(b.name))
-                  .map(renderAiServiceItem)
-              : filtered.map(renderRestaurantItem)}
+              ? searchedAiServices.map(renderAiServiceItem)
+              : searchedRestaurants.map(renderRestaurantItem)}
           </ul>
 
-          {filter !== "ai-services" && filtered.length === 0 && (
+          {filter !== "ai-services" && searchedRestaurants.length === 0 && (
             <div className="text-center py-8 px-4">
               <Globe className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">

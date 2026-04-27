@@ -4,6 +4,7 @@
     "name": "Canva",
     "description": "1 year free of Canva Business",
     "price_usd": 50,
+    "original_price_usd": 200,
     "logoUrl": "/ai-services/canva.svg",
     "long_description": "All-in-one platform to create content faster, market smarter, and grow your business."
   },
@@ -12,6 +13,7 @@
     "name": "Cursor",
     "description": "1 year free of Cursor Pro",
     "price_usd": 150,
+    "original_price_usd": 240,
     "logoUrl": "/ai-services/cursor.svg",
     "long_description": "Build software with AI."
   },
@@ -20,6 +22,7 @@
     "name": "ElevenLabs",
     "description": "1 year free of ElevenLabs Creator Plan",
     "price_usd": 50,
+    "original_price_usd": 264,
     "logoUrl": "/ai-services/elevenlabs.svg",
     "long_description": "The all-in-one AI creative platform to generate, edit, and localize premium audio and video content in minutes."
   },
@@ -28,6 +31,7 @@
     "name": "Gamma",
     "description": "1 year free of Gamma Pro",
     "price_usd": 35,
+    "original_price_usd": 216,
     "logoUrl": "/ai-services/gamma.svg",
     "long_description": "Create AI-powered presentations, websites, and more in minutes."
   },
@@ -36,6 +40,7 @@
     "name": "Lovable",
     "description": "1 year free of Lovable Pro",
     "price_usd": 50,
+    "original_price_usd": 252,
     "logoUrl": "/ai-services/lovable.svg",
     "long_description": "AI-powered app builder. Turn your ideas into apps in seconds, from prototypes to production-ready apps."
   },
@@ -44,6 +49,7 @@
     "name": "n8n",
     "description": "1 year free of n8n Cloud Starter",
     "price_usd": 30,
+    "original_price_usd": 240,
     "logoUrl": "/ai-services/n8n.svg",
     "long_description": "Workflow engine for AI automation. Visually orchestrate AI, humans, code, and APIs."
   },
@@ -52,6 +58,7 @@
     "name": "Atlas",
     "description": "40% off Stripe Atlas",
     "price_usd": 40,
+    "original_price_usd": 200,
     "logoUrl": "/ai-services/atlas.svg",
     "long_description": "Incorporate your company in a few clicks. Bank, fundraise, and charge customers immediately after incorporating."
   },
@@ -60,6 +67,7 @@
     "name": "ChatPRD",
     "description": "1 year free of ChatPRD Pro",
     "price_usd": 20,
+    "original_price_usd": 180,
     "logoUrl": "/ai-services/chatprd.svg",
     "long_description": "AI to draft product docs and automate PM work."
   },
@@ -68,6 +76,7 @@
     "name": "Factory",
     "description": "1 year free of Factory Pro",
     "price_usd": 55,
+    "original_price_usd": 240,
     "logoUrl": "/ai-services/factory.svg",
     "long_description": "Software development agent built for production engineering work and automations"
   },
@@ -76,6 +85,7 @@
     "name": "Framer",
     "description": "1 year free of Framer Pro",
     "price_usd": 30,
+    "original_price_usd": 360,
     "logoUrl": "/ai-services/framer.svg",
     "long_description": "Design-first website builder that lets you build, ship, and manage your company's site without help from engineering."
   },
@@ -84,6 +94,7 @@
     "name": "Granola",
     "description": "1 year free of Granola Business (10 seats)",
     "price_usd": 20,
+    "original_price_usd": 1680,
     "logoUrl": "/ai-services/granola.svg",
     "long_description": "The AI notepad for people in back-to-back meetings."
   },
@@ -92,6 +103,7 @@
     "name": "Gumloop",
     "description": "1 year free of Gumloop Pro with 20k credits/month",
     "price_usd": 40,
+    "original_price_usd": 444,
     "logoUrl": "/ai-services/gumloop.svg",
     "long_description": "Build agents across all your apps and share them with your team. No engineering required."
   },
@@ -100,6 +112,7 @@
     "name": "Intercom",
     "description": "1 year free of Fin AI Agent + Intercom Advanced",
     "price_usd": 40,
+    "original_price_usd": 7140,
     "logoUrl": "/ai-services/intercom.svg",
     "long_description": "AI Agent for customer service."
   },
@@ -108,6 +121,7 @@
     "name": "Linear",
     "description": "1 year free of Linear Business (5 seats)",
     "price_usd": 20,
+    "original_price_usd": 1080,
     "logoUrl": "/ai-services/linear.svg",
     "long_description": "A purpose-built tool for planning and building products—streamline issues, projects, and product roadmaps."
   },
@@ -116,6 +130,7 @@
     "name": "Magic Patterns",
     "description": "1 year free of Magic Patterns Starter",
     "price_usd": 30,
+    "original_price_usd": 240,
     "logoUrl": "/ai-services/magic-patterns.svg",
     "long_description": "AI prototyping tool that helps product teams build interactive designs, get user feedback, and use their existing styles."
   },
@@ -124,6 +139,7 @@
     "name": "Manus",
     "description": "1 year free of Manus with 4,000 credits/month",
     "price_usd": 20,
+    "original_price_usd": 240,
     "logoUrl": "/ai-services/manus.svg",
     "long_description": "A general AI agent that gets work done, delivering research, slides, websites, images, videos, charts, and more."
   },
@@ -132,6 +148,7 @@
     "name": "Mobbin",
     "description": "1 year free of Mobbin Team (10 seats)",
     "price_usd": 30,
+    "original_price_usd": 1440,
     "logoUrl": "/ai-services/mobbin.svg",
     "long_description": "The world's most comprehensive UI/UX design reference library of mobile and web apps."
   },
@@ -140,6 +157,7 @@
     "name": "Notion",
     "description": "1 year free of Notion Business",
     "price_usd": 70,
+    "original_price_usd": 240,
     "logoUrl": "/ai-services/notion.svg",
     "long_description": "Collaborative AI workspace where teams and agents work together."
   },
@@ -148,6 +166,7 @@
     "name": "PostHog",
     "description": "1 year free of PostHog Scale with 2x monthly limit",
     "price_usd": 15,
+    "original_price_usd": 16500,
     "logoUrl": "/ai-services/posthog.svg",
     "long_description": "All-in-one platform with every SaaS you need—from analytics to data warehouse to surveys and more."
   },
@@ -156,6 +175,7 @@
     "name": "Railway",
     "description": "1 year free of Railway Hobby",
     "price_usd": 50,
+    "original_price_usd": 245,
     "logoUrl": "/ai-services/railway.svg",
     "long_description": "AI-native cloud platform that hosts production-ready deployments with one-click simplicity."
   },
@@ -164,6 +184,7 @@
     "name": "Replit",
     "description": "1 year free of Replit Core",
     "price_usd": 50,
+    "original_price_usd": 240,
     "logoUrl": "/ai-services/replit.svg",
     "long_description": "From prototype to production-ready app, code securely using natural language with database, auth, and deployment built in."
   },
@@ -172,6 +193,7 @@
     "name": "Warp",
     "description": "1 year free of Warp Build",
     "price_usd": 50,
+    "original_price_usd": 240,
     "logoUrl": "/ai-services/warp.svg",
     "long_description": "The first agentic development environment featuring the top overall coding agent."
   },
@@ -180,6 +202,7 @@
     "name": "Flow",
     "description": "1 year free of Wispr Flow Pro",
     "price_usd": 35,
+    "original_price_usd": 180,
     "logoUrl": "/ai-services/flow.svg",
     "long_description": "Effortless voice dictation with zero edits on Mac, Windows, and iOS. Unblock your team and share context as fast as you think."
   }

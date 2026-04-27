@@ -5,6 +5,7 @@ type AiService = {
   name: string;
   description: string;
   price_usd: number | null;
+  original_price_usd?: number | null;
   logoUrl: string;
   long_description: string;
   sold_out?: boolean;

@@ -37,6 +37,7 @@ import {
   Coins,
   CreditCard,
   HelpCircle,
+  MessageCircle,
   Share,
   Wallet,
 } from "lucide-react";
@@ -74,6 +75,7 @@ export default function AIServiceDetailPage() {
   const [dialogLoading, setDialogLoading] = React.useState(false);
   const [isRozoWalletPaymentLoading, setIsRozoWalletPaymentLoading] =
     React.useState(false);
+  const [showPaymentOptions, setShowPaymentOptions] = React.useState(false);
   const [appId, setAppId] = React.useState<string>("");
   const [userEmail, setUserEmail] = React.useState<string>("");
   const [emailError, setEmailError] = React.useState<string>("");
@@ -88,6 +90,17 @@ export default function AIServiceDetailPage() {
   const receiptUrl = `https://ns.rozo.ai/payment/success?order_id=${merchantOrderId}`;
   const priceUsd = service?.price_usd ?? 0;
   const hasPrice = typeof service?.price_usd === "number";
+  const hasDiscount =
+    typeof service?.price_usd === "number" &&
+    typeof service?.original_price_usd === "number" &&
+    service.original_price_usd > service.price_usd;
+  const discountPercent = hasDiscount
+    ? Math.round(
+        ((service.original_price_usd! - service.price_usd!) /
+          service.original_price_usd!) *
+          100,
+      )
+    : null;
 
   // Prefer Rozo Wallet account when available, otherwise fall back to EVM account
   const activeAddress =
@@ -616,16 +629,28 @@ export default function AIServiceDetailPage() {
         </CardHeader>
 
         <CardContent className="space-y-4 sm:space-y-6 pt-0">
-          <div className="rounded-xl border border-primary/20 bg-muted/20 p-4 sm:p-5">
-            <div className="flex items-start justify-between gap-3">
+          <div className="rounded-lg border border-primary/20 bg-muted/20 p-3 sm:p-4">
+            <div className="space-y-1">
               <div className="space-y-1">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                   Offer Value
                 </p>
-                <p className="text-3xl sm:text-4xl font-bold leading-none text-foreground">
-                  {hasPrice ? `$${service.price_usd}` : "N/A"}
-                </p>
-                <p className="text-sm leading-relaxed text-muted-foreground">
+                {hasDiscount && (
+                  <p className="text-xs text-muted-foreground line-through">
+                    ${service.original_price_usd}
+                  </p>
+                )}
+                <div className="flex items-end gap-1.5">
+                  <p className="text-2xl font-bold leading-none text-foreground sm:text-3xl">
+                    {hasPrice ? `$${service.price_usd}` : "N/A"}
+                  </p>
+                  {hasDiscount && discountPercent !== null && (
+                    <span className="rounded-md bg-emerald-100 px-1.5 py-0 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                      -{discountPercent}%
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs leading-snug text-muted-foreground">
                   {service.description}
                 </p>
               </div>
@@ -638,157 +663,175 @@ export default function AIServiceDetailPage() {
             </div>
           </div>
 
-          {/* Email Input */}
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email address"
-              value={userEmail}
-              onChange={(e) => {
-                setUserEmail(e.target.value);
-                setEmailError("");
-              }}
-              className={emailError ? "border-destructive" : ""}
-            />
-            {/* {emailError && (
-              <p className="text-sm text-destructive">{emailError}</p>
-            )} */}
-            <p className="text-xs text-muted-foreground">
-              Required for payment confirmation and receipt delivery
-            </p>
-          </div>
-
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 mt-3">
             <Button
               type="button"
-              size="sm"
               variant="outline"
-              className="w-fit self-center text-xs"
+              className="w-full"
               onClick={() => openIntercomWithMessage()}
             >
-              Chat before order
+              <MessageCircle className="size-4" />
+              Please Chat before placing order
             </Button>
-            {/* Payment Buttons - Conditional based on Rozo Wallet availability */}
-            {!service.sold_out &&
-              (isRozoWalletAvailable && isRozoWalletConnected ? (
-                // Pay with Rozo Wallet (Stellar USDC) - REPLACES other payment methods
+            {!service.sold_out && !showPaymentOptions && (
+              <Button
+                type="button"
+                className="w-full"
+                onClick={() => setShowPaymentOptions(true)}
+              >
+                <CreditCard className="size-4" />
+                Pay
+              </Button>
+            )}
+
+            {showPaymentOptions && (
+              <>
+                {/* Email Input */}
                 <div className="space-y-2">
-                  {/* Balance Display */}
-                  {rozoWalletBalance && (
-                    <p className="text-xs text-muted-foreground text-center">
-                      Rozo Wallet Balance: {rozoWalletBalance} USDC (Stellar)
-                    </p>
-                  )}
-
-                  {/* Pay with Rozo Wallet Button */}
-                  <Button
-                    variant="default"
-                    className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
-                    onClick={handlePayWithRozoWallet}
-                    disabled={isRozoWalletPaymentLoading}
-                    size="lg"
-                  >
-                    {isRozoWalletPaymentLoading ? (
-                      <>
-                        <Wallet className="mr-2 h-4 w-4 animate-pulse" />
-                        Processing Payment...
-                      </>
-                    ) : (
-                      <>
-                        <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                        Pay {hasPrice ? `$${service.price_usd}` : "N/A"} with
-                        Rozo Wallet
-                      </>
-                    )}
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  {/* Original Payment Buttons - ONLY shown when Rozo Wallet NOT available */}
-
-                  {/* Intent SDK for non mini app */}
-                  <RozoPayButton.Custom
-                    resetOnSuccess
-                    appId={appId}
-                    intent={`Pay for ${service.name}`}
-                    toAddress={toAddress}
-                    toChain={baseUSDC.chainId}
-                    toToken={baseUSDC.token}
-                    {...(service.price_usd && {
-                      toUnits: service.price_usd.toString(),
-                    })}
-                    metadata={metadata as any}
-                    onPaymentStarted={() => {
-                      setPaymentLoading(true);
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={userEmail}
+                    onChange={(e) => {
+                      setUserEmail(e.target.value);
+                      setEmailError("");
                     }}
-                    onPaymentCompleted={handlePaymentCompleted}
-                  >
-                    {({ show }) => (
-                      <div className="m-auto flex w-full flex-col gap-2">
-                        <Button
-                          className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
-                          size={"lg"}
-                          onClick={() => {
-                            if (!validateEmailInput()) {
-                              return;
-                            }
-                            show();
-                          }}
-                          disabled={paymentLoading}
-                        >
-                          {paymentLoading ? (
-                            <>
-                              <Wallet className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
-                              Processing Payment...
-                            </>
-                          ) : (
-                            <>
-                              <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
-                              Pay with Crypto
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    )}
-                  </RozoPayButton.Custom>
+                    className={emailError ? "border-destructive" : ""}
+                  />
+                  {/* {emailError && (
+                    <p className="text-sm text-destructive">{emailError}</p>
+                  )} */}
+                  <p className="text-xs text-muted-foreground">
+                    Required for payment confirmation and receipt delivery
+                  </p>
+                </div>
 
-                  {/* Pay with Points Button */}
-                  {points > 0 && (
+                {/* Payment Buttons - Conditional based on Rozo Wallet availability */}
+                {!service.sold_out &&
+                  (isRozoWalletAvailable && isRozoWalletConnected ? (
+                    // Pay with Rozo Wallet (Stellar USDC) - REPLACES other payment methods
                     <div className="space-y-2">
+                      {/* Balance Display */}
+                      {rozoWalletBalance && (
+                        <p className="text-xs text-muted-foreground text-center">
+                          Rozo Wallet Balance: {rozoWalletBalance} USDC
+                          (Stellar)
+                        </p>
+                      )}
+
+                      {/* Pay with Rozo Wallet Button */}
                       <Button
-                        className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
-                        size={"lg"}
-                        onClick={handlePayWithPoints}
-                        variant="outline"
-                        disabled={!hasPrice || points < priceUsd}
+                        variant="default"
+                        className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
+                        onClick={handlePayWithRozoWallet}
+                        disabled={isRozoWalletPaymentLoading}
+                        size="lg"
                       >
-                        <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
-                        Pay with{" "}
-                        {new Intl.NumberFormat("en-US", {
-                          style: "decimal",
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                        }).format(priceUsd * 100)}{" "}
-                        Points
+                        {isRozoWalletPaymentLoading ? (
+                          <>
+                            <Wallet className="mr-2 h-4 w-4 animate-pulse" />
+                            Processing Payment...
+                          </>
+                        ) : (
+                          <>
+                            <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                            Pay {hasPrice
+                              ? `$${service.price_usd}`
+                              : "N/A"}{" "}
+                            with Rozo Wallet
+                          </>
+                        )}
                       </Button>
-                      <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-                        Available Points:{" "}
-                        {Number((points ?? 0) * 100).toFixed(2)} pts
-                        <CustomTooltip
-                          content="Explore all the benefits of Rozo. Rozo points are the rewards for your purchases."
-                          position="top"
-                          className="w-48 sm:w-[20rem] ml-1.5"
-                        >
-                          <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
-                        </CustomTooltip>
-                      </div>
                     </div>
-                  )}
-                </>
-              ))}
+                  ) : (
+                    <>
+                      {/* Original Payment Buttons - ONLY shown when Rozo Wallet NOT available */}
+
+                      {/* Intent SDK for non mini app */}
+                      <RozoPayButton.Custom
+                        resetOnSuccess
+                        appId={appId}
+                        intent={`Pay for ${service.name}`}
+                        toAddress={toAddress}
+                        toChain={baseUSDC.chainId}
+                        toToken={baseUSDC.token}
+                        {...(service.price_usd && {
+                          toUnits: service.price_usd.toString(),
+                        })}
+                        metadata={metadata as any}
+                        onPaymentStarted={() => {
+                          setPaymentLoading(true);
+                        }}
+                        onPaymentCompleted={handlePaymentCompleted}
+                      >
+                        {({ show }) => (
+                          <div className="m-auto flex w-full flex-col gap-2">
+                            <Button
+                              className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
+                              size={"lg"}
+                              onClick={() => {
+                                if (!validateEmailInput()) {
+                                  return;
+                                }
+                                show();
+                              }}
+                              disabled={paymentLoading}
+                            >
+                              {paymentLoading ? (
+                                <>
+                                  <Wallet className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
+                                  Processing Payment...
+                                </>
+                              ) : (
+                                <>
+                                  <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
+                                  Pay with Crypto
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                      </RozoPayButton.Custom>
+
+                      {/* Pay with Points Button */}
+                      {points > 0 && (
+                        <div className="space-y-2">
+                          <Button
+                            className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
+                            size={"lg"}
+                            onClick={handlePayWithPoints}
+                            variant="outline"
+                            disabled={!hasPrice || points < priceUsd}
+                          >
+                            <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
+                            Pay with{" "}
+                            {new Intl.NumberFormat("en-US", {
+                              style: "decimal",
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0,
+                            }).format(priceUsd * 100)}{" "}
+                            Points
+                          </Button>
+                          <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+                            Available Points:{" "}
+                            {Number((points ?? 0) * 100).toFixed(2)} pts
+                            <CustomTooltip
+                              content="Explore all the benefits of Rozo. Rozo points are the rewards for your purchases."
+                              position="top"
+                              className="w-48 sm:w-[20rem] ml-1.5"
+                            >
+                              <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
+                            </CustomTooltip>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ))}
+              </>
+            )}
 
             {/* Sold Out State */}
             {service.sold_out && (
@@ -799,7 +842,7 @@ export default function AIServiceDetailPage() {
           </div>
 
           {/* Contact & Support */}
-          <ContactSupport expanded />
+          <ContactSupport />
         </CardContent>
       </Card>
 
