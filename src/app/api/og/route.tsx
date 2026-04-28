@@ -12,17 +12,55 @@ export async function GET(req: NextRequest) {
     const subtitle = searchParams.get("subtitle") || "";
     const price = searchParams.get("price") || "";
     const originalPrice = searchParams.get("originalPrice") || "";
-
-    // Simple image validation - exclude icons
     const rawImage = searchParams.get("image") || "";
-    const isValidImage =
-      rawImage &&
-      (rawImage.includes(".jpg") ||
-        rawImage.includes(".png") ||
-        rawImage.includes(".webp")) &&
-      !rawImage.includes("icon") &&
-      !rawImage.includes("favicon");
-    const finalImage = isValidImage ? rawImage : `${baseUrl}/rozo-white.png`;
+
+    const resolveImageUrl = async (image: string): Promise<string> => {
+      if (!image) return `${baseUrl}/rozo-white.png`;
+
+      // Support absolute URLs and local asset paths (including .svg logos).
+      const normalizedUrl = image.startsWith("/") ? `${baseUrl}${image}` : image;
+
+      let resolvedUrl = normalizedUrl;
+      try {
+        resolvedUrl = new URL(normalizedUrl).toString();
+      } catch {
+        return `${baseUrl}/rozo-white.png`;
+      }
+
+      // Explicit SVG handling for better compatibility in OG renderer.
+      if (resolvedUrl.toLowerCase().endsWith(".svg")) {
+        try {
+          const svgResponse = await fetch(resolvedUrl);
+          if (!svgResponse.ok) return `${baseUrl}/rozo-white.png`;
+          const svgText = await svgResponse.text();
+          // Runtime-safe SVG embedding (works in Node and Edge).
+          return `data:image/svg+xml;utf8,${encodeURIComponent(svgText)}`;
+        } catch {
+          return `${baseUrl}/rozo-white.png`;
+        }
+      }
+
+      try {
+        return new URL(resolvedUrl).toString();
+      } catch {
+        return `${baseUrl}/rozo-white.png`;
+      }
+    };
+
+    const finalImage = await resolveImageUrl(rawImage);
+    const parsedPrice = Number(price);
+    const parsedOriginalPrice = Number(originalPrice);
+    const hasValidPrice = Number.isFinite(parsedPrice) && parsedPrice > 0;
+    const hasValidOriginalPrice =
+      Number.isFinite(parsedOriginalPrice) &&
+      parsedOriginalPrice > 0 &&
+      parsedOriginalPrice > parsedPrice;
+    const discountPercent = hasValidOriginalPrice
+      ? Math.round(((parsedOriginalPrice - parsedPrice) / parsedOriginalPrice) * 100)
+      : null;
+    const discountAmount = hasValidOriginalPrice
+      ? parsedOriginalPrice - parsedPrice
+      : null;
 
     return new ImageResponse(
       (
@@ -56,59 +94,75 @@ export async function GET(req: NextRequest) {
               {/* Main Heading */}
               <h1
                 style={{
-                  fontSize: "76px",
-                  fontWeight: 900,
+                  fontSize: "64px",
+                  fontWeight: 800,
                   fontFamily: "Arial Black, Arial, sans-serif",
                   color: "#333",
-                  marginBottom: "16px",
+                  marginBottom: "12px",
+                  lineHeight: 1.05,
                 }}
               >
                 {title}
               </h1>
               <p
                 style={{
-                  fontSize: "20px",
+                  fontSize: "18px",
+                  fontWeight: 500,
                   fontFamily: "Arial, sans-serif",
                   color: "#374151",
-                  marginBottom: "32px",
-                  maxWidth: "384px",
+                  marginBottom: "28px",
+                  maxWidth: "420px",
+                  lineHeight: 1.35,
                 }}
               >
                 {subtitle}
               </p>
 
               {/* Pricing */}
-              {(price || originalPrice) && (
+              {(hasValidPrice || hasValidOriginalPrice) && (
                 <div
                   style={{
                     display: "flex",
-                    alignItems: "baseline",
-                    marginBottom: "32px",
+                    flexDirection: "column",
+                    marginBottom: "28px",
                   }}
                 >
-                  {price && (
+                  {hasValidOriginalPrice && (
                     <span
                       style={{
-                        fontSize: "60px",
-                        fontWeight: 900,
-                        fontFamily: "Arial Black, Arial, sans-serif",
-                        color: "#000000",
-                        marginRight: "12px",
-                      }}
-                    >
-                      ${price}
-                    </span>
-                  )}
-                  {originalPrice && (
-                    <span
-                      style={{
-                        fontSize: "24px",
+                        fontSize: "26px",
                         fontFamily: "Arial, sans-serif",
                         color: "#6b7280",
                         textDecoration: "line-through",
+                        marginBottom: "4px",
                       }}
                     >
-                      ${originalPrice}
+                      ${parsedOriginalPrice}
+                    </span>
+                  )}
+                  {hasValidPrice && (
+                    <span
+                      style={{
+                        fontSize: "58px",
+                        fontWeight: 800,
+                        fontFamily: "Arial Black, Arial, sans-serif",
+                        color: "#000000",
+                        lineHeight: 1,
+                      }}
+                    >
+                      ${parsedPrice}
+                    </span>
+                  )}
+                  {discountPercent !== null && discountAmount !== null && (
+                    <span
+                      style={{
+                        marginTop: "8px",
+                        fontSize: "24px",
+                        fontWeight: 700,
+                        color: "#065f46",
+                      }}
+                    >
+                      Save ${discountAmount} ({discountPercent}% off)
                     </span>
                   )}
                 </div>
@@ -135,7 +189,8 @@ export async function GET(req: NextRequest) {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  fontSize: "16px",
+                  fontSize: "18px",
+                  fontWeight: 600,
                   marginTop: "auto",
                 }}
               >
@@ -169,7 +224,9 @@ export async function GET(req: NextRequest) {
                 style={{
                   width: "320px",
                   height: "320px",
-                  objectFit: "cover",
+                  objectFit: "contain",
+                  backgroundColor: "#ffffff",
+                  padding: "28px",
                   borderRadius: "24px",
                   transform: "rotate(12deg)",
                 }}

@@ -36,6 +36,10 @@ export async function generateMetadata({
     service.price_usd === null
       ? "Price unavailable"
       : `Only $${service.price_usd}`;
+  const hasDiscount =
+    typeof service.price_usd === "number" &&
+    typeof service.original_price_usd === "number" &&
+    service.original_price_usd > service.price_usd;
 
   return createMiniAppMetadata(
     {
@@ -43,7 +47,6 @@ export async function generateMetadata({
         service.logoUrl ||
         process.env.NEXT_PUBLIC_APP_HERO_IMAGE ||
         `${process.env.NEXT_PUBLIC_URL}/logo.png`,
-      bannerUrl: `${process.env.NEXT_PUBLIC_URL}/banner.png`,
       buttonTitle: `✨ ${priceLabel} for ${service.name}`,
       name: service.name,
       url: fullUrl,
@@ -62,6 +65,9 @@ export async function generateMetadata({
         "service:id": service.id,
         "service:name": service.name,
         "price:amount": service.price_usd?.toString() ?? "N/A",
+        "price:original": hasDiscount
+          ? service.original_price_usd?.toString() ?? ""
+          : "",
         "price:currency": "USD",
       },
     },
