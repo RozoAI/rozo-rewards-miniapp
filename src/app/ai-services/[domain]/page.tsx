@@ -157,7 +157,7 @@ export default function AIServiceDetailPage() {
 
         setService(foundService);
 
-        const appId = `rozoRewardsBNBStellarMP-${foundService.id || ""}`;
+        const appId = `rozoRewardsBNBStellarMP-zen`;
         setAppId(appId);
 
         await resetPayment({
