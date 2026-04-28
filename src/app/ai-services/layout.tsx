@@ -10,14 +10,13 @@ export const metadata: Metadata = createMiniAppMetadata(
     bannerUrl: `${process.env.NEXT_PUBLIC_URL}/banner.png`,
   },
   {
-    title: "Discovery | Rozo",
-    description:
-      "Discover AI-powered services and tools for enhanced experiences",
+    title: "AI Services | Rozo",
+    description: "Discover AI services and tools for enhanced experiences",
     robots: {
       index: false,
       follow: false,
     },
-  }
+  },
 );
 
 export default function AiServicesLayout({

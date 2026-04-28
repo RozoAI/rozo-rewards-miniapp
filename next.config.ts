@@ -1,5 +1,10 @@
 import { withSentryConfig } from "@sentry/nextjs";
+import createBundleAnalyzer from "@next/bundle-analyzer";
 import type { NextConfig } from "next";
+
+const withBundleAnalyzer = createBundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
 
 const nextConfig: NextConfig = {
   devIndicators: false,
@@ -14,7 +19,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
+const sentryConfig = withSentryConfig(nextConfig, {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
@@ -24,6 +29,7 @@ export default withSentryConfig(nextConfig, {
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
+  telemetry: false,
 
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
@@ -36,6 +42,11 @@ export default withSentryConfig(nextConfig, {
   // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
   // side errors will fail.
   tunnelRoute: "/monitoring",
+
+  // Sentry build options
+  sourcemaps: {
+    disable: true, // This disables the automatic upload of source maps
+  },
 
   webpack: {
     // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
@@ -51,3 +62,5 @@ export default withSentryConfig(nextConfig, {
     },
   },
 });
+
+export default withBundleAnalyzer(sentryConfig);

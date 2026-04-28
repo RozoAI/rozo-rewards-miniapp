@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { generateOgMetadata } from "./og-image";
 
-export interface MiniAppEmbedConfig {
+interface MiniAppEmbedConfig {
   version?: string;
   imageUrl: string;
   bannerUrl?: string;

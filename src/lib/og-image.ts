@@ -1,7 +1,7 @@
 // Define supported page types
-export type PageType = "homepage" | "lifestyle";
+type PageType = "homepage" | "lifestyle";
 
-export interface OgImageParams {
+interface OgImageParams {
   type?: PageType;
   title: string;
   subtitle?: string;
@@ -16,7 +16,7 @@ export interface OgImageParams {
  * @param params - Configuration for the OG image
  * @returns Complete URL for the OG image endpoint
  */
-export function getOgImageUrl({
+function getOgImageUrl({
   type = "homepage",
   title,
   subtitle,
@@ -46,14 +46,6 @@ export function getOgImageUrl({
 
 /**
  * Utility to truncate text for better OG image display
- */
-export function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength).trim() + "...";
-}
-
-/**
- * Generate metadata object with OG image for Next.js generateMetadata
  */
 export function generateOgMetadata({
   title,

@@ -182,7 +182,7 @@ export function getPaymentReceipt(paymentId: string): PaymentData | null {
  * Removes a specific payment receipt from localStorage
  * @param paymentId - Unique identifier for the payment to remove
  */
-export function clearPaymentReceipt(paymentId: string): void {
+function clearPaymentReceipt(paymentId: string): void {
   console.log("[PaymentStorage] clearPaymentReceipt - START");
   console.log("[PaymentStorage] clearPaymentReceipt - Payment ID:", paymentId);
 
@@ -224,7 +224,7 @@ export function getAllPaymentIds(): string[] {
  * @param daysToKeep - Number of days to keep receipts (default: 30)
  * @returns Number of receipts removed
  */
-export function cleanupOldPayments(daysToKeep: number = 30): number {
+function cleanupOldPayments(daysToKeep: number = 30): number {
   console.log("[PaymentStorage] cleanupOldPayments - START");
   console.log("[PaymentStorage] cleanupOldPayments - Days to keep:", daysToKeep);
 

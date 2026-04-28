@@ -1,16 +1,15 @@
 import { BottomNavbar } from "@/components/bottom-navbar";
 import IntercomInitializer from "@/components/intercom";
-import { MiniappPrompt } from "@/components/MiniappPrompt";
+import { MiniappPrompt } from "@/components/miniapp-prompt";
 import { BookmarkProvider } from "@/contexts/BookmarkContext";
 import { CreditProvider } from "@/contexts/CreditContext";
 import { MiniKitContextProvider } from "@/providers/MiniKitProvider";
 import Web3Provider from "@/providers/Web3Provider";
 // import "@coinbase/onchainkit/styles.css";
 import { generateOgMetadata } from "@/lib/og-image";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
-import Head from "next/head";
 import { headers } from "next/headers";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "sonner";
@@ -75,6 +74,12 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -85,14 +90,8 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <Head>
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no"
-        />
-      </Head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased !pr-0 relative`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased pr-0! relative`}
         suppressHydrationWarning={true}
       >
         <Web3Provider cookies={cookies}>
@@ -105,7 +104,7 @@ export default async function RootLayout({
                   enableSystem={false}
                   disableTransitionOnChange
                 >
-                  <main className="flex min-h-screen flex-col justify-between md:min-h-screen md:items-center md:justify-center relative">
+                  <main className="flex min-h-screen flex-col justify-between md:min-h-screen md:items-center md:justify-start relative">
                     <NextTopLoader showSpinner={false} />
                     <MiniappPrompt />
                     {children}

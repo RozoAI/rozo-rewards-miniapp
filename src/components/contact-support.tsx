@@ -3,8 +3,8 @@
 import { ChevronDown, ChevronUp, HelpCircleIcon } from "lucide-react";
 import { useState } from "react";
 
-export function ContactSupport() {
-  const [isExpanded, setIsExpanded] = useState(false);
+export function ContactSupport({ expanded = false }: { expanded?: boolean }) {
+  const [isExpanded, setIsExpanded] = useState(expanded);
 
   return (
     <div className="space-y-3">

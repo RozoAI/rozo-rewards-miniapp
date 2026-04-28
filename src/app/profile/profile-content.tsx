@@ -1,7 +1,7 @@
 "use client";
 
 import { FabActions } from "@/components/fab-actions";
-import RozoMembershipRewards from "@/components/RozoMembershipRewards";
+import RozoMembershipRewards from "@/components/rozo-membership-rewards";
 // Badge component not available, using span instead
 import { WalletComponents } from "@/components/wallet-connect-button";
 import { useHasMounted } from "@/hooks/useHasMounted";

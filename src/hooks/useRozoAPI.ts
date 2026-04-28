@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useSignMessage } from "wagmi";
 
 // Error types for better error handling
-export enum ErrorType {
+enum ErrorType {
   NETWORK_ERROR = "NETWORK_ERROR",
   AUTHENTICATION_ERROR = "AUTHENTICATION_ERROR",
   INSUFFICIENT_AUTHORIZATION = "INSUFFICIENT_AUTHORIZATION",
@@ -703,7 +703,7 @@ export const useRozoAPI = () => {
 };
 
 // Test configuration
-export const TEST_CONFIG = {
+const TEST_CONFIG = {
   authorizationAmount: 20.0,
   nsCafePayment: 0.1,
   cashbackRate: 10.0,

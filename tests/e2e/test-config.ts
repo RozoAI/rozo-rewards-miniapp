@@ -1,7 +1,7 @@
 // E2E Test Configuration for Rozo Rewards MiniApp APIs
 import { createClient } from '@supabase/supabase-js';
 
-export interface TestConfig {
+interface TestConfig {
   supabaseUrl: string;
   supabaseAnonKey: string;
   functionsUrl: string;
@@ -9,7 +9,7 @@ export interface TestConfig {
   testMerchantWallet: string;
 }
 
-export interface TestContext {
+interface TestContext {
   supabase: any;
   config: TestConfig;
   testUserId?: string;
@@ -311,9 +311,3 @@ export function assertGreaterThan(actual: number, threshold: number, message: st
   console.log(`✅ ${message}: ${actual} > ${threshold}`);
 }
 
-export function assertContains(array: any[], item: any, message: string) {
-  if (!array.includes(item)) {
-    throw new Error(`❌ ${message}: array does not contain ${item}`);
-  }
-  console.log(`✅ ${message}`);
-}

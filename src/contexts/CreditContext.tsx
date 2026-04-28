@@ -77,7 +77,7 @@ export const CreditProvider: React.FC<CreditProviderProps> = ({ children }) => {
   );
 };
 
-export const useCredit = (): CreditContextType => {
+const useCredit = (): CreditContextType => {
   const context = useContext(CreditContext);
   if (context === undefined) {
     throw new Error('useCredit must be used within a CreditProvider');

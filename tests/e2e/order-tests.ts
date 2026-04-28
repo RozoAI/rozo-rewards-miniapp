@@ -382,34 +382,3 @@ export class OrderTestSuite {
   }
 }
 
-// Utility functions for order testing
-export function validateOrderStructure(order: any) {
-  assert(order.id, 'Order should have ID');
-  assert(order.order_number, 'Order should have order number');
-  assert(order.status, 'Order should have status');
-  assert(typeof order.subtotal_usd === 'number', 'Should have numeric subtotal');
-  assert(typeof order.final_amount_usd === 'number', 'Should have numeric final amount');
-  assert(Array.isArray(order.items) || order.items === undefined, 'Items should be array or undefined');
-}
-
-export function validateCartOperations(cartResponse: any) {
-  if (cartResponse.success) {
-    assert(cartResponse.data.order_id, 'Cart should have order ID');
-    assert(Array.isArray(cartResponse.data.items), 'Cart should have items array');
-    assert(cartResponse.data.totals, 'Cart should have totals object');
-    
-    const totals = cartResponse.data.totals;
-    assert(typeof totals.subtotal_usd === 'number', 'Should have numeric subtotal');
-    assert(typeof totals.total_cashback_rozo === 'number', 'Should have numeric cashback');
-  }
-}
-
-export function calculateOrderTotals(items: any[]): { subtotal: number, totalCashback: number } {
-  const subtotal = items.reduce((sum, item) => sum + (item.unit_price_usd * item.quantity), 0);
-  const totalCashback = items.reduce((sum, item) => {
-    const lineCashback = Math.floor(item.unit_price_usd * item.quantity * (item.cashback_rate / 100) * 100);
-    return sum + lineCashback;
-  }, 0);
-  
-  return { subtotal, totalCashback };
-}

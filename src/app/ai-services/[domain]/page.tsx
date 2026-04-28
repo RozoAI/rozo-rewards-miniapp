@@ -4,7 +4,6 @@ import { PaymentData } from "@/app/receipt/receipt-content";
 import { ContactSupport } from "@/components/contact-support";
 import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CustomTooltip } from "@/components/ui/custom-tooltip";
@@ -21,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { useBookmarks } from "@/contexts/BookmarkContext";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
+import { getAiServiceById } from "@/lib/ai-services";
 import { savePaymentReceipt } from "@/lib/payment-storage";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
@@ -33,55 +33,24 @@ import {
 } from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPayUI } from "@rozoai/intent-pay";
 import {
-  ArrowLeft,
   Bookmark,
-  Clock,
   Coins,
   CreditCard,
-  ExternalLink,
   HelpCircle,
+  MessageCircle,
   Share,
-  Tag,
   Wallet,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
-import data from "../../../../public/ai_commerce_catalog.json";
-
-type CatalogItem = {
-  domain: string;
-  name: string;
-  price_in_usd: number;
-  original_value_usd: number;
-  duration_months: number;
-  destination: number;
-  category: string;
-  description: string;
-  offer_description: string;
-  logo_url: string;
-  cashback_rate: number;
-  discount_rate: number;
-  savings_usd: number;
-  source: string;
-  sold_out?: boolean;
-};
-
-type CatalogResponse = CatalogItem[];
-
-type PaymentIntentProps = {
-  toAddress: string;
-  toChain: number;
-  toUnits?: string;
-  toToken: string;
-};
 
 const toAddress = "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897";
 
 export default function AIServiceDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const serviceDomain = params.domain as string;
+  const serviceId = params.domain as string;
   const { isInMiniApp } = useIsInMiniApp();
 
   const { composeCast } = useComposeCast();
@@ -93,48 +62,66 @@ export default function AIServiceDetailPage() {
     isConnected: isRozoWalletConnected,
     walletAddress: rozoWalletAddress,
     balance: rozoWalletBalance,
-    isLoading: rozoWalletLoading,
     transferUSDC: rozoWalletTransfer,
-    refreshData: refreshRozoWallet,
   } = useRozoWallet();
 
-  const [service, setService] = React.useState<CatalogItem | null>(null);
+  const [service, setService] =
+    React.useState<ReturnType<typeof getAiServiceById>>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = React.useState(false);
   const [points, setPoints] = React.useState(0);
-  const [pointsLoading, setPointsLoading] = React.useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
   const [dialogLoading, setDialogLoading] = React.useState(false);
   const [isRozoWalletPaymentLoading, setIsRozoWalletPaymentLoading] =
     React.useState(false);
+  const [showPaymentOptions, setShowPaymentOptions] = React.useState(false);
   const [appId, setAppId] = React.useState<string>("");
   const [userEmail, setUserEmail] = React.useState<string>("");
   const [emailError, setEmailError] = React.useState<string>("");
+  const hasAutoOpenedIntercomRef = useRef(false);
 
   const { toggleBookmark, isBookmarked } = useBookmarks();
 
-  const merchantOrderId = `${service?.domain.toUpperCase()}-${new Date().getTime()}`;
+  const merchantOrderId = useMemo(
+    () => `${(service?.id || "service").toUpperCase()}-${Date.now()}`,
+    [service?.id],
+  );
   const receiptUrl = `https://ns.rozo.ai/payment/success?order_id=${merchantOrderId}`;
+  const priceUsd = service?.price_usd ?? 0;
+  const hasPrice = typeof service?.price_usd === "number";
+  const hasDiscount =
+    typeof service?.price_usd === "number" &&
+    typeof service?.original_price_usd === "number" &&
+    service.original_price_usd > service.price_usd;
+  const discountPercent = hasDiscount
+    ? Math.round(
+        ((service.original_price_usd! - service.price_usd!) /
+          service.original_price_usd!) *
+          100,
+      )
+    : null;
 
   // Prefer Rozo Wallet account when available, otherwise fall back to EVM account
   const activeAddress =
-    (isRozoWalletConnected && rozoWalletAddress) || (isConnected && address) || "";
+    (isRozoWalletConnected && rozoWalletAddress) ||
+    (isConnected && address) ||
+    "";
 
   const metadata = useMemo(() => {
     const baseMetadata = {
-      amount_local: service?.price_in_usd,
+      amount_local: service?.price_usd,
       currency_local: "USD",
       email: userEmail,
       items: [
         {
           name: service?.name,
-          description: `${service?.price_in_usd} (${service?.price_in_usd} USD)`,
+          description: `${service?.price_usd ?? "N/A"} USD`,
         },
       ],
     };
 
-    if (service?.domain) {
+    if (service?.id) {
       return {
         ...baseMetadata,
         merchant_order_id: merchantOrderId,
@@ -150,28 +137,38 @@ export default function AIServiceDetailPage() {
     }
 
     return baseMetadata;
-  }, [service?.price_in_usd, service?.name, service?.domain, userEmail]);
+  }, [
+    service?.price_usd,
+    service?.name,
+    service?.id,
+    service?.sold_out,
+    userEmail,
+    merchantOrderId,
+    receiptUrl,
+  ]);
 
   useEffect(() => {
     async function loadService() {
       try {
-        const foundService = data.find((item) => item.domain === serviceDomain);
+        const foundService = getAiServiceById(serviceId);
         if (!foundService) {
           throw new Error("AI Service not found");
         }
 
         setService(foundService);
 
-        const appId = `rozoRewardsBNBStellarMP-${foundService.domain || ""}`;
+        const appId = `rozoRewardsBNBStellarMP-zen`;
         setAppId(appId);
 
-        resetPayment({
+        await resetPayment({
           appId: appId,
-          intent: `Pay for ${foundService.name} - ${foundService.duration_months} months`,
+          intent: `Pay for ${foundService.name}`,
           toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
           toChain: baseUSDC.chainId,
           toToken: baseUSDC.token as `0x${string}`,
-          toUnits: foundService.price_in_usd?.toString(),
+          ...(typeof foundService.price_usd === "number" && {
+            toUnits: foundService.price_usd.toString(),
+          }),
           metadata: metadata as any,
         });
       } catch (err) {
@@ -181,37 +178,37 @@ export default function AIServiceDetailPage() {
       }
     }
 
-    if (serviceDomain) {
+    if (serviceId) {
       loadService();
     }
-  }, [serviceDomain, userEmail]);
+  }, [serviceId, userEmail, metadata]);
 
   useEffect(() => {
     const fetchPoints = async () => {
       if (!address || !isConnected) return;
 
-      setPointsLoading(true);
       const points = await getPoints(address);
       setPoints(points / 100);
-      setPointsLoading(false);
     };
     fetchPoints();
-  }, [isConnected, address]);
+  }, [isConnected, address, getPoints]);
 
   // Update payment metadata when email changes (but only after initial load)
   useEffect(() => {
     if (userEmail && service && appId) {
       resetPayment({
         appId: appId,
-        intent: `Pay for ${service.name} - ${service.duration_months} months`,
+        intent: `Pay for ${service.name}`,
         toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
         toChain: baseUSDC.chainId,
         toToken: baseUSDC.token as `0x${string}`,
-        toUnits: service.price_in_usd?.toString(),
+        ...(typeof service.price_usd === "number" && {
+          toUnits: service.price_usd.toString(),
+        }),
         metadata: metadata as any,
       });
     }
-  }, [userEmail, service, appId]);
+  }, [userEmail, service, appId, metadata]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -247,13 +244,13 @@ export default function AIServiceDetailPage() {
 
     const paymentData = {
       from_address: address,
-      to_handle: service.domain,
-      amount_usd_cents: service.price_in_usd * 100,
-      amount_local: service.price_in_usd,
+      to_handle: service.id,
+      amount_usd_cents: priceUsd * 100,
+      amount_local: priceUsd,
       currency_local: "USD",
       timestamp: Date.now(),
       order_id: merchantOrderId,
-      about: `Pay for ${service.name} - ${service.duration_months} months`,
+      about: `Pay for ${service.name}`,
     };
 
     const response = await spendPoints(paymentData);
@@ -263,7 +260,7 @@ export default function AIServiceDetailPage() {
       const receiptData = {
         ...response.data,
         service_name: service.name,
-        service_domain: service.domain,
+        service_domain: service.id,
         is_using_points: true,
       };
 
@@ -272,7 +269,10 @@ export default function AIServiceDetailPage() {
         receiptData,
       });
       savePaymentReceipt(merchantOrderId, receiptData);
-      console.log("[AI Services] Pay with Points - Receipt saved, navigating to /receipt?payment_id=" + merchantOrderId);
+      console.log(
+        "[AI Services] Pay with Points - Receipt saved, navigating to /receipt?payment_id=" +
+          merchantOrderId,
+      );
 
       setShowConfirmDialog(false);
 
@@ -306,7 +306,7 @@ export default function AIServiceDetailPage() {
       preferredChain: rozoStellarUSDC.chainId,
       preferredTokenAddress: rozoStellarUSDC.token,
       metadata: metadata as any,
-      title: `Pay for ${service?.name} - ${service?.duration_months} months`,
+      title: `Pay for ${service?.name}`,
     });
 
     if (
@@ -332,7 +332,11 @@ export default function AIServiceDetailPage() {
     try {
       setIsRozoWalletPaymentLoading(true);
 
-      const usdAmount = service.price_in_usd.toString();
+      if (typeof service.price_usd !== "number") {
+        toast.error("Price unavailable for this service");
+        return;
+      }
+      const usdAmount = service.price_usd.toString();
 
       const { amount, receiverAddressContract, receiverMemoContract } =
         await generateBridgeAddress(usdAmount);
@@ -347,24 +351,30 @@ export default function AIServiceDetailPage() {
         // Store receipt data
         const receiptData = {
           from_address: rozoWalletAddress || "",
-          to_handle: service.domain,
-          amount_usd_cents: service.price_in_usd * 100,
-          amount_local: service.price_in_usd,
+          to_handle: service.id,
+          amount_usd_cents: priceUsd * 100,
+          amount_local: priceUsd,
           currency_local: "USD",
           timestamp: Date.now(),
           order_id: merchantOrderId,
-          about: `Pay for ${service.name} - ${service.duration_months} months`,
+          about: `Pay for ${service.name}`,
           service_name: service.name,
-          service_domain: service.domain,
+          service_domain: service.id,
           is_using_points: false,
         };
 
-        console.log("[AI Services] Pay with Rozo Wallet - About to save receipt:", {
-          merchantOrderId,
-          receiptData,
-        });
+        console.log(
+          "[AI Services] Pay with Rozo Wallet - About to save receipt:",
+          {
+            merchantOrderId,
+            receiptData,
+          },
+        );
         savePaymentReceipt(merchantOrderId, receiptData);
-        console.log("[AI Services] Pay with Rozo Wallet - Receipt saved, navigating to /receipt?payment_id=" + merchantOrderId);
+        console.log(
+          "[AI Services] Pay with Rozo Wallet - Receipt saved, navigating to /receipt?payment_id=" +
+            merchantOrderId,
+        );
 
         toast.success(`Payment successful to ${service.name}!`);
         router.push(`/receipt?payment_id=${merchantOrderId}`);
@@ -384,15 +394,8 @@ export default function AIServiceDetailPage() {
     }
   };
 
-  const visitWebsite = () => {
-    if (service) {
-      const url = service.source || `https://${service.domain}`;
-      window.open(url, "_blank");
-    }
-  };
-
   const handleShare = () => {
-    const text = `Check out ${service?.name} - ${service?.duration_months} months for $${service?.price_in_usd}! ${service?.description}.`;
+    const text = `Check out ${service?.name} for ${hasPrice ? `$${service?.price_usd}` : "N/A"}! ${service?.description}.`;
 
     if (isInMiniApp) {
       composeCast({
@@ -418,20 +421,46 @@ export default function AIServiceDetailPage() {
   const handleBookmark = () => {
     if (service) {
       toggleBookmark({
-        id: service.domain,
+        id: service.id,
         title: service.name,
-        logo_url: service.logo_url,
-        url: `/ai-services/${service.domain}`,
+        logo_url: service.logoUrl,
+        url: `/ai-services/${service.id}`,
       });
       toast.success(
-        isBookmarked(service.domain)
+        isBookmarked(service.id)
           ? "Removed from bookmarks"
           : "Added to bookmarks",
       );
     }
   };
 
-  const handlePaymentCompleted = (args: PaymentCompletedEvent) => {
+  const openIntercomWithMessage = useCallback(
+    (retryCount = 0) => {
+      const message = service
+        ? `Hi, I want to buy ${service.name}.`
+        : "Hi, I want to buy this service.";
+
+      if (typeof window.Intercom === "function") {
+        window.Intercom("showNewMessage", message);
+        return;
+      }
+
+      if (retryCount < 4) {
+        setTimeout(() => openIntercomWithMessage(retryCount + 1), 600);
+      }
+    },
+    [service],
+  );
+
+  useEffect(() => {
+    if (!service?.id) return;
+    if (hasAutoOpenedIntercomRef.current) return;
+
+    hasAutoOpenedIntercomRef.current = true;
+    openIntercomWithMessage();
+  }, [service?.id, openIntercomWithMessage]);
+
+  const handlePaymentCompleted = (_args: PaymentCompletedEvent) => {
     if (!service) return;
 
     toast.success(`Payment successful to ${service.name}!`, {
@@ -443,16 +472,15 @@ export default function AIServiceDetailPage() {
     // Store payment data in localStorage for receipt page
     const receiptData: PaymentData = {
       from_address: address || "",
-      to_handle:
-        service.domain || service.name.toLowerCase().replace(/\s+/g, ""),
-      amount_usd_cents: service.price_in_usd * 100,
-      amount_local: service.price_in_usd,
+      to_handle: service.id,
+      amount_usd_cents: priceUsd * 100,
+      amount_local: priceUsd,
       currency_local: "USD",
       timestamp: Date.now(),
       order_id: merchantOrderId,
-      about: `Pay for ${service.name} - ${service.duration_months} months`,
+      about: `Pay for ${service.name}`,
       service_name: service.name,
-      service_domain: service.domain,
+      service_domain: service.id,
       is_using_points: false,
     };
 
@@ -461,7 +489,10 @@ export default function AIServiceDetailPage() {
       receiptData,
     });
     savePaymentReceipt(merchantOrderId, receiptData);
-    console.log("[AI Services] Pay with Crypto - Receipt saved, navigating to /receipt?payment_id=" + merchantOrderId);
+    console.log(
+      "[AI Services] Pay with Crypto - Receipt saved, navigating to /receipt?payment_id=" +
+        merchantOrderId,
+    );
 
     // Prefetch and navigate to receipt page
     router.prefetch("/receipt");
@@ -512,10 +543,7 @@ export default function AIServiceDetailPage() {
               The AI service you&apos;re looking for doesn&apos;t exist or has
               been removed.
             </p>
-            <Button
-              onClick={() => router.push("/ai-services")}
-              variant="outline"
-            >
+            <Button onClick={() => router.push("/discovery")} variant="outline">
               Back to Discovery
             </Button>
           </CardContent>
@@ -527,7 +555,7 @@ export default function AIServiceDetailPage() {
   const initials = getFirstTwoWordInitialsFromName(service.name);
 
   return (
-    <div className="w-full mb-16 flex flex-col gap-4 sm:gap-6 mt-4 px-3 sm:px-4 max-w-4xl mx-auto">
+    <div className="w-full mb-20 flex flex-col gap-4 sm:gap-6 mt-4 px-3 sm:px-4 max-w-4xl mx-auto">
       {/* Header */}
       <PageHeader
         title="Back to Discovery"
@@ -537,63 +565,60 @@ export default function AIServiceDetailPage() {
 
       {/* Service Info Card */}
       <Card className="w-full overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm shadow-sm gap-0">
-        <CardHeader>
-          <div className="flex items-start gap-3 sm:gap-4">
-            <Avatar className="size-16 sm:size-20 rounded-xl ring-1 ring-border/50 bg-muted/50 shrink-0 shadow-sm">
-              {service.logo_url ? (
-                <AvatarImage
-                  src={service.logo_url}
-                  alt={service.name}
-                  className="object-cover"
-                />
-              ) : null}
-              <AvatarFallback
-                title={service.name}
-                className="font-semibold text-base sm:text-lg bg-gradient-to-br from-primary/10 to-primary/5 text-primary"
-              >
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1 space-y-3 flex flex-row justify-between gap-2">
-              <div className="space-y-1 flex-1">
-                <h2
-                  className="text-xl sm:text-2xl font-bold leading-tight"
+        <CardHeader className="space-y-4 pb-5">
+          <div className="rounded-xl border border-border/60 bg-muted/20">
+            <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-lg border border-border/50 bg-background/70 aspect-video">
+              <Avatar className="size-full rounded-none">
+                {service.logoUrl ? (
+                  <AvatarImage
+                    src={service.logoUrl}
+                    alt={service.name}
+                    className="object-contain p-4 sm:p-6"
+                  />
+                ) : null}
+                <AvatarFallback
                   title={service.name}
+                  className="font-semibold text-2xl bg-linear-to-br from-primary/10 to-primary/5 text-primary"
                 >
-                  {service.name}
-                </h2>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Tag className="h-4 w-4 shrink-0" />
-                  <div className="text-sm leading-relaxed">
-                    <p className="font-medium">
-                      {service.category} ({service.domain})
-                    </p>
-                  </div>
-                </div>
-              </div>
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          </div>
 
-              <div className="flex flex-col sm:flex-row items-start  gap-2">
+          <div className="space-y-1.5 flex flex-row items-start justify-between">
+            <div>
+              <h2
+                className="text-xl sm:text-2xl font-bold leading-tight"
+                title={service.name}
+              >
+                {service.name}
+              </h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {service.long_description}
+              </p>
+            </div>
+            {/* Top right positioning for larger screens */}
+            <div className="mt-2 sm:mt-0 sm:ml-4 sm:self-start">
+              <div className="flex items-center justify-end gap-2">
                 <Button
                   onClick={handleBookmark}
-                  variant={isBookmarked(service.domain) ? "default" : "outline"}
+                  variant={isBookmarked(service.id) ? "default" : "outline"}
                   size="icon"
                   title={
-                    isBookmarked(service.domain)
+                    isBookmarked(service.id)
                       ? "Remove from bookmarks"
                       : "Add to bookmarks"
                   }
                 >
                   <Bookmark
                     className={`size-4 ${
-                      isBookmarked(service.domain) ? "fill-current" : ""
+                      isBookmarked(service.id) ? "fill-current" : ""
                     }`}
                   />
                 </Button>
                 <Button onClick={handleShare} variant="default" size="icon">
                   <Share className="h-4 w-4" />
-                </Button>
-                <Button onClick={visitWebsite} variant="secondary" size="icon">
-                  <ExternalLink className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -601,209 +626,209 @@ export default function AIServiceDetailPage() {
         </CardHeader>
 
         <CardContent className="space-y-4 sm:space-y-6 pt-0">
-          {/* Service Description */}
-          <div className="space-y-1.5">
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              {service.description}
-            </p>
-            {service.offer_description && service.original_value_usd > 0 && (
-              <p className="text-xs text-muted-foreground/80 italic">
-                {service.offer_description}
-              </p>
-            )}
-          </div>
-
-          {/* Bundle Pricing Display */}
-          {service.original_value_usd > 0 && (
-            <div className="bg-gradient-to-br from-primary/5 via-primary/3 to-primary/5 rounded-xl p-4 border border-primary/20 shadow-sm">
-              <div className="flex items-baseline gap-1.5 flex-wrap">
-                <span className="text-2xl sm:text-3xl font-bold text-foreground">
-                  ${service.price_in_usd}
-                </span>
-                <span className="text-sm font-medium text-muted-foreground line-through">
-                  ${service.original_value_usd}
-                </span>
-                {service.duration_months > 0 && (
-                  <span className="text-xs ml-auto text-muted-foreground bg-muted/50 px-2 py-1 rounded-lg flex items-center gap-1 border border-border/50">
-                    <Clock className="size-3" />
-                    {service.duration_months} months
-                  </span>
+          <div className="rounded-lg border border-primary/20 bg-muted/20 p-3 sm:p-4">
+            <div className="space-y-1">
+              <div className="space-y-1">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  Offer Value
+                </p>
+                {hasDiscount && (
+                  <p className="text-xs text-muted-foreground line-through">
+                    ${service.original_price_usd}
+                  </p>
                 )}
-              </div>
-              <div className="flex items-center justify-between mt-3">
-                <div className="flex items-center gap-2">
-                  {service.sold_out && (
-                    <Badge
-                      variant="outline"
-                      className="text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
-                    >
-                      Sold Out
-                    </Badge>
+                <div className="flex items-end gap-1.5">
+                  <p className="text-2xl font-bold leading-none text-foreground sm:text-3xl">
+                    {hasPrice ? `$${service.price_usd}` : "N/A"}
+                  </p>
+                  {hasDiscount && discountPercent !== null && (
+                    <span className="rounded-md bg-emerald-100 px-1.5 py-0 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                      -{discountPercent}%
+                    </span>
                   )}
-
-                  {!service.sold_out && service.discount_rate > 0 && (
-                    <Badge
-                      variant="destructive"
-                      className="text-xs font-semibold bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400 border-red-500/20"
-                    >
-                      {service.discount_rate}% OFF
-                    </Badge>
-                  )}
-
-                  {/* {!service.sold_out && service.cashback_rate > 0 && (
-                     <Badge
-                       variant="secondary"
-                       className="text-xs font-semibold bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400 border-green-500/20"
-                     >
-                       {service.cashback_rate}% Cashback
-                     </Badge>
-                   )} */}
                 </div>
+                <p className="text-xs leading-snug text-muted-foreground">
+                  {service.description}
+                </p>
               </div>
+              {/* <Badge
+                variant={service.sold_out ? "outline" : "secondary"}
+                className="text-xs font-semibold"
+              >
+                {service.sold_out ? "Sold Out" : "Available"}
+              </Badge> */}
             </div>
-          )}
-
-          {/* Email Input */}
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email address"
-              value={userEmail}
-              onChange={(e) => {
-                setUserEmail(e.target.value);
-                setEmailError("");
-              }}
-              className={emailError ? "border-destructive" : ""}
-            />
-            {emailError && (
-              <p className="text-sm text-destructive">{emailError}</p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              Required for payment confirmation and receipt delivery
-            </p>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col gap-3">
-            {/* Payment Buttons - Conditional based on Rozo Wallet availability */}
-            {!service.sold_out &&
-              (isRozoWalletAvailable && isRozoWalletConnected ? (
-                // Pay with Rozo Wallet (Stellar USDC) - REPLACES other payment methods
+          <div className="flex flex-col gap-3 mt-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => openIntercomWithMessage()}
+            >
+              <MessageCircle className="size-4" />
+              Please Chat before placing order
+            </Button>
+            {!service.sold_out && !showPaymentOptions && (
+              <Button
+                type="button"
+                className="w-full"
+                onClick={() => setShowPaymentOptions(true)}
+              >
+                <CreditCard className="size-4" />
+                Pay
+              </Button>
+            )}
+
+            {showPaymentOptions && (
+              <>
+                {/* Email Input */}
                 <div className="space-y-2">
-                  {/* Balance Display */}
-                  {rozoWalletBalance && (
-                    <p className="text-xs text-muted-foreground text-center">
-                      Rozo Wallet Balance: {rozoWalletBalance} USDC (Stellar)
-                    </p>
-                  )}
-
-                  {/* Pay with Rozo Wallet Button */}
-                  <Button
-                    variant="default"
-                    className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
-                    onClick={handlePayWithRozoWallet}
-                    disabled={isRozoWalletPaymentLoading}
-                    size="lg"
-                  >
-                    {isRozoWalletPaymentLoading ? (
-                      <>
-                        <Wallet className="mr-2 h-4 w-4 animate-pulse" />
-                        Processing Payment...
-                      </>
-                    ) : (
-                      <>
-                        <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                        Pay ${service.price_in_usd} with Rozo Wallet
-                      </>
-                    )}
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  {/* Original Payment Buttons - ONLY shown when Rozo Wallet NOT available */}
-
-                  {/* Intent SDK for non mini app */}
-                  <RozoPayButton.Custom
-                    resetOnSuccess
-                    appId={appId}
-                    intent={`Pay for ${service.name} - ${service.duration_months} months`}
-                    toAddress={toAddress}
-                    toChain={baseUSDC.chainId}
-                    toToken={baseUSDC.token}
-                    {...(service.price_in_usd && {
-                      toUnits: service.price_in_usd.toString(),
-                    })}
-                    metadata={metadata as any}
-                    onPaymentStarted={() => {
-                      setPaymentLoading(true);
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={userEmail}
+                    onChange={(e) => {
+                      setUserEmail(e.target.value);
+                      setEmailError("");
                     }}
-                    onPaymentCompleted={handlePaymentCompleted}
-                  >
-                    {({ show }) => (
-                      <div className="m-auto flex w-full flex-col gap-2">
-                        <Button
-                          className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
-                          size={"lg"}
-                          onClick={() => {
-                            if (!validateEmailInput()) {
-                              return;
-                            }
-                            show();
-                          }}
-                          disabled={paymentLoading}
-                        >
-                          {paymentLoading ? (
-                            <>
-                              <Wallet className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
-                              Processing Payment...
-                            </>
-                          ) : (
-                            <>
-                              <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
-                              Pay with Crypto
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    )}
-                  </RozoPayButton.Custom>
+                    className={emailError ? "border-destructive" : ""}
+                  />
+                  {/* {emailError && (
+                    <p className="text-sm text-destructive">{emailError}</p>
+                  )} */}
+                  <p className="text-xs text-muted-foreground">
+                    Required for payment confirmation and receipt delivery
+                  </p>
+                </div>
 
-                  {/* Pay with Points Button */}
-                  {points > 0 && (
+                {/* Payment Buttons - Conditional based on Rozo Wallet availability */}
+                {!service.sold_out &&
+                  (isRozoWalletAvailable && isRozoWalletConnected ? (
+                    // Pay with Rozo Wallet (Stellar USDC) - REPLACES other payment methods
                     <div className="space-y-2">
+                      {/* Balance Display */}
+                      {rozoWalletBalance && (
+                        <p className="text-xs text-muted-foreground text-center">
+                          Rozo Wallet Balance: {rozoWalletBalance} USDC
+                          (Stellar)
+                        </p>
+                      )}
+
+                      {/* Pay with Rozo Wallet Button */}
                       <Button
-                        className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
-                        size={"lg"}
-                        onClick={handlePayWithPoints}
-                        variant="outline"
-                        disabled={points < service.price_in_usd}
+                        variant="default"
+                        className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
+                        onClick={handlePayWithRozoWallet}
+                        disabled={isRozoWalletPaymentLoading}
+                        size="lg"
                       >
-                        <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
-                        Pay with{" "}
-                        {new Intl.NumberFormat("en-US", {
-                          style: "decimal",
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                        }).format(service.price_in_usd * 100)}{" "}
-                        Points
+                        {isRozoWalletPaymentLoading ? (
+                          <>
+                            <Wallet className="mr-2 h-4 w-4 animate-pulse" />
+                            Processing Payment...
+                          </>
+                        ) : (
+                          <>
+                            <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                            Pay {hasPrice
+                              ? `$${service.price_usd}`
+                              : "N/A"}{" "}
+                            with Rozo Wallet
+                          </>
+                        )}
                       </Button>
-                      <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-                        Available Points:{" "}
-                        {Number((points ?? 0) * 100).toFixed(2)} pts
-                        <CustomTooltip
-                          content="Explore all the benefits of Rozo. Rozo points are the rewards for your purchases."
-                          position="top"
-                          className="w-48 sm:w-[20rem] ml-1.5"
-                        >
-                          <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
-                        </CustomTooltip>
-                      </div>
                     </div>
-                  )}
-                </>
-              ))}
+                  ) : (
+                    <>
+                      {/* Original Payment Buttons - ONLY shown when Rozo Wallet NOT available */}
+
+                      {/* Intent SDK for non mini app */}
+                      <RozoPayButton.Custom
+                        resetOnSuccess
+                        appId={appId}
+                        intent={`Pay for ${service.name}`}
+                        toAddress={toAddress}
+                        toChain={baseUSDC.chainId}
+                        toToken={baseUSDC.token}
+                        {...(service.price_usd && {
+                          toUnits: service.price_usd.toString(),
+                        })}
+                        metadata={metadata as any}
+                        onPaymentStarted={() => {
+                          setPaymentLoading(true);
+                        }}
+                        onPaymentCompleted={handlePaymentCompleted}
+                      >
+                        {({ show }) => (
+                          <div className="m-auto flex w-full flex-col gap-2">
+                            <Button
+                              className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
+                              size={"lg"}
+                              onClick={() => {
+                                if (!validateEmailInput()) {
+                                  return;
+                                }
+                                show();
+                              }}
+                              disabled={paymentLoading}
+                            >
+                              {paymentLoading ? (
+                                <>
+                                  <Wallet className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
+                                  Processing Payment...
+                                </>
+                              ) : (
+                                <>
+                                  <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
+                                  Pay with Crypto
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                      </RozoPayButton.Custom>
+
+                      {/* Pay with Points Button */}
+                      {points > 0 && (
+                        <div className="space-y-2">
+                          <Button
+                            className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
+                            size={"lg"}
+                            onClick={handlePayWithPoints}
+                            variant="outline"
+                            disabled={!hasPrice || points < priceUsd}
+                          >
+                            <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
+                            Pay with{" "}
+                            {new Intl.NumberFormat("en-US", {
+                              style: "decimal",
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0,
+                            }).format(priceUsd * 100)}{" "}
+                            Points
+                          </Button>
+                          <div className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+                            Available Points:{" "}
+                            {Number((points ?? 0) * 100).toFixed(2)} pts
+                            <CustomTooltip
+                              content="Explore all the benefits of Rozo. Rozo points are the rewards for your purchases."
+                              position="top"
+                              className="w-48 sm:w-[20rem] ml-1.5"
+                            >
+                              <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
+                            </CustomTooltip>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ))}
+              </>
+            )}
 
             {/* Sold Out State */}
             {service.sold_out && (
@@ -826,7 +851,7 @@ export default function AIServiceDetailPage() {
             <DialogDescription>
               You are about to pay for{" "}
               <span className="font-medium text-foreground">
-                {service?.name} ({service?.duration_months} months)
+                {service?.name}
               </span>{" "}
               using your Rozo Points.
             </DialogDescription>
@@ -844,7 +869,7 @@ export default function AIServiceDetailPage() {
                       style: "decimal",
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0,
-                    }).format(service.price_in_usd * 100)}{" "}
+                    }).format(priceUsd * 100)}{" "}
                   pts
                 </span>
               </div>
@@ -867,7 +892,7 @@ export default function AIServiceDetailPage() {
                       style: "decimal",
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0,
-                    }).format((points - service.price_in_usd) * 100)}{" "}
+                    }).format((points - priceUsd) * 100)}{" "}
                   pts
                 </span>
               </div>
