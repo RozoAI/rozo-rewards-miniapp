@@ -21,6 +21,11 @@ import { useBookmarks } from "@/contexts/BookmarkContext";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { getAiServiceById } from "@/lib/ai-services";
+import {
+  formatRozoErrorMessage,
+  isRozoProviderError,
+  isUserCancellation,
+} from "@/lib/rozo-errors";
 import { savePaymentReceipt } from "@/lib/payment-storage";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
@@ -379,16 +384,22 @@ export default function AIServiceDetailPage() {
         toast.success(`Payment successful to ${service.name}!`);
         router.push(`/receipt?payment_id=${merchantOrderId}`);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Rozo Wallet payment error:", error);
 
-      if (error.message.includes("User rejected")) {
+      if (isUserCancellation(error)) {
         toast.error("Payment cancelled");
-      } else if (error.message.includes("Insufficient balance")) {
-        toast.error("Insufficient USDC balance");
-      } else {
-        toast.error("Payment failed. Please try again.");
+        return;
       }
+
+      if (isRozoProviderError(error)) {
+        toast.error(formatRozoErrorMessage(error));
+        return;
+      }
+
+      const fallback =
+        error instanceof Error ? error.message : "Payment failed. Please try again.";
+      toast.error(fallback);
     } finally {
       setIsRozoWalletPaymentLoading(false);
     }
@@ -714,8 +725,7 @@ export default function AIServiceDetailPage() {
                       {/* Balance Display */}
                       {rozoWalletBalance && (
                         <p className="text-xs text-muted-foreground text-center">
-                          Rozo Wallet Balance: {rozoWalletBalance} USDC
-                          (Stellar)
+                          Rozo Wallet Balance: {rozoWalletBalance} (Stellar)
                         </p>
                       )}
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { isRozoProviderError, isUserCancellation } from "@/lib/rozo-errors";
 
 /**
  * Convert USDC amount to Stellar stroops (7 decimals)
@@ -22,6 +23,34 @@ function fromStroops(stroops: string): string {
   return `${whole}.${decimalStr}`.replace(/\.?0+$/, "");
 }
 
+type FiatCurrencyCode = "USD";
+
+function formatCurrencyFloored(
+  amount: number,
+  currency: FiatCurrencyCode,
+): string {
+  const factor = 1e4;
+  const floored = Math.floor(amount * factor) / factor;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4,
+  }).format(floored);
+}
+
+function balanceFromStroops(balanceStroops: string): {
+  formatted: string;
+  usdAmount: number;
+} | null {
+  const usdAmount = Number.parseFloat(fromStroops(balanceStroops));
+  if (!Number.isFinite(usdAmount)) return null;
+  return {
+    usdAmount,
+    formatted: formatCurrencyFloored(usdAmount, "USD"),
+  };
+}
+
 interface TransferResult {
   hash: string;
   status: string;
@@ -33,6 +62,7 @@ export function useRozoWallet() {
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [balance, setBalance] = useState<string | null>(null);
+  const [balanceUsd, setBalanceUsd] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Check if window.rozo is available and connected
@@ -75,7 +105,14 @@ export function useRozoWallet() {
 
           // Get balance
           const { balance: balanceStroops } = await window.rozo.getBalance();
-          setBalance(fromStroops(balanceStroops));
+          const parsed = balanceFromStroops(balanceStroops);
+          if (parsed) {
+            setBalance(parsed.formatted);
+            setBalanceUsd(parsed.usdAmount);
+          } else {
+            setBalance(null);
+            setBalanceUsd(null);
+          }
         }
       } catch (error) {
         console.error("Failed to check Rozo Wallet:", error);
@@ -97,7 +134,14 @@ export function useRozoWallet() {
       setWalletAddress(address);
 
       const { balance: balanceStroops } = await window.rozo.getBalance();
-      setBalance(fromStroops(balanceStroops));
+      const parsed = balanceFromStroops(balanceStroops);
+      if (parsed) {
+        setBalance(parsed.formatted);
+        setBalanceUsd(parsed.usdAmount);
+      } else {
+        setBalance(null);
+        setBalanceUsd(null);
+      }
     } catch (error) {
       console.error("Failed to refresh Rozo Wallet data:", error);
     }
@@ -221,17 +265,16 @@ export function useRozoWallet() {
       });
 
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Transfer error:", error);
 
-      // Re-throw with user-friendly message
-      if (error.message.includes("User rejected")) {
-        throw new Error("User rejected");
-      } else if (error.message.includes("Insufficient balance")) {
-        throw new Error("Insufficient balance");
-      } else {
+      if (isUserCancellation(error) || isRozoProviderError(error)) {
         throw error;
       }
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(String(error));
     } finally {
       setIsLoading(false);
     }
@@ -242,6 +285,7 @@ export function useRozoWallet() {
     isConnected,
     walletAddress,
     balance,
+    balanceUsd,
     isLoading,
     transferUSDC,
     refreshData,

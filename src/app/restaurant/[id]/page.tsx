@@ -21,6 +21,11 @@ import { useBookmarks } from "@/contexts/BookmarkContext";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
 import {
+  formatRozoErrorMessage,
+  isRozoProviderError,
+  isUserCancellation,
+} from "@/lib/rozo-errors";
+import {
   convertToUSD,
   EXCHANGE_RATES,
   getDisplayCurrency,
@@ -75,6 +80,7 @@ export default function RestaurantDetailPage() {
     isConnected: isRozoWalletConnected,
     walletAddress: rozoWalletAddress,
     balance: rozoWalletBalance,
+    balanceUsd: rozoWalletBalanceUsd,
     isLoading: rozoWalletLoading,
     transferUSDC: rozoWalletTransfer,
     refreshData: refreshRozoWallet,
@@ -495,18 +501,22 @@ export default function RestaurantDetailPage() {
           `/receipt?payment_id=${merchantOrderId}&withRozoWallet=true`,
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Rozo Wallet payment error:", error);
 
-      if (error.message.includes("User rejected")) {
+      if (isUserCancellation(error)) {
         toast.error("Payment cancelled");
-      } else if (error.message.includes("Insufficient balance")) {
-        toast.error("Insufficient USDC balance");
-      } else {
-        toast.error(
-          `Payment failed. Please try again. Message: ${error.message}`,
-        );
+        return;
       }
+
+      if (isRozoProviderError(error)) {
+        toast.error(formatRozoErrorMessage(error));
+        return;
+      }
+
+      const fallback =
+        error instanceof Error ? error.message : "Payment failed. Please try again.";
+      toast.error(fallback);
     } finally {
       setIsRozoWalletPaymentLoading(false);
     }
@@ -770,10 +780,7 @@ export default function RestaurantDetailPage() {
                     {/* Balance Display */}
                     {rozoWalletBalance && (
                       <p className="text-xs text-muted-foreground text-center">
-                        Rozo Wallet Balance: $
-                        {(
-                          Math.floor(Number(rozoWalletBalance) * 100) / 100
-                        ).toFixed(2)}{" "}
+                        Rozo Wallet Balance: {rozoWalletBalance}
                       </p>
                     )}
 
@@ -788,8 +795,8 @@ export default function RestaurantDetailPage() {
                         parseFloat(paymentAmount) <= 0 ||
                         isNaN(parseFloat(paymentAmount)) ||
                         rozoWalletLoading ||
-                        (!!rozoWalletBalance &&
-                          parseFloat(rozoWalletBalance) <= 0)
+                        (rozoWalletBalanceUsd !== null &&
+                          rozoWalletBalanceUsd <= 0)
                       }
                       size="lg"
                     >
@@ -798,8 +805,8 @@ export default function RestaurantDetailPage() {
                       ) : (
                         <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                       )}
-                      {!!rozoWalletBalance &&
-                      parseFloat(rozoWalletBalance) > 0 ? (
+                      {rozoWalletBalanceUsd !== null &&
+                      rozoWalletBalanceUsd > 0 ? (
                         <>
                           Pay $
                           {isNaN(

@@ -1,4 +1,5 @@
 // Type definitions for Rozo Wallet window.rozo provider
+// Rejected promises use structured errors: { code, message, recoverySuggestion? } — see src/lib/rozo-errors.ts
 
 interface WindowRozoProvider {
   /**
@@ -30,6 +31,9 @@ interface WindowRozoProvider {
    * @param authEntryXdr - Base64 encoded auth entry XDR
    * @param options - Signing options
    * @returns Transaction result with hash and status
+   */
+  /**
+   * Rejects with structured error: code (machine-readable), message (UI-safe), recoverySuggestion (optional).
    */
   signAuthEntry(
     authEntryXdr: string,

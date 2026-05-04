@@ -33,11 +33,18 @@ interface AiServiceItem {
   logoUrl: string;
 }
 
-type FilterRegion = "worldwide" | "united-states" | "ai-services" | null;
-const FILTER_REGIONS = ["worldwide", "united-states", "ai-services"] as const;
+type FilterRegion = "network-schools" | "united-states" | "ai-services" | null;
+const FILTER_REGIONS = [
+  "network-schools",
+  "united-states",
+  "ai-services",
+] as const;
 
-const isFilterRegion = (value: string | null): value is (typeof FILTER_REGIONS)[number] =>
-  value !== null && FILTER_REGIONS.includes(value as (typeof FILTER_REGIONS)[number]);
+const isFilterRegion = (
+  value: string | null,
+): value is (typeof FILTER_REGIONS)[number] =>
+  value !== null &&
+  FILTER_REGIONS.includes(value as (typeof FILTER_REGIONS)[number]);
 
 interface DappContentProps {
   /** JSON with `{ locations: DappRestaurant[] }`. Defaults to `/coffee_mapdata.json`. */
@@ -63,7 +70,9 @@ export function DappContent({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const typeParam = searchParams.get("type");
-  const filter: FilterRegion = isFilterRegion(typeParam) ? typeParam : "worldwide";
+  const filter: FilterRegion = isFilterRegion(typeParam)
+    ? typeParam
+    : "network-schools";
 
   const { walletAddress, isConnected: isRozoWalletConnected } = useRozoWallet();
   const { address, isConnected } = useAppKitAccount();
@@ -133,7 +142,7 @@ export function DappContent({
       );
     }
 
-    if (filter === "worldwide") {
+    if (filter === "network-schools") {
       return restaurants;
     }
 
@@ -277,13 +286,28 @@ export function DappContent({
       <div className="px-4 sm:px-0">
         <div className="flex gap-2 overflow-x-auto sm:overflow-visible">
           <Button
-            variant={filter === "worldwide" ? "default" : "outline"}
+            variant={filter === "network-schools" ? "default" : "outline"}
             size="sm"
             className="flex-1 sm:flex-none justify-start"
-            onClick={() => setFilterInUrl("worldwide")}
+            onClick={() => setFilterInUrl("network-schools")}
           >
-            <span className="">🌍</span>
-            <span>Worldwide</span>
+            <svg
+              width="24"
+              height="16"
+              viewBox="0 0 30 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="size-4"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M9.04883 0C14.4015 1.58136e-05 18.0466 0.857342 21.4111 0.857422C24.5739 0.857419 26.8592 0.730968 29.0273 0.478516C29.2469 0.453142 29.4413 0.621298 29.4414 0.838867V19.2832C29.4411 19.4516 29.323 19.5976 29.1543 19.626C27.6623 19.8749 24.1475 20 21.4111 20C18.4798 19.9999 14.1466 19.1426 9.55859 19.1426C5.14747 19.1426 2.72034 19.3956 0.432617 19.7822C0.207077 19.8203 0.000341557 19.6499 0 19.4248V1.0332C3.69636e-05 0.851129 0.136849 0.697243 0.320312 0.673828C2.56107 0.389876 5.35291 0 9.04883 0ZM13.4951 8.76074C11.9493 8.65328 10.6111 8.66895 9.43164 8.66895V11.1475C10.2548 11.1475 11.7426 11.1495 13.4922 11.2998C13.4903 13.3072 13.492 15.0743 13.5088 15.4326C14.1458 15.5754 14.5286 15.5754 15.791 15.8018V11.5508C17.549 11.7554 18.8433 11.8613 20.1377 11.8613V9.29004C18.7357 9.29004 17.6985 9.187 15.791 8.98242V4.79199C15.7758 4.78999 14.1434 4.57627 13.5088 4.57617C13.5086 4.61678 13.5007 6.53989 13.4951 8.76074Z"
+                fill="currentColor"
+              ></path>
+            </svg>
+
+            <span>Network Schools</span>
           </Button>
           <Button
             variant={filter === "ai-services" ? "default" : "outline"}
@@ -294,7 +318,7 @@ export function DappContent({
             <Sparkles className="size-4  text-yellow-500" />
             <span>AI Services</span>
           </Button>
-          <Button
+          {/* <Button
             variant={filter === "united-states" ? "default" : "outline"}
             size="sm"
             className="flex-1 sm:flex-none justify-start"
@@ -302,18 +326,20 @@ export function DappContent({
           >
             <span className="">🇺🇸</span>
             <span>United States</span>
-          </Button>
+          </Button> */}
         </div>
       </div>
 
-      <div className="px-4 sm:px-0">
-        <Input
-          value={searchValue}
-          onChange={(event) => setSearchValue(event.target.value)}
-          placeholder={"Search..."}
-          aria-label="Search list"
-        />
-      </div>
+      {(filter === "ai-services" ? aiServices.length : filteredRestaurants.length) > 10 && (
+        <div className="px-4 sm:px-0">
+          <Input
+            value={searchValue}
+            onChange={(event) => setSearchValue(event.target.value)}
+            placeholder={"Search..."}
+            aria-label="Search list"
+          />
+        </div>
+      )}
 
       {loading ? (
         <div className="px-4 sm:px-0">
