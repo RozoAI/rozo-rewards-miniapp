@@ -295,7 +295,7 @@ export default function RozoMembershipRewards({
                   className={cn(
                     "w-full flex items-center justify-between p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors",
                     index === membershipTiers.length - 1 && "rounded-b-xl",
-                    tier.name === expandedTier && "rounded-b-none"
+                    tier.name === expandedTier && "rounded-b-none",
                   )}
                   onClick={() => toggleTier(tier.name)}
                 >
@@ -383,7 +383,7 @@ export default function RozoMembershipRewards({
                   points: "+5 pts",
                   location: "Daily Check-in",
                 },
-              ].map((activity) => (
+              ].map((activity, index) => (
                 <div key={activity.action}>
                   <div className="flex items-center justify-between p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors">
                     <div className="flex items-center gap-3">
