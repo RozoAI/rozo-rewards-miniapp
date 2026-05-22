@@ -3,6 +3,7 @@
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { useGeolocation } from "@/hooks/useGeolocation";
+import { getAllRestaurants } from "@/lib/restaurants";
 import { calculateDistance, cn } from "@/lib/utils";
 import { VISIBLE_HANDLES } from "@/shared";
 import { Coins, Loader2, MapPin, RefreshCw } from "lucide-react";
@@ -17,7 +18,7 @@ const MapComponent = dynamic(
     loading: () => (
       <div className="h-[500px] w-full rounded-lg border bg-muted flex items-center justify-center">
         <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
+          <Loader2 className="size-5 animate-spin" />
           <span>Loading map...</span>
         </div>
       </div>
@@ -38,69 +39,29 @@ type LocationItem = {
   cashback_rate: number;
 };
 
-export default function MapPage() {
-  const [locations, setLocations] = React.useState<LocationItem[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
+const ALL_MAP_LOCATIONS: LocationItem[] = (getAllRestaurants() as any[])
+  .filter(
+    (loc): loc is LocationItem =>
+      typeof loc._id === "string" &&
+      typeof loc.name === "string" &&
+      typeof loc.formatted === "string" &&
+      typeof loc.address_line1 === "string" &&
+      typeof loc.lat === "number" &&
+      typeof loc.lon === "number" &&
+      typeof loc.cashback_rate === "number" &&
+      loc.handle &&
+      VISIBLE_HANDLES.includes(loc.handle),
+  )
+  .map((loc) => ({ ...loc, logo_url: loc.logo_url || "/logo.png" }));
 
-  const {
+export default function MapPage() {
+  const locations = ALL_MAP_LOCATIONS;
+    const {
     coordinates,
     loading: locationLoading,
     error: locationError,
     requestLocation,
   } = useGeolocation();
-
-  // Load restaurant data
-  React.useEffect(() => {
-    let isMounted = true;
-
-    async function loadLocations() {
-      try {
-        const res = await fetch("/coffee_mapdata.json");
-        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        const data = await res.json();
-
-        if (!data || !Array.isArray(data.locations)) {
-          throw new Error("Invalid data shape");
-        }
-
-        if (isMounted) {
-          // Filter and process locations, providing fallback logo_url for null values
-          const processedLocations = data.locations
-            .filter(
-              (loc: any): loc is LocationItem =>
-                typeof loc._id === "string" &&
-                typeof loc.name === "string" &&
-                typeof loc.formatted === "string" &&
-                typeof loc.address_line1 === "string" &&
-                typeof loc.lat === "number" &&
-                typeof loc.lon === "number" &&
-                typeof loc.cashback_rate === "number",
-            )
-            .filter(
-              (loc: any) => loc.handle && VISIBLE_HANDLES.includes(loc.handle),
-            )
-            .map((loc: any) => ({
-              ...loc,
-              logo_url: loc.logo_url || "/logo.png", // Fallback to default logo
-            }));
-
-          setLocations(processedLocations);
-          setLoading(false);
-        }
-      } catch (err) {
-        if (isMounted) {
-          setError(err instanceof Error ? err.message : "Unknown error");
-          setLoading(false);
-        }
-      }
-    }
-
-    loadLocations();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   // Filter locations within 10 miles
   const nearbyLocations = React.useMemo(() => {
@@ -120,41 +81,6 @@ export default function MapPage() {
       .sort((a, b) => a.distance - b.distance); // Sort by distance
   }, [coordinates, locations]);
 
-  if (loading) {
-    return (
-      <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
-        <PageHeader
-          title="Base Merchants Map"
-          icon={<MapPin className="size-6" />}
-        />
-        <div className="h-96 rounded-lg border bg-muted flex items-center justify-center">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <span>Loading map...</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
-        <PageHeader
-          title="Base Merchants Map"
-          icon={<MapPin className="size-6" />}
-        />
-        <div className="h-96 rounded-lg border bg-muted flex items-center justify-center">
-          <div className="text-center text-muted-foreground">
-            <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-medium mb-2">Unable to load map</p>
-            <p className="text-sm">{error}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full mb-16 flex flex-col gap-4 mt-4">
       <PageHeader
@@ -167,7 +93,7 @@ export default function MapPage() {
         {locationError && (
           <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center justify-between">
             <div className="flex items-center gap-2 text-yellow-800">
-              <MapPin className="h-4 w-4" />
+              <MapPin className="size-4" />
               <span className="text-sm">{locationError}</span>
             </div>
             <Button
@@ -190,7 +116,7 @@ export default function MapPage() {
 
         {locationLoading && !coordinates && (
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2 text-blue-800">
-            <RefreshCw className="h-4 w-4 animate-spin" />
+            <RefreshCw className="size-4 animate-spin" />
             <span className="text-sm">Getting your location...</span>
           </div>
         )}
@@ -198,7 +124,7 @@ export default function MapPage() {
         {coordinates && (
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between text-blue-800">
             <div className="flex items-center gap-2">
-              <Coins className="h-4 w-4" />
+              <Coins className="size-4" />
               <span className="text-sm">
                 {nearbyLocations.length} Base merchant
                 {nearbyLocations.length !== 1 ? "s" : ""} within 10 miles
@@ -217,11 +143,11 @@ export default function MapPage() {
           <h4 className="text-sm font-medium text-gray-900 mb-2">Map Legend</h4>
           <div className="flex items-center gap-4 text-xs">
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow"></div>
+              <div className="size-4 bg-blue-500 rounded-full border-2 border-white shadow"></div>
               <span className="text-gray-700">Your Location</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 bg-blue-600 rounded-full border-2 border-white shadow flex items-center justify-center">
+              <div className="size-5 bg-blue-600 rounded-full border-2 border-white shadow flex items-center justify-center">
                 <span className="text-white text-xs font-bold">B</span>
               </div>
               <span className="text-gray-700">Base Merchants</span>
@@ -241,7 +167,7 @@ export default function MapPage() {
       ) : (
         <div className="flex-1 min-h-[400px] mx-4 rounded-lg border bg-muted flex items-center justify-center">
           <div className="text-center text-muted-foreground">
-            <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <MapPin className="size-12 mx-auto mb-4 opacity-50" />
             <p className="text-lg font-medium mb-2">Map Unavailable</p>
             <p className="text-sm mb-4">
               {locationError ||

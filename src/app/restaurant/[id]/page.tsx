@@ -31,6 +31,7 @@ import {
   getDisplayCurrency,
   getFirstTwoWordInitialsFromName,
 } from "@/lib/utils";
+import { getRestaurantById } from "@/lib/restaurants";
 import { Restaurant } from "@/types/restaurant";
 import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import {
@@ -86,11 +87,19 @@ export default function RestaurantDetailPage() {
     refreshData: refreshRozoWallet,
   } = useRozoWallet();
 
-  const [restaurant, setRestaurant] = React.useState<Restaurant | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
+  const restaurant = React.useMemo(
+    () => getRestaurantById(restaurantId),
+    [restaurantId],
+  );
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(
+    restaurant ? null : restaurantId ? "Restaurant not found" : null,
+  );
   const [paymentLoading, setPaymentLoading] = React.useState(false);
-  const [paymentAmount, setPaymentAmount] = React.useState<string>("");
+  const [paymentAmount, setPaymentAmount] = React.useState<string>(() => {
+    const price = restaurant?.price && !isNaN(Number(restaurant.price)) ? Number(restaurant.price) : 0;
+    return price.toFixed(2);
+  });
   const [points, setPoints] = React.useState(0);
   const [pointsLoading, setPointsLoading] = React.useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
@@ -100,7 +109,9 @@ export default function RestaurantDetailPage() {
     React.useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastResetAmountRef = useRef<string>("");
-  const [appId, setAppId] = React.useState<string>("");
+  const [appId, setAppId] = React.useState<string>(
+    () => `rozoRewardsBNBStellarMP-${restaurant?.handle || ""}`,
+  );
 
   // Prefer Rozo Wallet account when available, otherwise fall back to EVM account
   const activeAddress =
@@ -151,76 +162,31 @@ export default function RestaurantDetailPage() {
   };
 
   useEffect(() => {
-    async function loadRestaurant() {
-      try {
-        const res = await fetch("/coffee_mapdata.json", { cache: "no-store" });
-        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        const data = await res.json();
+    if (!restaurantId || !restaurant) return;
 
-        const foundRestaurant = data.locations.find(
-          (loc: any) =>
-            typeof loc === "object" &&
-            loc !== null &&
-            "_id" in loc &&
-            loc._id === restaurantId,
-        );
-        if (!foundRestaurant) {
-          throw new Error("Restaurant not found");
-        }
+    router.prefetch("/receipt");
 
-        setRestaurant(foundRestaurant as Restaurant);
-        setMerchantOrderId(
-          `${foundRestaurant.handle.toUpperCase()}-${new Date().getTime()}`,
-        );
+    const price =
+      restaurant.price && !isNaN(Number(restaurant.price))
+        ? Number(restaurant.price)
+        : 0;
+    const displayCurrency = restaurant.currency || "USD";
+    const usdAmount = convertToUSD(price.toFixed(2), displayCurrency);
 
-        let price = 0;
-        if (foundRestaurant.price && !isNaN(Number(foundRestaurant.price))) {
-          price = Number(foundRestaurant.price);
-          setPaymentAmount(price.toFixed(2));
-        }
-
-        const displayCurrency = foundRestaurant.currency || "USD";
-        const usdAmount = convertToUSD(price.toFixed(2), displayCurrency);
-
-        const appId = `rozoRewardsBNBStellarMP-${foundRestaurant.handle || ""}`;
-        setAppId(appId);
-
-        if (
-          !(
-            typeof window !== "undefined" &&
-            new URLSearchParams(window.location.search).get("dapp") === "true"
-          )
-        ) {
-          await resetPayment({
-            appId: appId,
-            intent: `${foundRestaurant.name} - ${displayCurrency} ${price.toFixed(
-              2,
-            )}`,
-            toAddress: "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
-            toChain: baseUSDC.chainId,
-            toToken: baseUSDC.token as `0x${string}`,
-            toUnits: usdAmount,
-            metadata: generateMetadata(
-              price.toFixed(2),
-              displayCurrency,
-            ) as any,
-          });
-        }
-
-        // Store initial amount to prevent unnecessary resets
-        lastResetAmountRef.current = price.toFixed(2);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error");
-      } finally {
-        setLoading(false);
-      }
+    if (!isDapp) {
+      resetPayment({
+        appId: appId,
+        intent: `${restaurant.name} - ${displayCurrency} ${price.toFixed(2)}`,
+        toAddress: restaurant.payTo ?? "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
+        toChain: baseUSDC.chainId,
+        toToken: baseUSDC.token as `0x${string}`,
+        toUnits: usdAmount,
+        metadata: generateMetadata(price.toFixed(2), displayCurrency) as any,
+      });
     }
 
-    if (restaurantId) {
-      loadRestaurant();
-
-      router.prefetch("/receipt");
-    }
+    lastResetAmountRef.current = price.toFixed(2);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurantId]);
 
   useEffect(() => {
@@ -657,7 +623,7 @@ export default function RestaurantDetailPage() {
               </h2>
               {!isDapp && (
                 <div className="flex items-start gap-2 text-muted-foreground group">
-                  <MapPin className="h-4 w-4 mt-0.5 shrink-0 group-hover:text-blue-600 transition-colors" />
+                  <MapPin className="size-4 mt-0.5 shrink-0 group-hover:text-blue-600 transition-colors" />
                   <div className="text-sm leading-relaxed flex-1">
                     <div className="flex items-center gap-1">
                       <Link
@@ -673,9 +639,9 @@ export default function RestaurantDetailPage() {
                           className="p-1 hover:text-foreground transition-colors"
                         >
                           {showFullAddress ? (
-                            <ChevronUp className="h-3 w-3" />
+                            <ChevronUp className="size-3" />
                           ) : (
-                            <ChevronDown className="h-3 w-3" />
+                            <ChevronDown className="size-3" />
                           )}
                         </button>
                       )}
@@ -801,7 +767,7 @@ export default function RestaurantDetailPage() {
                       size="lg"
                     >
                       {isRozoWalletPaymentLoading ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader2 className="mr-2 size-4 animate-spin" />
                       ) : (
                         <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                       )}
@@ -881,7 +847,7 @@ export default function RestaurantDetailPage() {
                             size="lg"
                           >
                             {loading ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              <Loader2 className="mr-2 size-4 animate-spin" />
                             ) : (
                               <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                             )}
@@ -947,7 +913,7 @@ export default function RestaurantDetailPage() {
                             position="top"
                             className="w-48 sm:w-[20rem] ml-1.5"
                           >
-                            <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
+                            <HelpCircle className="ml-3 size-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
                           </CustomTooltip>
                         </div>
                       </div>
@@ -1075,12 +1041,12 @@ export default function RestaurantDetailPage() {
             >
               {dialogLoading ? (
                 <>
-                  <Wallet className="h-4 w-4 animate-pulse mr-2" />
+                  <Wallet className="size-4 animate-pulse mr-2" />
                   Processing...
                 </>
               ) : (
                 <>
-                  <Coins className="h-4 w-4 mr-2" />
+                  <Coins className="size-4 mr-2" />
                   Confirm Payment
                 </>
               )}

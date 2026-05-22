@@ -271,8 +271,8 @@ export default function RozoMembershipRewards({
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">
-            {currentTierData.benefits.map((benefit, index) => (
-              <li key={index} className="flex items-start gap-2 text-sm">
+            {currentTierData.benefits.map((benefit) => (
+              <li key={benefit} className="flex items-start gap-2 text-sm">
                 <CheckCircle className="size-4 mt-0.5 shrink-0" />
                 <span>{benefit}</span>
               </li>
@@ -290,9 +290,10 @@ export default function RozoMembershipRewards({
           <div className="space-y-0">
             {membershipTiers.map((tier, index) => (
               <div key={tier.name}>
-                <div
+                <button
+                  type="button"
                   className={cn(
-                    "flex items-center justify-between p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors",
+                    "w-full flex items-center justify-between p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors",
                     index === membershipTiers.length - 1 && "rounded-b-xl",
                     tier.name === expandedTier && "rounded-b-none"
                   )}
@@ -304,8 +305,8 @@ export default function RozoMembershipRewards({
                     </div>
                     <span className="font-medium">{tier.name}</span>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-neutral-400" />
-                </div>
+                  <ArrowRight className="size-4 text-neutral-400" />
+                </button>
 
                 {expandedTier === tier.name && (
                   <div className="px-4 pb-4 border-t bg-neutral-50 dark:bg-neutral-800">
@@ -315,9 +316,9 @@ export default function RozoMembershipRewards({
                           Requirements:
                         </h5>
                         <ul className="space-y-1">
-                          {tier.requirements.map((req, reqIndex) => (
+                          {tier.requirements.map((req) => (
                             <li
-                              key={reqIndex}
+                              key={req}
                               className="text-sm text-neutral-600 dark:text-neutral-400 flex items-start gap-2"
                             >
                               <span className="text-neutral-400">•</span>
@@ -329,9 +330,9 @@ export default function RozoMembershipRewards({
                       <div>
                         <h5 className="font-medium text-sm mb-2">Benefits:</h5>
                         <ul className="space-y-1">
-                          {tier.benefits.map((benefit, benefitIndex) => (
+                          {tier.benefits.map((benefit) => (
                             <li
-                              key={benefitIndex}
+                              key={benefit}
                               className="text-sm text-neutral-600 dark:text-neutral-400 flex items-start gap-2"
                             >
                               <span className="text-green-500">✓</span>
@@ -382,8 +383,8 @@ export default function RozoMembershipRewards({
                   points: "+5 pts",
                   location: "Daily Check-in",
                 },
-              ].map((activity, index) => (
-                <div key={index}>
+              ].map((activity) => (
+                <div key={activity.action}>
                   <div className="flex items-center justify-between p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors">
                     <div className="flex items-center gap-3">
                       <div>

@@ -1,31 +1,9 @@
 import { RozoPayClientWrapper } from "@/components/rozo-pay-client-wrapper";
 import { createMiniAppMetadata } from "@/lib/miniapp-embed";
-import { Restaurant } from "@/types/restaurant";
+import { getRestaurantById } from "@/lib/restaurants";
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import data from "../../../../public/coffee_mapdata.json";
 import { FabActionsOrNothing } from "./fab-actions-or-nothing";
-
-type CoffeeMapResponse = {
-  locations: Restaurant[];
-  status?: string;
-};
-
-async function getRestaurant(id: string): Promise<Restaurant | null> {
-  // const base = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
-  try {
-    // const res = await fetch(`${base}/coffee_mapdata.json`, {
-    //   // Allow caching but keep it reasonably fresh
-    //   next: { revalidate: 300 },
-    // });
-    // if (!res.ok) return null;
-    // const data = (await res.json()) as CoffeeMapResponse;
-    if (!data || !Array.isArray(data.locations)) return null;
-    return (data.locations as any).find((l: any) => l._id === id) ?? null;
-  } catch {
-    return null;
-  }
-}
 
 export async function generateMetadata({
   params,
@@ -33,7 +11,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const restaurant = await getRestaurant(id);
+  const restaurant = await getRestaurantById(id);
 
   const title = restaurant
     ? `${restaurant.name} — Restaurant`

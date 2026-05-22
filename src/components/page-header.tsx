@@ -47,7 +47,7 @@ export function PageHeader({
             variant="ghost"
             size="icon"
             onClick={() => router.back()}
-            className="shrink-0 h-8 w-8"
+            className="shrink-0 size-8"
           >
             <ArrowLeft className="size-4" />
           </Button>
@@ -61,7 +61,7 @@ export function PageHeader({
           <Button
             variant="ghost"
             size="icon"
-            className="shrink-0 h-8 w-8"
+            className="shrink-0 size-8"
             aria-label="Payment history"
           >
             <History className="size-4" />

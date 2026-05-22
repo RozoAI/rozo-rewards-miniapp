@@ -42,7 +42,7 @@ function ListRow({ location }: { location: Restaurant }) {
             </div>
             {location.distance !== undefined && (
               <div className="flex items-center gap-1 text-sm text-muted-foreground ml-2 flex-shrink-0">
-                <MapPin className="h-3 w-3" />
+                <MapPin className="size-3" />
                 {formatDistance(location.distance)}
               </div>
             )}

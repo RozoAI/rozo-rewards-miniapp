@@ -14,8 +14,10 @@ interface IntercomInitializerProps {
   };
 }
 
+const EMPTY_USER = {};
+
 const IntercomInitializer = ({
-  user = {},
+  user = EMPTY_USER,
   appId,
 }: IntercomInitializerProps) => {
   useEffect(() => {

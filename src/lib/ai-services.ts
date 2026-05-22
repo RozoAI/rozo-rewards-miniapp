@@ -16,3 +16,9 @@ const aiServices = servicesData as AiService[];
 export function getAiServiceById(id: string): AiService | null {
   return aiServices.find((service) => service.id === id) ?? null;
 }
+
+export function getAllAiServices(): AiService[] {
+  return aiServices;
+}
+
+export type { AiService };

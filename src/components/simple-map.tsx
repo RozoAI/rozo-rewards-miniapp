@@ -146,7 +146,7 @@ export function SimpleMap({ center, locations }: SimpleMapProps) {
       {!mapLoaded && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="flex items-center gap-2 text-gray-500">
-            <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+            <div className="size-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
             <span className="text-sm">Loading map...</span>
           </div>
         </div>

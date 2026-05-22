@@ -22,7 +22,7 @@ export default function ProfilePageContent({ isBeta }: { isBeta: boolean }) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin" />
+          <Loader2 className="size-12 animate-spin" />
         </div>
       </div>
     );
@@ -95,7 +95,7 @@ function ProfilePageContentInternal({ isBeta }: { isBeta: boolean }) {
         /* Wallet Connection Prompt - Show when not connected */
         <div className="mb-14">
           <div className="text-center py-12 flex flex-col items-center justify-center space-y-6">
-            <div className="mx-auto w-20 h-20 bg-muted rounded-full flex items-center justify-center">
+            <div className="mx-auto size-20 bg-muted rounded-full flex items-center justify-center">
               <User className="size-10 text-muted-foreground" />
             </div>
 

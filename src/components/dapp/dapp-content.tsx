@@ -4,6 +4,8 @@ import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getAllAiServices } from "@/lib/ai-services";
+import { getAllRestaurants } from "@/lib/restaurants";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { VISIBLE_HANDLES } from "@/shared";
@@ -47,25 +49,26 @@ const isFilterRegion = (
   FILTER_REGIONS.includes(value as (typeof FILTER_REGIONS)[number]);
 
 interface DappContentProps {
-  /** JSON with `{ locations: DappRestaurant[] }`. Defaults to `/coffee_mapdata.json`. */
-  dataUrl?: string;
   className?: string;
   title?: string;
   icon?: React.ReactNode;
   isDapp?: boolean;
 }
 
+const ALL_RESTAURANTS = (getAllRestaurants() as unknown as DappRestaurant[]).filter(
+  (location) => VISIBLE_HANDLES.includes(location.handle),
+);
+const ALL_AI_SERVICES = getAllAiServices() as AiServiceItem[];
+
 export function DappContent({
-  dataUrl = "/coffee_mapdata.json",
   className,
   title = "DApps",
   icon = <Globe className="size-6" />,
   isDapp = false,
 }: DappContentProps) {
-  const [restaurants, setRestaurants] = useState<DappRestaurant[]>([]);
-  const [aiServices, setAiServices] = useState<AiServiceItem[]>([]);
+  const restaurants = ALL_RESTAURANTS;
+  const aiServices = ALL_AI_SERVICES;
   const [searchValue, setSearchValue] = useState("");
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -79,42 +82,6 @@ export function DappContent({
 
   const activeAddress =
     (isRozoWalletConnected && walletAddress) || (isConnected && address) || "";
-
-  useEffect(() => {
-    setLoading(true);
-
-    Promise.allSettled([
-      fetch(dataUrl).then((res) => res.json()),
-      fetch("/ai-services/services.json").then((res) => res.json()),
-    ])
-      .then(([dappResult, aiServicesResult]) => {
-        if (dappResult.status === "fulfilled") {
-          const dappData = dappResult.value;
-          const locations: DappRestaurant[] = dappData.locations || [];
-          setRestaurants(
-            locations.filter((location) =>
-              VISIBLE_HANDLES.includes(location.handle),
-            ),
-          );
-        } else {
-          setRestaurants([]);
-        }
-
-        if (aiServicesResult.status === "fulfilled") {
-          const aiServicesData = aiServicesResult.value;
-          setAiServices(Array.isArray(aiServicesData) ? aiServicesData : []);
-        } else {
-          setAiServices([]);
-        }
-      })
-      .catch(() => {
-        setRestaurants([]);
-        setAiServices([]);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [dataUrl]);
 
   useEffect(() => {
     setSearchValue("");
@@ -341,41 +308,25 @@ export function DappContent({
         </div>
       )}
 
-      {loading ? (
-        <div className="px-4 sm:px-0">
-          <ul className="divide-y rounded-md border">
-            {Array.from({ length: 3 }).map((_, idx) => (
-              <li key={idx} className="flex items-start gap-3 px-4 py-4">
-                <div className="size-12 rounded-lg bg-muted animate-pulse ring-1 ring-border shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 w-3/4 max-w-48 rounded bg-muted animate-pulse" />
-                  <div className="h-3 w-full max-w-64 rounded bg-muted animate-pulse" />
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : (
-        <div className="px-4 sm:px-0">
-          <ul className="divide-y rounded-md border bg-card">
-            {filter === "ai-services"
-              ? searchedAiServices.map(renderAiServiceItem)
-              : searchedRestaurants.map(renderRestaurantItem)}
-          </ul>
+      <div className="px-4 sm:px-0">
+        <ul className="divide-y rounded-md border bg-card">
+          {filter === "ai-services"
+            ? searchedAiServices.map(renderAiServiceItem)
+            : searchedRestaurants.map(renderRestaurantItem)}
+        </ul>
 
-          {filter !== "ai-services" && searchedRestaurants.length === 0 && (
-            <div className="text-center py-8 px-4">
-              <Globe className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                Coming soon
-              </h3>
-              <p className="text-muted-foreground">
-                Try changing the filter region.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+        {filter !== "ai-services" && searchedRestaurants.length === 0 && (
+          <div className="text-center py-8 px-4">
+            <Globe className="size-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              Coming soon
+            </h3>
+            <p className="text-muted-foreground">
+              Try changing the filter region.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

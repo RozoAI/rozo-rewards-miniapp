@@ -53,11 +53,11 @@ export function MiniappPrompt() {
         <Button
           variant="ghost"
           size="icon"
-          className="ml-2 h-6 w-6 text-white hover:bg-white/10 shrink-0"
+          className="ml-2 size-6 text-white hover:bg-white/10 shrink-0"
           onClick={() => setIsDismissed(true)}
           aria-label="Dismiss"
         >
-          <X className="h-4 w-4" />
+          <X className="size-4" />
         </Button>
       </div>
     </div>

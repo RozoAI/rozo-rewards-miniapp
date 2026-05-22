@@ -8,8 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 export function getFirstTwoWordInitialsFromName(name: string): string {
   const words = name
     .split(/\s+/)
-    .map((w) => w.trim())
-    .filter(Boolean);
+    .flatMap((w) => { const t = w.trim(); return t ? [t] : []; });
 
   const firstTwo = words.slice(0, 2);
   if (firstTwo.length === 0) return "?";

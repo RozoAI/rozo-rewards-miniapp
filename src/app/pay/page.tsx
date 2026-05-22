@@ -588,7 +588,7 @@ export default function PayPage() {
   if (!isConnected) {
     return (
       <div className="w-full text-center space-y-6">
-        <div className="mx-auto w-20 h-20 bg-muted rounded-full flex items-center justify-center">
+        <div className="mx-auto size-20 bg-muted rounded-full flex items-center justify-center">
           <Wallet className="size-10 text-muted-foreground" />
         </div>
 

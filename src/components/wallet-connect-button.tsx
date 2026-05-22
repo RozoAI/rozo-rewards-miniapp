@@ -55,7 +55,7 @@ function WalletComponentsInternal() {
             <span className="text-sm">{formatAddress(displayAddress)}</span>
             {isAuthenticated && (
               <div
-                className="w-2 h-2 bg-green-500 rounded-full ml-1"
+                className="size-2 bg-green-500 rounded-full ml-1"
                 title="Rozo Authenticated"
               />
             )}

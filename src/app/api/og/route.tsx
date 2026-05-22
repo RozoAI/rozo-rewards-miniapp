@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       // Explicit SVG handling for better compatibility in OG renderer.
       if (resolvedUrl.toLowerCase().endsWith(".svg")) {
         try {
-          const svgResponse = await fetch(resolvedUrl);
+          const svgResponse = await fetch(resolvedUrl, { next: { revalidate: 3600 } });
           if (!svgResponse.ok) return `${baseUrl}/rozo-white.png`;
           const svgText = await svgResponse.text();
           // Runtime-safe SVG embedding (works in Node and Edge).

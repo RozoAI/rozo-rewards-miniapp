@@ -149,9 +149,9 @@ export default function ReceiptContent() {
       {/* Content */}
       <div className="flex-1 flex flex-col items-center justify-center p-4 gap-4">
         {/* Success Icon */}
-        <div className="w-24 h-24 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-          <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
-            <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
+        <div className="size-24 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+          <div className="size-16 rounded-full bg-green-500/20 flex items-center justify-center">
+            <Check className="size-8 text-green-600 dark:text-green-400" />
           </div>
         </div>
 

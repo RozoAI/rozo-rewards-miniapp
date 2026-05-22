@@ -67,6 +67,9 @@ export function useRozoWallet() {
 
   // Check if window.rozo is available and connected
   useEffect(() => {
+    let cancelled = false;
+    let readyTimeoutId: ReturnType<typeof setTimeout> | undefined;
+
     async function checkRozoWallet() {
       // Wait for window.rozo to be injected
       if (typeof window === "undefined") return;
@@ -74,17 +77,19 @@ export function useRozoWallet() {
       if (!window.rozo) {
         // Wait for rozo:ready event
         await new Promise<void>((resolve) => {
-          const timeout = setTimeout(resolve, 3000);
+          readyTimeoutId = setTimeout(resolve, 3000);
           window.addEventListener(
             "rozo:ready",
             () => {
-              clearTimeout(timeout);
+              clearTimeout(readyTimeoutId);
               resolve();
             },
             { once: true },
           );
         });
       }
+
+      if (cancelled) return;
 
       if (!window.rozo) {
         setIsAvailable(false);
@@ -121,6 +126,10 @@ export function useRozoWallet() {
     }
 
     checkRozoWallet();
+    return () => {
+      cancelled = true;
+      clearTimeout(readyTimeoutId);
+    };
   }, []);
 
   /**
@@ -181,10 +190,12 @@ export function useRozoWallet() {
         import("@stellar/stellar-sdk/rpc"),
       ]);
 
-      // Get wallet and network info
-      const { address: fromAddress } = await window.rozo.getAddress();
-      const { sorobanRpcUrl, networkPassphrase } =
-        await window.rozo.getNetworkDetails();
+      // Get wallet and network info in parallel
+      const [{ address: fromAddress }, { sorobanRpcUrl, networkPassphrase }] =
+        await Promise.all([
+          window.rozo.getAddress(),
+          window.rozo.getNetworkDetails(),
+        ]);
 
       // Setup RPC and contract
       const server = new Server(sorobanRpcUrl);

@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(bun run lint:*)",
+      "Bash(git diff:*)",
+      "mcp__serena__find_symbol",
+      "Bash(test:*)",
+      "Bash(rtk ls *)",
+      "Bash(rtk read *)",
+      "Bash(rtk find *)",
+      "Bash(rtk npx *)",
+      "Bash(bunx react-doctor *)"
+    ]
+  }
+}

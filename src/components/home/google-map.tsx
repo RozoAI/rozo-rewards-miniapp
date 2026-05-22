@@ -54,7 +54,7 @@ function MapErrorFallback() {
   return (
     <div className="h-full w-full flex items-center justify-center bg-muted/30">
       <div className="text-center p-6 max-w-sm">
-        <MapPinOff className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        <MapPinOff className="size-12 mx-auto mb-4 text-muted-foreground" />
         <h3 className="font-semibold text-lg mb-2">Map Unavailable</h3>
         <p className="text-sm text-muted-foreground">
           Unable to load the map. You can still browse restaurants below.
@@ -135,7 +135,7 @@ export function GoogleMap({
                     className="bg-blue-200/80 p-2 rounded-full hover:bg-blue-300/80 transition-colors cursor-pointer"
                     onClick={() => setSelectedRestaurant(restaurant)}
                   >
-                    <MapPin className="h-5 w-5 text-blue-600" />
+                    <MapPin className="size-5 text-blue-600" />
                   </button>
                 </SheetTrigger>
                 <SheetContent

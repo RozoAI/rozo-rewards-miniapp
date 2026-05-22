@@ -150,7 +150,7 @@ export function RestaurantsContent({ className }: { className?: string }) {
       {locationError && (
         <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center justify-between">
           <div className="flex items-center gap-2 text-yellow-800">
-            <MapPin className="h-4 w-4" />
+            <MapPin className="size-4" />
             <span className="text-sm">{locationError}</span>
           </div>
           <Button
@@ -170,7 +170,7 @@ export function RestaurantsContent({ className }: { className?: string }) {
 
       {locationLoading && !coordinates && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2 text-blue-800">
-          <RefreshCw className="h-4 w-4 animate-spin" />
+          <RefreshCw className="size-4 animate-spin" />
           <span className="text-sm">Getting your location...</span>
         </div>
       )}
@@ -184,7 +184,7 @@ export function RestaurantsContent({ className }: { className?: string }) {
 
       {showNoResults ? (
         <div className="text-center py-8 px-4">
-          <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <Search className="size-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-2">
             No restaurants found
           </h3>

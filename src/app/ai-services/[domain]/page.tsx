@@ -629,7 +629,7 @@ export default function AIServiceDetailPage() {
                   />
                 </Button>
                 <Button onClick={handleShare} variant="default" size="icon">
-                  <Share className="h-4 w-4" />
+                  <Share className="size-4" />
                 </Button>
               </div>
             </div>
@@ -739,7 +739,7 @@ export default function AIServiceDetailPage() {
                       >
                         {isRozoWalletPaymentLoading ? (
                           <>
-                            <Wallet className="mr-2 h-4 w-4 animate-pulse" />
+                            <Wallet className="mr-2 size-4 animate-pulse" />
                             Processing Payment...
                           </>
                         ) : (
@@ -830,7 +830,7 @@ export default function AIServiceDetailPage() {
                               position="top"
                               className="w-48 sm:w-[20rem] ml-1.5"
                             >
-                              <HelpCircle className="ml-3 h-3 w-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
+                              <HelpCircle className="ml-3 size-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
                             </CustomTooltip>
                           </div>
                         </div>
@@ -925,12 +925,12 @@ export default function AIServiceDetailPage() {
             >
               {dialogLoading ? (
                 <>
-                  <Wallet className="h-4 w-4 animate-pulse mr-2" />
+                  <Wallet className="size-4 animate-pulse mr-2" />
                   Processing...
                 </>
               ) : (
                 <>
-                  <Coins className="h-4 w-4 mr-2" />
+                  <Coins className="size-4 mr-2" />
                   Confirm Payment
                 </>
               )}

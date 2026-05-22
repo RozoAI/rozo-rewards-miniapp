@@ -195,7 +195,7 @@ export default function HomePage() {
         <div className="absolute top-0 left-0 right-0 z-50 bg-blue-600 text-white p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <MapPinIcon className="h-4 w-4" />
+              <MapPinIcon className="size-4" />
               <span className="text-sm">
                 {locationError ||
                   "Enable location access for better restaurant recommendations"}
@@ -233,7 +233,7 @@ export default function HomePage() {
               <div className="flex items-center justify-between p-4">
                 <div className="flex items-center space-x-3">
                   <div className="bg-blue-100 p-2 rounded-full">
-                    <MapPin className="h-5 w-5 text-blue-600" />
+                    <MapPin className="size-5 text-blue-600" />
                   </div>
                   <div>
                     <h3 className="font-semibold">
@@ -245,7 +245,7 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                  <ChevronUp className="size-5 text-muted-foreground" />
                 </div>
               </div>
             </Card>
