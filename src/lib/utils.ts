@@ -59,7 +59,7 @@ export function formatDistance(distanceMiles: number): string {
 
 // Currency conversion utilities
 export const EXCHANGE_RATES: Record<string, number> = {
-  RM: 3.9,
+  RM: 3.95,
   SGD: 1.29,
   USD: 1.0,
 };
