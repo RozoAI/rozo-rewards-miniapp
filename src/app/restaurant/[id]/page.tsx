@@ -43,6 +43,8 @@ import {
 import { RozoPayButton, useRozoPay, useRozoPayUI } from "@rozoai/intent-pay";
 
 import { PaymentData } from "@/app/receipt/receipt-content";
+import { capture } from "@/lib/analytics/index";
+import { PAYMENT_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
 import { savePaymentReceipt } from "@/lib/payment-storage";
 import { useAppKitAccount } from "@reown/appkit/react";
 import {
@@ -164,6 +166,11 @@ export default function RestaurantDetailPage() {
   useEffect(() => {
     if (!restaurantId || !restaurant) return;
 
+    capture(REWARDS_EVENTS.MERCHANT_VIEWED, {
+      merchant_id: restaurant._id,
+      merchant_name: restaurant.name,
+    });
+
     router.prefetch("/receipt");
 
     const price =
@@ -252,6 +259,13 @@ export default function RestaurantDetailPage() {
   };
 
   const handlePayWithPoints = () => {
+    if (restaurant) {
+      capture(PAYMENT_EVENTS.PAYMENT_METHOD_SELECTED, {
+        merchant_id: restaurant._id,
+        merchant_name: restaurant.name,
+        payment_method: "points",
+      });
+    }
     setShowConfirmDialog(true);
   };
 
@@ -263,6 +277,14 @@ export default function RestaurantDetailPage() {
 
       const displayCurrency = getDisplayCurrency(restaurant?.currency);
       const usdAmount = convertToUSD(paymentAmount, displayCurrency);
+
+      capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
+        merchant_id: restaurant._id,
+        merchant_name: restaurant.name,
+        payment_method: "points",
+        amount_usd: usdAmount,
+        order_id: merchantOrderId,
+      });
 
       const paymentData = {
         from_address: address,
@@ -297,15 +319,43 @@ export default function RestaurantDetailPage() {
             merchantOrderId,
         );
 
+        capture(REWARDS_EVENTS.REWARDS_REDEEMED, {
+          merchant_id: restaurant._id,
+          merchant_name: restaurant.name,
+          usd_value_offset: usdAmount,
+          order_id: merchantOrderId,
+        });
+        capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
+          merchant_id: restaurant._id,
+          merchant_name: restaurant.name,
+          payment_method: "points",
+          amount_usd: usdAmount,
+          order_id: merchantOrderId,
+        });
+
         setShowConfirmDialog(false);
         toast.success("Points spent successfully");
         // Navigate to receipt page
         router.push(`/receipt?payment_id=${merchantOrderId}`);
       } else {
+        capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
+          merchant_id: restaurant._id,
+          merchant_name: restaurant.name,
+          payment_method: "points",
+          error_message: "Failed to spend points",
+        });
         toast.error("Failed to spend points");
         setDialogLoading(false);
       }
     } catch {
+      if (restaurant) {
+        capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
+          merchant_id: restaurant._id,
+          merchant_name: restaurant.name,
+          payment_method: "points",
+          error_message: "Failed to spend points",
+        });
+      }
       toast.error("Failed to spend points");
       setDialogLoading(false);
     }
@@ -365,6 +415,14 @@ export default function RestaurantDetailPage() {
         : ""
     }`;
 
+    if (restaurant) {
+      capture(REWARDS_EVENTS.MERCHANT_SHARE_CLICKED, {
+        merchant_id: restaurant._id,
+        merchant_name: restaurant.name,
+        channel: isInMiniApp ? "farcaster" : "native_share",
+      });
+    }
+
     if (isInMiniApp) {
       composeCast({
         text,
@@ -388,16 +446,20 @@ export default function RestaurantDetailPage() {
 
   const handleBookmark = () => {
     if (restaurant) {
+      const wasBookmarked = isBookmarked(restaurant._id);
       toggleBookmark({
         id: restaurant._id,
         title: restaurant.name,
         logo_url: restaurant.logo_url,
         url: `/restaurant/${restaurant._id}`,
       });
+      capture(REWARDS_EVENTS.MERCHANT_BOOKMARKED, {
+        merchant_id: restaurant._id,
+        merchant_name: restaurant.name,
+        action: wasBookmarked ? "remove" : "add",
+      });
       toast.success(
-        isBookmarked(restaurant._id)
-          ? "Removed from bookmarks"
-          : "Added to bookmarks",
+        wasBookmarked ? "Removed from bookmarks" : "Added to bookmarks",
       );
     }
   };
@@ -415,6 +477,19 @@ export default function RestaurantDetailPage() {
 
       const displayCurrency = getDisplayCurrency(restaurant.currency);
       const usdAmount = convertToUSD(paymentAmount, displayCurrency);
+
+      capture(PAYMENT_EVENTS.PAYMENT_METHOD_SELECTED, {
+        merchant_id: restaurant._id,
+        merchant_name: restaurant.name,
+        payment_method: "rozo_wallet",
+      });
+      capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
+        merchant_id: restaurant._id,
+        merchant_name: restaurant.name,
+        payment_method: "rozo_wallet",
+        amount_usd: usdAmount,
+        order_id: merchantOrderId,
+      });
 
       // Transfer USDC on Stellar network
       const { amount, receiverAddressContract, receiverMemoContract } =
@@ -462,6 +537,14 @@ export default function RestaurantDetailPage() {
             "&withRozoWallet=true",
         );
 
+        capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
+          merchant_id: restaurant._id,
+          merchant_name: restaurant.name,
+          payment_method: "rozo_wallet",
+          amount_usd: usdAmount,
+          order_id: merchantOrderId,
+        });
+
         toast.success(`Payment successful to ${restaurant.name}!`);
         router.push(
           `/receipt?payment_id=${merchantOrderId}&withRozoWallet=true`,
@@ -471,18 +554,34 @@ export default function RestaurantDetailPage() {
       console.error("Rozo Wallet payment error:", error);
 
       if (isUserCancellation(error)) {
+        capture(PAYMENT_EVENTS.PAYMENT_CANCELLED, {
+          merchant_id: restaurant._id,
+          merchant_name: restaurant.name,
+          payment_method: "rozo_wallet",
+        });
         toast.error("Payment cancelled");
         return;
       }
+
+      const errorMessage = isRozoProviderError(error)
+        ? formatRozoErrorMessage(error)
+        : error instanceof Error
+          ? error.message
+          : "Payment failed. Please try again.";
+
+      capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
+        merchant_id: restaurant._id,
+        merchant_name: restaurant.name,
+        payment_method: "rozo_wallet",
+        error_message: errorMessage,
+      });
 
       if (isRozoProviderError(error)) {
         toast.error(formatRozoErrorMessage(error));
         return;
       }
 
-      const fallback =
-        error instanceof Error ? error.message : "Payment failed. Please try again.";
-      toast.error(fallback);
+      toast.error(errorMessage);
     } finally {
       setIsRozoWalletPaymentLoading(false);
     }
@@ -502,6 +601,14 @@ export default function RestaurantDetailPage() {
     // Store payment data in sessionStorage for receipt page
     const displayCurrency = getDisplayCurrency(restaurant?.currency);
     const usdAmount = convertToUSD(paymentAmount, displayCurrency);
+
+    capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
+      merchant_id: restaurant._id,
+      merchant_name: restaurant.name,
+      payment_method: "crypto",
+      amount_usd: usdAmount,
+      order_id: merchantOrderId,
+    });
 
     const receiptData: PaymentData = {
       from_address: address || "",
@@ -820,6 +927,17 @@ export default function RestaurantDetailPage() {
                       onPaymentStarted={() => {
                         setLoading(true);
                         setPaymentLoading(true);
+                        const usdAmount = convertToUSD(
+                          paymentAmount,
+                          getDisplayCurrency(restaurant?.currency),
+                        );
+                        capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
+                          merchant_id: restaurant._id,
+                          merchant_name: restaurant.name,
+                          payment_method: "crypto",
+                          amount_usd: usdAmount,
+                          order_id: merchantOrderId,
+                        });
                       }}
                       onPaymentCompleted={(args: PaymentCompletedEvent) => {
                         handlePaymentCompleted(args);
@@ -835,7 +953,14 @@ export default function RestaurantDetailPage() {
                           <Button
                             variant="default"
                             className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
-                            onClick={show}
+                            onClick={() => {
+                              capture(PAYMENT_EVENTS.PAYMENT_METHOD_SELECTED, {
+                                merchant_id: restaurant._id,
+                                merchant_name: restaurant.name,
+                                payment_method: "crypto",
+                              });
+                              show();
+                            }}
                             disabled={
                               isDebouncing ||
                               loading ||

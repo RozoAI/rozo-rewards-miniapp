@@ -7,10 +7,12 @@ import { WalletComponents } from "@/components/wallet-connect-button";
 import { useHasMounted } from "@/hooks/useHasMounted";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { useUSDCBalance } from "@/hooks/useUSDCBalance";
+import { GLOBAL_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
+import { capture, identifyUser, resetUser } from "@/lib/analytics/index";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { Loader2, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useConnect, useDisconnect } from "wagmi";
 
@@ -41,6 +43,7 @@ function ProfilePageContentInternal({ isBeta }: { isBeta: boolean }) {
   const { isLoading: usdcLoading } = useUSDCBalance();
   const [pointsLoading, setPointsLoading] = useState(false);
   const [points, setPoints] = useState(0);
+  const identifiedAddressRef = useRef<string | null>(null);
 
   useEffect(() => {
     const fetchPoints = async () => {
@@ -51,10 +54,25 @@ function ProfilePageContentInternal({ isBeta }: { isBeta: boolean }) {
       console.log("points", points);
       setPoints(points);
       setPointsLoading(false);
+      capture(REWARDS_EVENTS.WALLET_BALANCE_VIEWED, {
+        rozo_balance: String(points),
+      });
 
       const context = await sdk.context;
       if (context && context.user.pfpUrl) {
         setPfpUrl(context.user.pfpUrl);
+      }
+
+      if (identifiedAddressRef.current !== address) {
+        identifiedAddressRef.current = address;
+        identifyUser(address, {
+          rozo_balance: String(points),
+          fid: context?.user?.fid ?? null,
+        });
+        capture(GLOBAL_EVENTS.USER_IDENTIFIED, {
+          rozo_balance: String(points),
+          fid: context?.user?.fid ?? null,
+        });
       }
     };
 
@@ -64,6 +82,9 @@ function ProfilePageContentInternal({ isBeta }: { isBeta: boolean }) {
   const handleDisconnect = () => {
     connectors.map((connector) => disconnect({ connector }));
     toast.success("Wallet disconnected");
+    capture(GLOBAL_EVENTS.USER_RESET);
+    resetUser();
+    identifiedAddressRef.current = null;
     // router.push("/lifestyle");
   };
 

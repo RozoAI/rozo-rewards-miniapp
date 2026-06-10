@@ -2,6 +2,8 @@
 
 import { PaymentData } from "@/app/receipt/receipt-content";
 import { ContactSupport } from "@/components/contact-support";
+import { capture } from "@/lib/analytics/index";
+import { PAYMENT_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
 import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -198,6 +200,15 @@ export default function AIServiceDetailPage() {
     fetchPoints();
   }, [isConnected, address, getPoints]);
 
+  useEffect(() => {
+    if (!service?.id) return;
+    capture(REWARDS_EVENTS.MERCHANT_VIEWED, {
+      merchant_id: service.id,
+      merchant_name: service.name,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [service?.id]);
+
   // Update payment metadata when email changes (but only after initial load)
   useEffect(() => {
     if (userEmail && service && appId) {
@@ -239,6 +250,13 @@ export default function AIServiceDetailPage() {
     if (!validateEmailInput()) {
       return;
     }
+    if (service) {
+      capture(PAYMENT_EVENTS.PAYMENT_METHOD_SELECTED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        payment_method: "points",
+      });
+    }
     setShowConfirmDialog(true);
   };
 
@@ -257,6 +275,14 @@ export default function AIServiceDetailPage() {
       order_id: merchantOrderId,
       about: `Pay for ${service.name}`,
     };
+
+    capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
+      merchant_id: service.id,
+      merchant_name: service.name,
+      payment_method: "points",
+      amount_usd: priceUsd.toString(),
+      order_id: merchantOrderId,
+    });
 
     const response = await spendPoints(paymentData);
 
@@ -279,11 +305,31 @@ export default function AIServiceDetailPage() {
           merchantOrderId,
       );
 
+      capture(REWARDS_EVENTS.REWARDS_REDEEMED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        usd_value_offset: priceUsd.toString(),
+        order_id: merchantOrderId,
+      });
+      capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        payment_method: "points",
+        amount_usd: priceUsd.toString(),
+        order_id: merchantOrderId,
+      });
+
       setShowConfirmDialog(false);
 
       // Navigate to receipt page
       router.push(`/receipt?payment_id=${merchantOrderId}`);
     } else {
+      capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        payment_method: "points",
+        error_message: "Failed to spend points",
+      });
       toast.error("Failed to spend points");
       setDialogLoading(false);
     }
@@ -343,6 +389,19 @@ export default function AIServiceDetailPage() {
       }
       const usdAmount = service.price_usd.toString();
 
+      capture(PAYMENT_EVENTS.PAYMENT_METHOD_SELECTED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        payment_method: "rozo_wallet",
+      });
+      capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        payment_method: "rozo_wallet",
+        amount_usd: usdAmount,
+        order_id: merchantOrderId,
+      });
+
       const { amount, receiverAddressContract, receiverMemoContract } =
         await generateBridgeAddress(usdAmount);
 
@@ -381,6 +440,14 @@ export default function AIServiceDetailPage() {
             merchantOrderId,
         );
 
+        capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
+          merchant_id: service.id,
+          merchant_name: service.name,
+          payment_method: "rozo_wallet",
+          amount_usd: usdAmount,
+          order_id: merchantOrderId,
+        });
+
         toast.success(`Payment successful to ${service.name}!`);
         router.push(`/receipt?payment_id=${merchantOrderId}`);
       }
@@ -388,18 +455,34 @@ export default function AIServiceDetailPage() {
       console.error("Rozo Wallet payment error:", error);
 
       if (isUserCancellation(error)) {
+        capture(PAYMENT_EVENTS.PAYMENT_CANCELLED, {
+          merchant_id: service.id,
+          merchant_name: service.name,
+          payment_method: "rozo_wallet",
+        });
         toast.error("Payment cancelled");
         return;
       }
+
+      const errorMessage = isRozoProviderError(error)
+        ? formatRozoErrorMessage(error)
+        : error instanceof Error
+          ? error.message
+          : "Payment failed. Please try again.";
+
+      capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        payment_method: "rozo_wallet",
+        error_message: errorMessage,
+      });
 
       if (isRozoProviderError(error)) {
         toast.error(formatRozoErrorMessage(error));
         return;
       }
 
-      const fallback =
-        error instanceof Error ? error.message : "Payment failed. Please try again.";
-      toast.error(fallback);
+      toast.error(errorMessage);
     } finally {
       setIsRozoWalletPaymentLoading(false);
     }
@@ -407,6 +490,14 @@ export default function AIServiceDetailPage() {
 
   const handleShare = () => {
     const text = `Check out ${service?.name} for ${hasPrice ? `$${service?.price_usd}` : "N/A"}! ${service?.description}.`;
+
+    if (service) {
+      capture(REWARDS_EVENTS.MERCHANT_SHARE_CLICKED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        channel: isInMiniApp ? "farcaster" : "native_share",
+      });
+    }
 
     if (isInMiniApp) {
       composeCast({
@@ -431,16 +522,20 @@ export default function AIServiceDetailPage() {
 
   const handleBookmark = () => {
     if (service) {
+      const wasBookmarked = isBookmarked(service.id);
       toggleBookmark({
         id: service.id,
         title: service.name,
         logo_url: service.logoUrl,
         url: `/ai-services/${service.id}`,
       });
+      capture(REWARDS_EVENTS.MERCHANT_BOOKMARKED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        action: wasBookmarked ? "remove" : "add",
+      });
       toast.success(
-        isBookmarked(service.id)
-          ? "Removed from bookmarks"
-          : "Added to bookmarks",
+        wasBookmarked ? "Removed from bookmarks" : "Added to bookmarks",
       );
     }
   };
@@ -478,6 +573,14 @@ export default function AIServiceDetailPage() {
       description:
         "Your payment has been processed successfully. Redirecting to receipt...",
       duration: 2000,
+    });
+
+    capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
+      merchant_id: service.id,
+      merchant_name: service.name,
+      payment_method: "crypto",
+      amount_usd: priceUsd.toString(),
+      order_id: merchantOrderId,
     });
 
     // Store payment data in localStorage for receipt page
@@ -771,6 +874,13 @@ export default function AIServiceDetailPage() {
                         metadata={metadata as any}
                         onPaymentStarted={() => {
                           setPaymentLoading(true);
+                          capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
+                            merchant_id: service.id,
+                            merchant_name: service.name,
+                            payment_method: "crypto",
+                            amount_usd: priceUsd.toString(),
+                            order_id: merchantOrderId,
+                          });
                         }}
                         onPaymentCompleted={handlePaymentCompleted}
                       >
@@ -783,6 +893,11 @@ export default function AIServiceDetailPage() {
                                 if (!validateEmailInput()) {
                                   return;
                                 }
+                                capture(PAYMENT_EVENTS.PAYMENT_METHOD_SELECTED, {
+                                  merchant_id: service.id,
+                                  merchant_name: service.name,
+                                  payment_method: "crypto",
+                                });
                                 show();
                               }}
                               disabled={paymentLoading}

@@ -10,7 +10,9 @@
       "Bash(rtk read *)",
       "Bash(rtk find *)",
       "Bash(rtk npx *)",
-      "Bash(bunx react-doctor *)"
+      "Bash(bunx react-doctor *)",
+      "Bash(bun add *)",
+      "Bash(bun lint *)"
     ]
   }
 }
