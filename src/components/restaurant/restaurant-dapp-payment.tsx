@@ -1,16 +1,16 @@
 "use client";
 
+import { PaymentData } from "@/app/receipt/receipt-content";
 import { Button } from "@/components/ui/button";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
+import { savePaymentReceipt } from "@/lib/payment-storage";
 import {
   formatRozoErrorMessage,
   isRozoProviderError,
   isUserCancellation,
 } from "@/lib/rozo-errors";
 import { convertToUSD, getDisplayCurrency } from "@/lib/utils";
-import { savePaymentReceipt } from "@/lib/payment-storage";
 import { Restaurant } from "@/types/restaurant";
-import { PaymentData } from "@/app/receipt/receipt-content";
 import {
   baseUSDC,
   createPayment,
@@ -248,7 +248,9 @@ export function RestaurantDappPayment({
         ) : (
           <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
         )}
-        {rozoWalletBalanceUsd !== null && rozoWalletBalanceUsd > 0 ? (
+        {rozoWalletLoading ? (
+          "Loading Rozo Wallet Balance..."
+        ) : rozoWalletBalanceUsd !== null && rozoWalletBalanceUsd > 0 ? (
           <>
             Pay $
             {isNaN(
