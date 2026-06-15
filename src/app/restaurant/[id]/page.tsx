@@ -11,6 +11,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useBookmarks } from "@/contexts/BookmarkContext";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
+import { capture } from "@/lib/analytics/index";
+import { REWARDS_EVENTS } from "@/lib/analytics/events";
 import { getRestaurantById } from "@/lib/restaurants";
 import {
   convertToUSD,
@@ -121,6 +123,11 @@ export default function RestaurantDetailPage() {
   useEffect(() => {
     if (!restaurantId || !restaurant) return;
 
+    capture(REWARDS_EVENTS.MERCHANT_VIEWED, {
+      merchant_id: restaurant._id,
+      merchant_name: restaurant.name,
+    });
+
     router.prefetch("/receipt");
   }, [restaurantId, restaurant, router]);
 
@@ -137,6 +144,14 @@ export default function RestaurantDetailPage() {
         ? ` Get ${restaurant.cashback_rate}% cashback!`
         : ""
     }`;
+
+    if (restaurant) {
+      capture(REWARDS_EVENTS.MERCHANT_SHARE_CLICKED, {
+        merchant_id: restaurant._id,
+        merchant_name: restaurant.name,
+        channel: isInMiniApp ? "farcaster" : "native_share",
+      });
+    }
 
     if (isInMiniApp) {
       composeCast({
@@ -161,16 +176,20 @@ export default function RestaurantDetailPage() {
 
   const handleBookmark = () => {
     if (restaurant) {
+      const wasBookmarked = isBookmarked(restaurant._id);
       toggleBookmark({
         id: restaurant._id,
         title: restaurant.name,
         logo_url: restaurant.logo_url,
         url: `/restaurant/${restaurant._id}`,
       });
+      capture(REWARDS_EVENTS.MERCHANT_BOOKMARKED, {
+        merchant_id: restaurant._id,
+        merchant_name: restaurant.name,
+        action: wasBookmarked ? "remove" : "add",
+      });
       toast.success(
-        isBookmarked(restaurant._id)
-          ? "Removed from bookmarks"
-          : "Added to bookmarks",
+        wasBookmarked ? "Removed from bookmarks" : "Added to bookmarks",
       );
     }
   };

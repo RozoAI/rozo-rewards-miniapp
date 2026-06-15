@@ -1,6 +1,8 @@
 "use client";
 
 import { ContactSupport } from "@/components/contact-support";
+import { capture } from "@/lib/analytics/index";
+import { REWARDS_EVENTS } from "@/lib/analytics/events";
 import { PageHeader } from "@/components/page-header";
 import { AiServiceDappPayment } from "@/components/ai-services/ai-service-dapp-payment";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -102,6 +104,15 @@ export default function AIServiceDetailPage() {
     }
   }, [serviceId]);
 
+  useEffect(() => {
+    if (!service?.id) return;
+    capture(REWARDS_EVENTS.MERCHANT_VIEWED, {
+      merchant_id: service.id,
+      merchant_name: service.name,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [service?.id]);
+
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -124,6 +135,14 @@ export default function AIServiceDetailPage() {
 
   const handleShare = () => {
     const text = `Check out ${service?.name} for ${hasPrice ? `$${service?.price_usd}` : "N/A"}! ${service?.description}.`;
+
+    if (service) {
+      capture(REWARDS_EVENTS.MERCHANT_SHARE_CLICKED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        channel: isInMiniApp ? "farcaster" : "native_share",
+      });
+    }
 
     if (isInMiniApp) {
       composeCast({
@@ -148,16 +167,20 @@ export default function AIServiceDetailPage() {
 
   const handleBookmark = () => {
     if (service) {
+      const wasBookmarked = isBookmarked(service.id);
       toggleBookmark({
         id: service.id,
         title: service.name,
         logo_url: service.logoUrl,
         url: `/ai-services/${service.id}`,
       });
+      capture(REWARDS_EVENTS.MERCHANT_BOOKMARKED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        action: wasBookmarked ? "remove" : "add",
+      });
       toast.success(
-        isBookmarked(service.id)
-          ? "Removed from bookmarks"
-          : "Added to bookmarks",
+        wasBookmarked ? "Removed from bookmarks" : "Added to bookmarks",
       );
     }
   };

@@ -2,9 +2,11 @@
 
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
+import { capture } from "@/lib/analytics/index";
+import { DISCOVERY_EVENTS } from "@/lib/analytics/events";
 import { AlertTriangle, Check, Copy, QrCode } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 function QRPageContent() {
   const searchParams = useSearchParams();
@@ -19,6 +21,13 @@ function QRPageContent() {
       return value;
     }
   }, [value]);
+
+  useEffect(() => {
+    capture(DISCOVERY_EVENTS.QR_CODE_SCANNED, {
+      qr_type: value ? "unsupported" : "empty",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleClose = () => {
     // Try multiple approaches to close the window/webview

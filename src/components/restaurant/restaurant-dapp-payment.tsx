@@ -3,6 +3,8 @@
 import { PaymentData } from "@/app/receipt/receipt-content";
 import { Button } from "@/components/ui/button";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
+import { capture } from "@/lib/analytics/index";
+import { PAYMENT_EVENTS } from "@/lib/analytics/events";
 import { savePaymentReceipt } from "@/lib/payment-storage";
 import {
   formatRozoErrorMessage,
@@ -141,6 +143,19 @@ export function RestaurantDappPayment({
       const displayCurrency = getDisplayCurrency(restaurant.currency);
       const usdAmount = convertToUSD(paymentAmount, displayCurrency);
 
+      capture(PAYMENT_EVENTS.PAYMENT_METHOD_SELECTED, {
+        merchant_id: restaurant._id,
+        merchant_name: restaurant.name,
+        payment_method: "rozo_wallet",
+      });
+      capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
+        merchant_id: restaurant._id,
+        merchant_name: restaurant.name,
+        payment_method: "rozo_wallet",
+        amount_usd: usdAmount,
+        order_id: merchantOrderId,
+      });
+
       // Transfer USDC on Stellar network
       const { amount, receiverAddressContract, receiverMemoContract } =
         await generateBridgeAddress({
@@ -187,6 +202,14 @@ export function RestaurantDappPayment({
             "&withRozoWallet=true",
         );
 
+        capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
+          merchant_id: restaurant._id,
+          merchant_name: restaurant.name,
+          payment_method: "rozo_wallet",
+          amount_usd: usdAmount,
+          order_id: merchantOrderId,
+        });
+
         toast.success(`Payment successful to ${restaurant.name}!`);
         router.push(
           `/receipt?payment_id=${merchantOrderId}&withRozoWallet=true`,
@@ -196,20 +219,34 @@ export function RestaurantDappPayment({
       console.error("Rozo Wallet payment error:", error);
 
       if (isUserCancellation(error)) {
+        capture(PAYMENT_EVENTS.PAYMENT_CANCELLED, {
+          merchant_id: restaurant._id,
+          merchant_name: restaurant.name,
+          payment_method: "rozo_wallet",
+        });
         toast.error("Payment cancelled");
         return;
       }
+
+      const errorMessage = isRozoProviderError(error)
+        ? formatRozoErrorMessage(error)
+        : error instanceof Error
+          ? error.message
+          : "Payment failed. Please try again.";
+
+      capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
+        merchant_id: restaurant._id,
+        merchant_name: restaurant.name,
+        payment_method: "rozo_wallet",
+        error_message: errorMessage,
+      });
 
       if (isRozoProviderError(error)) {
         toast.error(formatRozoErrorMessage(error));
         return;
       }
 
-      const fallback =
-        error instanceof Error
-          ? error.message
-          : "Payment failed. Please try again.";
-      toast.error(fallback);
+      toast.error(errorMessage);
     } finally {
       setIsRozoWalletPaymentLoading(false);
     }
