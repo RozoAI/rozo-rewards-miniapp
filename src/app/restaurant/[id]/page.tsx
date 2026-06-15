@@ -11,14 +11,13 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useBookmarks } from "@/contexts/BookmarkContext";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
+import { getRestaurantById } from "@/lib/restaurants";
 import {
   convertToUSD,
   EXCHANGE_RATES,
   getDisplayCurrency,
   getFirstTwoWordInitialsFromName,
 } from "@/lib/utils";
-import { getRestaurantById } from "@/lib/restaurants";
-import { Restaurant } from "@/types/restaurant";
 import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import {
   BadgePercent,
@@ -66,8 +65,11 @@ export default function RestaurantDetailPage() {
     restaurant ? null : restaurantId ? "Restaurant not found" : null,
   );
   const [paymentAmount, setPaymentAmount] = React.useState<string>(() => {
-    const price = restaurant?.price && !isNaN(Number(restaurant.price)) ? Number(restaurant.price) : 0;
-    return price.toFixed(2);
+    const price =
+      restaurant?.price && !isNaN(Number(restaurant.price))
+        ? Number(restaurant.price)
+        : 0;
+    return price > 0 ? price.toFixed(2) : "";
   });
   const [showFullAddress, setShowFullAddress] = React.useState(false);
   const [appId] = React.useState<string>(

@@ -97,6 +97,7 @@ export function useRozoWallet() {
       }
 
       setIsAvailable(true);
+      setIsLoading(true);
 
       try {
         // Check connection
@@ -122,6 +123,8 @@ export function useRozoWallet() {
       } catch (error) {
         console.error("Failed to check Rozo Wallet:", error);
         setIsAvailable(false);
+      } finally {
+        setIsLoading(false);
       }
     }
 
