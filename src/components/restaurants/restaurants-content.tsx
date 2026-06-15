@@ -4,6 +4,7 @@ import { ListSearchInput } from "@/components/list-search-input";
 import { Button } from "@/components/ui/button";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useGeolocation } from "@/hooks/useGeolocation";
+import { LOCATIONS } from "@/lib/data";
 import { calculateDistance, cn } from "@/lib/utils";
 import { VISIBLE_HANDLES } from "@/shared";
 import { Restaurant } from "@/types/restaurant";
@@ -29,17 +30,9 @@ export function RestaurantsContent({ className }: { className?: string }) {
 
     async function load() {
       try {
-        const res = await fetch("/coffee_mapdata.json");
-        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        const data = await res.json();
-
-        if (!data || !Array.isArray(data.locations)) {
-          throw new Error("Invalid data shape");
-        }
-
         if (isMounted)
           setLocations(
-            data.locations.filter(
+            (LOCATIONS as Restaurant[]).filter(
               (loc: any) => loc.handle && VISIBLE_HANDLES.includes(loc.handle),
             ),
           );

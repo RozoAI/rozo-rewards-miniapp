@@ -18,6 +18,7 @@ import { FabActions } from "../fab-actions";
 import { Button } from "../ui/button";
 import { WalletComponents } from "../wallet-connect-button";
 
+import { LOCATIONS } from "@/lib/data";
 import { VISIBLE_HANDLES } from "@/shared";
 import { type Restaurant } from "@/types/restaurant";
 
@@ -142,18 +143,10 @@ export default function HomePage() {
 
     async function loadRestaurants() {
       try {
-        const res = await fetch("/coffee_mapdata.json");
-        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        const data = await res.json();
-
-        if (!data || !Array.isArray(data.locations)) {
-          throw new Error("Invalid restaurant data shape");
-        }
-
         if (isMounted) {
           setRestaurants(
-            data.locations.filter(
-              (loc: any) => loc.handle && VISIBLE_HANDLES.includes(loc.handle),
+            (LOCATIONS as Restaurant[]).filter(
+              (loc) => loc.handle && VISIBLE_HANDLES.includes(loc.handle),
             ),
           );
         }

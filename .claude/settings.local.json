@@ -16,7 +16,15 @@
       "Bash(echo \"tsc exit: $?\")",
       "Bash(timeout 300 bun run build)",
       "Bash(bun lint *)",
-      "Bash(rtk grep *)"
+      "Bash(rtk grep *)",
+      "Bash(xargs -I{} sh -c 'echo {}; head -5 {}')",
+      "Bash(bunx eslint *)",
+      "Bash(node -e \"console.log\\(JSON.parse\\(require\\('fs'\\).readFileSync\\('public/coffee_mapdata.json'\\)\\).length\\)\")",
+      "Bash(node -e \"const d=require\\('./src/lib/data.ts'\\)\")",
+      "Bash(time curl *)",
+      "Read(//private/tmp/**)",
+      "Bash(rtk curl *)",
+      "Bash(wait)"
     ]
   }
 }

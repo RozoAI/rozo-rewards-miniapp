@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { isRozoProviderError, isUserCancellation } from "@/lib/rozo-errors";
+import { useEffect, useState } from "react";
 
 /**
  * Convert USDC amount to Stellar stroops (7 decimals)
@@ -64,6 +64,7 @@ export function useRozoWallet() {
   const [balance, setBalance] = useState<string | null>(null);
   const [balanceUsd, setBalanceUsd] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
 
   // Check if window.rozo is available and connected
   useEffect(() => {
@@ -93,6 +94,7 @@ export function useRozoWallet() {
 
       if (!window.rozo) {
         setIsAvailable(false);
+        setIsChecking(false);
         return;
       }
 
@@ -122,6 +124,9 @@ export function useRozoWallet() {
       } catch (error) {
         console.error("Failed to check Rozo Wallet:", error);
         setIsAvailable(false);
+      } finally {
+        setIsLoading(false);
+        setIsChecking(false);
       }
     }
 
@@ -294,6 +299,7 @@ export function useRozoWallet() {
   return {
     isAvailable,
     isConnected,
+    isChecking,
     walletAddress,
     balance,
     balanceUsd,

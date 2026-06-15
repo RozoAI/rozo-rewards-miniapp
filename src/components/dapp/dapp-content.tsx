@@ -149,7 +149,11 @@ export function DappContent({
     return (
       <li key={restaurant._id}>
         <Link
-          href={`/restaurant/${restaurant._id}?dapp=${isDapp}`}
+          href={
+            isDapp
+              ? `/dapp/restaurant/${restaurant._id}`
+              : `/restaurant/${restaurant._id}`
+          }
           className={cn(
             "flex items-start gap-3 px-4 py-4",
             "hover:bg-muted/50 transition-colors",

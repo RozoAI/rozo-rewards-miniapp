@@ -1,10 +1,12 @@
 import type { Restaurant } from "@/types/restaurant";
-import data from "../../public/coffee_mapdata.json";
+import { LOCATIONS } from "./data";
 
-const locations = data.locations as unknown as Restaurant[];
+const locations = LOCATIONS as unknown as Restaurant[];
+
+const locationsById = new Map(locations.map((l) => [l._id, l]));
 
 export function getRestaurantById(id: string): Restaurant | null {
-  return locations.find((l) => l._id === id) ?? null;
+  return locationsById.get(id) ?? null;
 }
 
 export function getAllRestaurants(): Restaurant[] {
