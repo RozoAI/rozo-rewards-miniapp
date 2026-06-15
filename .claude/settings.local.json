@@ -11,6 +11,8 @@
       "Bash(rtk find *)",
       "Bash(rtk npx *)",
       "Bash(bunx react-doctor *)",
+      "Bash(bun add *)",
+      "Bash(bun lint *)",
       "Bash(rtk wc *)",
       "Bash(bunx tsc *)",
       "Bash(echo \"tsc exit: $?\")",
@@ -27,7 +29,8 @@
       "Bash(wait)",
       "Bash(git mv *)",
       "Bash(curl -s -o /dev/null -w \"restaurant: %{http_code}\\\\n\" \"http://localhost:3001/restaurant/88c62be12697d882a8b03e60\")",
-      "Bash(curl -s -o /dev/null -w \"home: %{http_code}\\\\n\" \"http://localhost:3001/\")"
+      "Bash(curl -s -o /dev/null -w \"home: %{http_code}\\\\n\" \"http://localhost:3001/\")",
+      "Bash(rtk git *)"
     ]
   }
 }

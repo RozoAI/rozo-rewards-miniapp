@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
+import { capture } from "@/lib/analytics/index";
+import { PAYMENT_EVENTS } from "@/lib/analytics/events";
 import {
   formatRozoErrorMessage,
   isRozoProviderError,
@@ -136,6 +138,19 @@ export function AiServiceDappPayment({
       }
       const usdAmount = service.price_usd.toString();
 
+      capture(PAYMENT_EVENTS.PAYMENT_METHOD_SELECTED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        payment_method: "rozo_wallet",
+      });
+      capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        payment_method: "rozo_wallet",
+        amount_usd: usdAmount,
+        order_id: merchantOrderId,
+      });
+
       const { amount, receiverAddressContract, receiverMemoContract } =
         await generateBridgeAddress(usdAmount);
 
@@ -174,6 +189,14 @@ export function AiServiceDappPayment({
             merchantOrderId,
         );
 
+        capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
+          merchant_id: service.id,
+          merchant_name: service.name,
+          payment_method: "rozo_wallet",
+          amount_usd: usdAmount,
+          order_id: merchantOrderId,
+        });
+
         toast.success(`Payment successful to ${service.name}!`);
         router.push(`/receipt?payment_id=${merchantOrderId}`);
       }
@@ -181,20 +204,34 @@ export function AiServiceDappPayment({
       console.error("Rozo Wallet payment error:", error);
 
       if (isUserCancellation(error)) {
+        capture(PAYMENT_EVENTS.PAYMENT_CANCELLED, {
+          merchant_id: service.id,
+          merchant_name: service.name,
+          payment_method: "rozo_wallet",
+        });
         toast.error("Payment cancelled");
         return;
       }
+
+      const errorMessage = isRozoProviderError(error)
+        ? formatRozoErrorMessage(error)
+        : error instanceof Error
+          ? error.message
+          : "Payment failed. Please try again.";
+
+      capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        payment_method: "rozo_wallet",
+        error_message: errorMessage,
+      });
 
       if (isRozoProviderError(error)) {
         toast.error(formatRozoErrorMessage(error));
         return;
       }
 
-      const fallback =
-        error instanceof Error
-          ? error.message
-          : "Payment failed. Please try again.";
-      toast.error(fallback);
+      toast.error(errorMessage);
     } finally {
       setIsRozoWalletPaymentLoading(false);
     }

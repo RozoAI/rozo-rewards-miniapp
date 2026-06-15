@@ -1,5 +1,7 @@
 "use client";
 
+import { capture } from "@/lib/analytics/index";
+import { GLOBAL_EVENTS } from "@/lib/analytics/events";
 import * as Sentry from "@sentry/nextjs";
 import NextError from "next/error";
 import { useEffect } from "react";
@@ -11,6 +13,10 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     Sentry.captureException(error);
+    capture(GLOBAL_EVENTS.ERROR_OCCURRED, {
+      error_message: error.message,
+      error_context: "global_error_boundary",
+    });
   }, [error]);
 
   return (

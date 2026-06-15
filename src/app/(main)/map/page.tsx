@@ -3,12 +3,14 @@
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { useGeolocation } from "@/hooks/useGeolocation";
+import { capture } from "@/lib/analytics/index";
+import { DISCOVERY_EVENTS } from "@/lib/analytics/events";
 import { getAllRestaurants } from "@/lib/restaurants";
 import { calculateDistance, cn } from "@/lib/utils";
 import { VISIBLE_HANDLES } from "@/shared";
 import { Coins, Loader2, MapPin, RefreshCw } from "lucide-react";
 import dynamic from "next/dynamic";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 // Simple map component using dynamic import
 const MapComponent = dynamic(
@@ -81,6 +83,20 @@ export default function MapPage() {
       .sort((a, b) => a.distance - b.distance); // Sort by distance
   }, [coordinates, locations]);
 
+  const hasReportedNearbyRef = useRef(false);
+  useEffect(() => {
+    if (!coordinates || hasReportedNearbyRef.current) return;
+    hasReportedNearbyRef.current = true;
+    capture(DISCOVERY_EVENTS.NEARBY_MERCHANTS_VIEWED, {
+      merchant_count: nearbyLocations.length,
+    });
+  }, [coordinates, nearbyLocations]);
+
+  const handleRequestLocation = () => {
+    capture(DISCOVERY_EVENTS.MAP_LOCATION_REQUESTED);
+    requestLocation();
+  };
+
   return (
     <div className="w-full mb-16 flex flex-col gap-4 mt-4">
       <PageHeader
@@ -99,7 +115,7 @@ export default function MapPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={requestLocation}
+              onClick={handleRequestLocation}
               disabled={locationLoading}
               className="text-yellow-800 border-yellow-300 hover:bg-yellow-100"
             >
@@ -176,7 +192,7 @@ export default function MapPage() {
             {locationError && (
               <Button
                 variant="outline"
-                onClick={requestLocation}
+                onClick={handleRequestLocation}
                 disabled={locationLoading}
               >
                 <RefreshCw

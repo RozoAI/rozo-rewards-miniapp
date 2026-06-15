@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { getAiServiceById } from "@/lib/ai-services";
+import { capture } from "@/lib/analytics/index";
+import { PAYMENT_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
 import { savePaymentReceipt } from "@/lib/payment-storage";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
@@ -151,6 +153,14 @@ export function AiServiceDiscoveryPayment({
       duration: 2000,
     });
 
+    capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
+      merchant_id: service.id,
+      merchant_name: service.name,
+      payment_method: "crypto",
+      amount_usd: priceUsd.toString(),
+      order_id: merchantOrderId,
+    });
+
     // Store payment data in localStorage for receipt page
     const receiptData: PaymentData = {
       from_address: address || "",
@@ -187,6 +197,13 @@ export function AiServiceDiscoveryPayment({
     if (!validateEmailInput()) {
       return;
     }
+    if (service) {
+      capture(PAYMENT_EVENTS.PAYMENT_METHOD_SELECTED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        payment_method: "points",
+      });
+    }
     setShowConfirmDialog(true);
   };
 
@@ -205,6 +222,14 @@ export function AiServiceDiscoveryPayment({
       order_id: merchantOrderId,
       about: `Pay for ${service.name}`,
     };
+
+    capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
+      merchant_id: service.id,
+      merchant_name: service.name,
+      payment_method: "points",
+      amount_usd: priceUsd.toString(),
+      order_id: merchantOrderId,
+    });
 
     const response = await spendPoints(paymentData);
 
@@ -227,11 +252,31 @@ export function AiServiceDiscoveryPayment({
           merchantOrderId,
       );
 
+      capture(REWARDS_EVENTS.REWARDS_REDEEMED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        usd_value_offset: priceUsd.toString(),
+        order_id: merchantOrderId,
+      });
+      capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        payment_method: "points",
+        amount_usd: priceUsd.toString(),
+        order_id: merchantOrderId,
+      });
+
       setShowConfirmDialog(false);
 
       // Navigate to receipt page
       router.push(`/receipt?payment_id=${merchantOrderId}`);
     } else {
+      capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        payment_method: "points",
+        error_message: "Failed to spend points",
+      });
       toast.error("Failed to spend points");
       setDialogLoading(false);
     }
@@ -255,6 +300,13 @@ export function AiServiceDiscoveryPayment({
         metadata={metadata as any}
         onPaymentStarted={() => {
           setPaymentLoading(true);
+          capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
+            merchant_id: service.id,
+            merchant_name: service.name,
+            payment_method: "crypto",
+            amount_usd: priceUsd.toString(),
+            order_id: merchantOrderId,
+          });
         }}
         onPaymentCompleted={handlePaymentCompleted}
       >
@@ -267,6 +319,11 @@ export function AiServiceDiscoveryPayment({
                 if (!validateEmailInput()) {
                   return;
                 }
+                capture(PAYMENT_EVENTS.PAYMENT_METHOD_SELECTED, {
+                  merchant_id: service.id,
+                  merchant_name: service.name,
+                  payment_method: "crypto",
+                });
                 show();
               }}
               disabled={paymentLoading}

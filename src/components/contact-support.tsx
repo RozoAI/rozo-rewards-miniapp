@@ -1,5 +1,7 @@
 "use client";
 
+import { capture } from "@/lib/analytics/index";
+import { DISCOVERY_EVENTS } from "@/lib/analytics/events";
 import { ChevronDown, ChevronUp, HelpCircleIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -68,6 +70,11 @@ export function ContactSupport() {
             href="https://t.me/shawnmuggle"
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() =>
+              capture(DISCOVERY_EVENTS.SUPPORT_CONTACTED, {
+                channel: "telegram",
+              })
+            }
             className="col-span-3 flex items-center gap-2 px-3 py-2 text-sm bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors rounded-lg border border-sky-200 dark:border-sky-800"
           >
             <svg className="size-4" fill="currentColor" viewBox="0 0 24 24">
@@ -78,12 +85,15 @@ export function ContactSupport() {
           <button
             type="button"
             className="cursor-pointer col-span-3 flex items-center gap-2 px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-900/20 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-900/30 transition-colors rounded-lg border border-neutral-200 dark:border-neutral-800"
-            onClick={() =>
+            onClick={() => {
+              capture(DISCOVERY_EVENTS.SUPPORT_CONTACTED, {
+                channel: "intercom",
+              });
               window.Intercom(
                 "showNewMessage",
                 "Hi, I need help with my payment.",
-              )
-            }
+              );
+            }}
           >
             <HelpCircleIcon className="size-4" />
             <span className="font-medium text-xs sm:text-base">

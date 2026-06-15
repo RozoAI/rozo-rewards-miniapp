@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/dialog";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { convertToUSD, getDisplayCurrency } from "@/lib/utils";
+import { capture } from "@/lib/analytics/index";
+import { PAYMENT_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
 import { savePaymentReceipt } from "@/lib/payment-storage";
 import { Restaurant } from "@/types/restaurant";
 import { PaymentData } from "@/app/(main)/receipt/receipt-content";
@@ -164,6 +166,14 @@ export function RestaurantDiscoveryPayment({
     const displayCurrency = getDisplayCurrency(restaurant?.currency);
     const usdAmount = convertToUSD(paymentAmount, displayCurrency);
 
+    capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
+      merchant_id: restaurant._id,
+      merchant_name: restaurant.name,
+      payment_method: "crypto",
+      amount_usd: usdAmount,
+      order_id: merchantOrderId,
+    });
+
     const receiptData: PaymentData = {
       from_address: address || "",
       to_handle:
@@ -196,6 +206,13 @@ export function RestaurantDiscoveryPayment({
   };
 
   const handlePayWithPoints = () => {
+    if (restaurant) {
+      capture(PAYMENT_EVENTS.PAYMENT_METHOD_SELECTED, {
+        merchant_id: restaurant._id,
+        merchant_name: restaurant.name,
+        payment_method: "points",
+      });
+    }
     setShowConfirmDialog(true);
   };
 
@@ -207,6 +224,14 @@ export function RestaurantDiscoveryPayment({
 
       const displayCurrency = getDisplayCurrency(restaurant?.currency);
       const usdAmount = convertToUSD(paymentAmount, displayCurrency);
+
+      capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
+        merchant_id: restaurant._id,
+        merchant_name: restaurant.name,
+        payment_method: "points",
+        amount_usd: usdAmount,
+        order_id: merchantOrderId,
+      });
 
       const paymentData = {
         from_address: address,
@@ -241,15 +266,43 @@ export function RestaurantDiscoveryPayment({
             merchantOrderId,
         );
 
+        capture(REWARDS_EVENTS.REWARDS_REDEEMED, {
+          merchant_id: restaurant._id,
+          merchant_name: restaurant.name,
+          usd_value_offset: usdAmount,
+          order_id: merchantOrderId,
+        });
+        capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
+          merchant_id: restaurant._id,
+          merchant_name: restaurant.name,
+          payment_method: "points",
+          amount_usd: usdAmount,
+          order_id: merchantOrderId,
+        });
+
         setShowConfirmDialog(false);
         toast.success("Points spent successfully");
         // Navigate to receipt page
         router.push(`/receipt?payment_id=${merchantOrderId}`);
       } else {
+        capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
+          merchant_id: restaurant._id,
+          merchant_name: restaurant.name,
+          payment_method: "points",
+          error_message: "Failed to spend points",
+        });
         toast.error("Failed to spend points");
         setDialogLoading(false);
       }
     } catch {
+      if (restaurant) {
+        capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
+          merchant_id: restaurant._id,
+          merchant_name: restaurant.name,
+          payment_method: "points",
+          error_message: "Failed to spend points",
+        });
+      }
       toast.error("Failed to spend points");
       setDialogLoading(false);
     }
@@ -279,6 +332,17 @@ export function RestaurantDiscoveryPayment({
         )} ${paymentAmount}`}
         onPaymentStarted={() => {
           setLoading(true);
+          const usdAmount = convertToUSD(
+            paymentAmount,
+            getDisplayCurrency(restaurant?.currency),
+          );
+          capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
+            merchant_id: restaurant._id,
+            merchant_name: restaurant.name,
+            payment_method: "crypto",
+            amount_usd: usdAmount,
+            order_id: merchantOrderId,
+          });
         }}
         onPaymentCompleted={(args: PaymentCompletedEvent) => {
           handlePaymentCompleted(args);
@@ -294,7 +358,14 @@ export function RestaurantDiscoveryPayment({
             <Button
               variant="default"
               className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
-              onClick={show}
+              onClick={() => {
+                capture(PAYMENT_EVENTS.PAYMENT_METHOD_SELECTED, {
+                  merchant_id: restaurant._id,
+                  merchant_name: restaurant.name,
+                  payment_method: "crypto",
+                });
+                show();
+              }}
               disabled={
                 isDebouncing ||
                 loading ||
