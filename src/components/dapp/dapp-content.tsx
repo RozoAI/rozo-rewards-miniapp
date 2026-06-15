@@ -4,12 +4,8 @@ import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getAllAiServices } from "@/lib/ai-services";
-import { getAllRestaurants } from "@/lib/restaurants";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
-import { VISIBLE_HANDLES } from "@/shared";
-import { useAppKitAccount } from "@reown/appkit/react";
 import { Globe, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -48,26 +44,28 @@ const isFilterRegion = (
   value !== null &&
   FILTER_REGIONS.includes(value as (typeof FILTER_REGIONS)[number]);
 
-interface DappContentProps {
+export interface DappContentProps {
   className?: string;
   title?: string;
   icon?: React.ReactNode;
   isDapp?: boolean;
+  restaurants: DappRestaurant[];
+  aiServices: AiServiceItem[];
+  /** EVM address from AppKit, supplied by discovery-mode wrapper. */
+  evmAddress?: string;
+  evmConnected?: boolean;
 }
-
-const ALL_RESTAURANTS = (getAllRestaurants() as unknown as DappRestaurant[]).filter(
-  (location) => VISIBLE_HANDLES.includes(location.handle),
-);
-const ALL_AI_SERVICES = getAllAiServices() as AiServiceItem[];
 
 export function DappContent({
   className,
   title = "DApps",
   icon = <Globe className="size-6" />,
   isDapp = false,
+  restaurants,
+  aiServices,
+  evmAddress,
+  evmConnected = false,
 }: DappContentProps) {
-  const restaurants = ALL_RESTAURANTS;
-  const aiServices = ALL_AI_SERVICES;
   const [searchValue, setSearchValue] = useState("");
   const router = useRouter();
   const pathname = usePathname();
@@ -78,10 +76,11 @@ export function DappContent({
     : "network-schools";
 
   const { walletAddress, isConnected: isRozoWalletConnected } = useRozoWallet();
-  const { address, isConnected } = useAppKitAccount();
 
   const activeAddress =
-    (isRozoWalletConnected && walletAddress) || (isConnected && address) || "";
+    (isRozoWalletConnected && walletAddress) ||
+    (evmConnected && evmAddress) ||
+    "";
 
   useEffect(() => {
     setSearchValue("");
@@ -201,7 +200,7 @@ export function DappContent({
     return (
       <li key={service.id}>
         <Link
-          href={`/ai-services/${encodeURIComponent(service.id)}`}
+          href={`/ai-services/${encodeURIComponent(service.id)}?dapp=${isDapp}`}
           className={cn(
             "flex items-start gap-3 px-4 py-4",
             "transition-colors duration-200 hover:bg-muted/40",
