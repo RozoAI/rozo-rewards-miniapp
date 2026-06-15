@@ -99,6 +99,7 @@ export function useRozoWallet() {
       }
 
       setIsAvailable(true);
+      setIsLoading(true);
 
       try {
         // Check connection
