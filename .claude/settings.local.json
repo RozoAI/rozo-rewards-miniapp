@@ -12,7 +12,14 @@
       "Bash(rtk npx *)",
       "Bash(bunx react-doctor *)",
       "Bash(bun add *)",
-      "Bash(bun lint *)"
+      "Bash(bun lint *)",
+      "Bash(rtk wc *)",
+      "Bash(bunx tsc *)",
+      "Bash(echo \"tsc exit: $?\")",
+      "Bash(timeout 300 bun run build)",
+      "Bash(bun lint *)",
+      "Bash(rtk grep *)",
+      "Bash(rtk git *)"
     ]
   }
 }
