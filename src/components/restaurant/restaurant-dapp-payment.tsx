@@ -3,8 +3,8 @@
 import { PaymentData } from "@/app/(main)/receipt/receipt-content";
 import { Button } from "@/components/ui/button";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
-import { capture } from "@/lib/analytics/index";
 import { PAYMENT_EVENTS } from "@/lib/analytics/events";
+import { capture } from "@/lib/analytics/index";
 import { savePaymentReceipt } from "@/lib/payment-storage";
 import {
   formatRozoErrorMessage,
@@ -184,6 +184,13 @@ export function RestaurantDappPayment({
           senderAddress: rozoWalletAddress,
         }).catch((e) => {
           console.log(e);
+          capture(PAYMENT_EVENTS.PAYMENT_TX_HASH_IN_FAILED, {
+            merchant_id: restaurant._id,
+            merchant_name: restaurant.name,
+            payment_method: "rozo_wallet",
+            amount_usd: usdAmount,
+            order_id: paymentId,
+          });
         });
 
         // Store receipt data
