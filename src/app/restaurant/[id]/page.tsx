@@ -98,7 +98,7 @@ export default function RestaurantDetailPage() {
   const [paymentLoading, setPaymentLoading] = React.useState(false);
   const [paymentAmount, setPaymentAmount] = React.useState<string>(() => {
     const price = restaurant?.price && !isNaN(Number(restaurant.price)) ? Number(restaurant.price) : 0;
-    return price.toFixed(2);
+    return price > 0 ? price.toFixed(2) : "";
   });
   const [points, setPoints] = React.useState(0);
   const [pointsLoading, setPointsLoading] = React.useState(false);
@@ -771,8 +771,10 @@ export default function RestaurantDetailPage() {
                       ) : (
                         <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                       )}
-                      {rozoWalletBalanceUsd !== null &&
-                      rozoWalletBalanceUsd > 0 ? (
+                      {rozoWalletLoading ? (
+                        "Loading Rozo Wallet Balance..."
+                      ) : rozoWalletBalanceUsd !== null &&
+                        rozoWalletBalanceUsd > 0 ? (
                         <>
                           Pay $
                           {isNaN(
