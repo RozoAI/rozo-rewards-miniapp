@@ -15,6 +15,7 @@ import {
   baseUSDC,
   createPayment,
   rozoStellarUSDC,
+  updatePaymentPayInTxHash,
 } from "@rozoai/intent-common";
 import { Loader2, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -95,6 +96,7 @@ export function RestaurantDappPayment({
     amountLocal: string;
     currencyLocal: string;
   }): Promise<{
+    paymentId: string;
     amount: string;
     bridgeAddress: string;
     memo: string;
@@ -124,6 +126,7 @@ export function RestaurantDappPayment({
     }
 
     return {
+      paymentId: payment.id,
       amount: payment.source.amount,
       bridgeAddress: payment.source.receiverAddress,
       memo: payment.source.receiverMemo,
@@ -133,7 +136,7 @@ export function RestaurantDappPayment({
   };
 
   const handlePayWithRozoWallet = async () => {
-    if (!restaurant || !paymentAmount) return;
+    if (!restaurant || !paymentAmount || !rozoWalletAddress) return;
 
     try {
       setIsRozoWalletPaymentLoading(true);
@@ -142,12 +145,16 @@ export function RestaurantDappPayment({
       const usdAmount = convertToUSD(paymentAmount, displayCurrency);
 
       // Transfer USDC on Stellar network
-      const { amount, receiverAddressContract, receiverMemoContract } =
-        await generateBridgeAddress({
-          amountUsd: usdAmount,
-          amountLocal: paymentAmount,
-          currencyLocal: displayCurrency,
-        });
+      const {
+        paymentId,
+        amount,
+        receiverAddressContract,
+        receiverMemoContract,
+      } = await generateBridgeAddress({
+        amountUsd: usdAmount,
+        amountLocal: paymentAmount,
+        currencyLocal: displayCurrency,
+      });
 
       const result = await rozoWalletTransfer(
         amount,
@@ -156,9 +163,17 @@ export function RestaurantDappPayment({
       );
 
       if (result.hash) {
+        updatePaymentPayInTxHash({
+          paymentId,
+          txHash: result.hash,
+          senderAddress: rozoWalletAddress,
+        }).catch((e) => {
+          console.log(e);
+        });
+
         // Store receipt data
         const receiptData: PaymentData = {
-          from_address: rozoWalletAddress || "",
+          from_address: rozoWalletAddress,
           to_handle:
             restaurant.handle ||
             restaurant.name.toLowerCase().replace(/\s+/g, ""),
