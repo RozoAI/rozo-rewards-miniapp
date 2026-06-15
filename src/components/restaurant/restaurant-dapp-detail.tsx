@@ -8,9 +8,13 @@ import React from "react";
 
 export interface RestaurantDappDetailProps {
   restaurant: Restaurant;
+  onBack?: () => void;
 }
 
-export function RestaurantDappDetail({ restaurant }: RestaurantDappDetailProps) {
+export function RestaurantDappDetail({
+  restaurant,
+  onBack,
+}: RestaurantDappDetailProps) {
   const { walletAddress: rozoWalletAddress } = useRozoWallet();
 
   const [paymentAmount, setPaymentAmount] = React.useState<string>(() => {
@@ -53,6 +57,7 @@ export function RestaurantDappDetail({ restaurant }: RestaurantDappDetailProps) 
       paymentAmount={paymentAmount}
       onAmountChange={setPaymentAmount}
       onShare={handleShare}
+      onBack={onBack}
       paymentSlot={
         <RestaurantDappPayment
           restaurant={restaurant}

@@ -20,6 +20,7 @@ export function PageHeader({
   icon,
   isBackButton,
   paymentHistoryAddress,
+  onBack,
 }: {
   title: string;
   icon?: React.ReactNode;
@@ -30,6 +31,8 @@ export function PageHeader({
    * - When omitted, history shows all stored receipts (web behavior).
    */
   paymentHistoryAddress?: string | null;
+  /** Override the back button's action. Defaults to router.back(). */
+  onBack?: () => void;
 }) {
   const router = useRouter();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -46,7 +49,7 @@ export function PageHeader({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.back()}
+            onClick={() => (onBack ? onBack() : router.back())}
             className="shrink-0 size-8"
           >
             <ArrowLeft className="size-4" />

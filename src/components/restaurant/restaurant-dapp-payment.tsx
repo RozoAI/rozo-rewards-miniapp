@@ -10,7 +10,7 @@ import {
 import { convertToUSD, getDisplayCurrency } from "@/lib/utils";
 import { savePaymentReceipt } from "@/lib/payment-storage";
 import { Restaurant } from "@/types/restaurant";
-import { PaymentData } from "@/app/receipt/receipt-content";
+import { PaymentData } from "@/app/(main)/receipt/receipt-content";
 import {
   baseUSDC,
   createPayment,

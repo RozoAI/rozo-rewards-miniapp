@@ -33,6 +33,7 @@ export interface RestaurantDetailBaseProps {
   paymentAmount: string;
   onAmountChange: (value: string) => void;
   onShare: () => void;
+  onBack?: () => void;
   paymentSlot: React.ReactNode;
 }
 
@@ -43,6 +44,7 @@ export function RestaurantDetailBase({
   paymentAmount,
   onAmountChange,
   onShare,
+  onBack,
   paymentSlot,
 }: RestaurantDetailBaseProps) {
   const { isBookmarked, toggleBookmark } = useBookmarks();
@@ -72,6 +74,7 @@ export function RestaurantDetailBase({
           title="Back to DApps"
           isBackButton
           paymentHistoryAddress={rozoWalletAddress || ""}
+          onBack={onBack}
         />
       ) : (
         <PageHeader title="Back to Lifestyle" isBackButton />

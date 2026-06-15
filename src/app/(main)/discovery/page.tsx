@@ -3,20 +3,12 @@ import { getAllAiServices } from "@/lib/ai-services";
 import { getAllRestaurants } from "@/lib/restaurants";
 import { VISIBLE_HANDLES } from "@/shared";
 import { Binoculars } from "lucide-react";
+import { Suspense } from "react";
 
 export default function DiscoveryPage() {
-  const restaurants = getAllRestaurants()
-    .filter((location) => VISIBLE_HANDLES.includes(location.handle))
-    .map((location) => ({
-      _id: location._id,
-      name: location.name,
-      handle: location.handle,
-      currency: location.currency,
-      formatted: location.formatted,
-      logo_url: location.logo_url,
-      cashback_rate: location.cashback_rate,
-      price: location.price ?? "",
-    }));
+  const restaurants = getAllRestaurants().filter((location) =>
+    VISIBLE_HANDLES.includes(location.handle),
+  );
 
   const aiServices = getAllAiServices().map((service) => ({
     id: service.id,
@@ -28,11 +20,13 @@ export default function DiscoveryPage() {
   }));
 
   return (
-    <DiscoveryDappContent
-      title="Discovery"
-      icon={<Binoculars className="size-6" />}
-      restaurants={restaurants}
-      aiServices={aiServices}
-    />
+    <Suspense>
+      <DiscoveryDappContent
+        title="Discovery"
+        icon={<Binoculars className="size-6" />}
+        restaurants={restaurants}
+        aiServices={aiServices}
+      />
+    </Suspense>
   );
 }

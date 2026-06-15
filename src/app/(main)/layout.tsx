@@ -13,7 +13,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "sonner";
-import "./globals.css";
+import "../globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

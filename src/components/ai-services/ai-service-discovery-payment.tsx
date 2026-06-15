@@ -1,6 +1,6 @@
 "use client";
 
-import { PaymentData } from "@/app/receipt/receipt-content";
+import { PaymentData } from "@/app/(main)/receipt/receipt-content";
 import { Button } from "@/components/ui/button";
 import { CustomTooltip } from "@/components/ui/custom-tooltip";
 import {

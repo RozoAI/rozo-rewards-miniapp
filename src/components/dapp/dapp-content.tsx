@@ -1,26 +1,19 @@
 "use client";
 
 import { PageHeader } from "@/components/page-header";
+import { RestaurantDappDetail } from "@/components/restaurant/restaurant-dapp-detail";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
+import { Restaurant } from "@/types/restaurant";
 import { Globe, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-interface DappRestaurant {
-  _id: string;
-  name: string;
-  handle: string;
-  currency?: string;
-  formatted: string;
-  logo_url: string;
-  cashback_rate: number;
-  price: string;
-}
+type DappRestaurant = Restaurant;
 
 interface AiServiceItem {
   id: string;
@@ -67,6 +60,8 @@ export function DappContent({
   evmConnected = false,
 }: DappContentProps) {
   const [searchValue, setSearchValue] = useState("");
+  const [selectedRestaurant, setSelectedRestaurant] =
+    useState<Restaurant | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -146,41 +141,55 @@ export function DappContent({
   const renderRestaurantItem = (restaurant: DappRestaurant) => {
     const initials = getFirstTwoWordInitialsFromName(restaurant.name);
 
+    const itemContent = (
+      <>
+        <Avatar className="size-12 rounded-lg ring-1 ring-border bg-muted shrink-0">
+          <AvatarImage src={restaurant.logo_url} alt={restaurant.name} />
+          <AvatarFallback className="rounded-lg font-medium text-sm">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-foreground truncate">
+            {restaurant.name}
+          </h3>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-xs text-emerald-600 font-medium">
+              {restaurant.cashback_rate}% cashback
+            </span>
+            <span className="text-xs text-muted-foreground">•</span>
+            <span className="text-xs text-muted-foreground">
+              {restaurant.price}
+            </span>
+          </div>
+        </div>
+      </>
+    );
+
+    const itemClassName = cn(
+      "flex items-start gap-3 px-4 py-4 w-full text-left",
+      "hover:bg-muted/50 transition-colors",
+      "active:bg-muted",
+    );
+
     return (
       <li key={restaurant._id}>
-        <Link
-          href={
-            isDapp
-              ? `/dapp/restaurant/${restaurant._id}`
-              : `/restaurant/${restaurant._id}`
-          }
-          className={cn(
-            "flex items-start gap-3 px-4 py-4",
-            "hover:bg-muted/50 transition-colors",
-            "active:bg-muted",
-          )}
-        >
-          <Avatar className="size-12 rounded-lg ring-1 ring-border bg-muted shrink-0">
-            <AvatarImage src={restaurant.logo_url} alt={restaurant.name} />
-            <AvatarFallback className="rounded-lg font-medium text-sm">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground truncate">
-              {restaurant.name}
-            </h3>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-emerald-600 font-medium">
-                {restaurant.cashback_rate}% cashback
-              </span>
-              <span className="text-xs text-muted-foreground">•</span>
-              <span className="text-xs text-muted-foreground">
-                {restaurant.price}
-              </span>
-            </div>
-          </div>
-        </Link>
+        {isDapp ? (
+          <button
+            type="button"
+            onClick={() => setSelectedRestaurant(restaurant)}
+            className={itemClassName}
+          >
+            {itemContent}
+          </button>
+        ) : (
+          <Link
+            href={`/restaurant/${restaurant._id}`}
+            className={itemClassName}
+          >
+            {itemContent}
+          </Link>
+        )}
       </li>
     );
   };
@@ -245,6 +254,15 @@ export function DappContent({
     );
   };
 
+  if (isDapp && selectedRestaurant) {
+    return (
+      <RestaurantDappDetail
+        restaurant={selectedRestaurant}
+        onBack={() => setSelectedRestaurant(null)}
+      />
+    );
+  }
+
   return (
     <div className={cn("w-full flex flex-col gap-4 mt-4 mb-20", className)}>
       <PageHeader
@@ -288,19 +306,12 @@ export function DappContent({
             <Sparkles className="size-4  text-yellow-500" />
             <span>AI Services</span>
           </Button>
-          {/* <Button
-            variant={filter === "united-states" ? "default" : "outline"}
-            size="sm"
-            className="flex-1 sm:flex-none justify-start"
-            onClick={() => setFilterInUrl("united-states")}
-          >
-            <span className="">🇺🇸</span>
-            <span>United States</span>
-          </Button> */}
         </div>
       </div>
 
-      {(filter === "ai-services" ? aiServices.length : filteredRestaurants.length) > 10 && (
+      {(filter === "ai-services"
+        ? aiServices.length
+        : filteredRestaurants.length) > 10 && (
         <div className="px-4 sm:px-0">
           <Input
             value={searchValue}
