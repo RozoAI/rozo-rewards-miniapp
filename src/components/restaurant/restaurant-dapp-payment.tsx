@@ -1,10 +1,10 @@
 "use client";
 
-import { PaymentData } from "@/app/receipt/receipt-content";
+import { PaymentData } from "@/app/(main)/receipt/receipt-content";
 import { Button } from "@/components/ui/button";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
-import { capture } from "@/lib/analytics/index";
 import { PAYMENT_EVENTS } from "@/lib/analytics/events";
+import { capture } from "@/lib/analytics/index";
 import { savePaymentReceipt } from "@/lib/payment-storage";
 import {
   formatRozoErrorMessage,
@@ -17,6 +17,7 @@ import {
   baseUSDC,
   createPayment,
   rozoStellarUSDC,
+  updatePaymentPayInTxHash,
 } from "@rozoai/intent-common";
 import { Loader2, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -97,6 +98,7 @@ export function RestaurantDappPayment({
     amountLocal: string;
     currencyLocal: string;
   }): Promise<{
+    paymentId: string;
     amount: string;
     bridgeAddress: string;
     memo: string;
@@ -126,6 +128,7 @@ export function RestaurantDappPayment({
     }
 
     return {
+      paymentId: payment.id,
       amount: payment.source.amount,
       bridgeAddress: payment.source.receiverAddress,
       memo: payment.source.receiverMemo,
@@ -135,7 +138,7 @@ export function RestaurantDappPayment({
   };
 
   const handlePayWithRozoWallet = async () => {
-    if (!restaurant || !paymentAmount) return;
+    if (!restaurant || !paymentAmount || !rozoWalletAddress) return;
 
     try {
       setIsRozoWalletPaymentLoading(true);
@@ -157,12 +160,16 @@ export function RestaurantDappPayment({
       });
 
       // Transfer USDC on Stellar network
-      const { amount, receiverAddressContract, receiverMemoContract } =
-        await generateBridgeAddress({
-          amountUsd: usdAmount,
-          amountLocal: paymentAmount,
-          currencyLocal: displayCurrency,
-        });
+      const {
+        paymentId,
+        amount,
+        receiverAddressContract,
+        receiverMemoContract,
+      } = await generateBridgeAddress({
+        amountUsd: usdAmount,
+        amountLocal: paymentAmount,
+        currencyLocal: displayCurrency,
+      });
 
       const result = await rozoWalletTransfer(
         amount,
@@ -171,9 +178,24 @@ export function RestaurantDappPayment({
       );
 
       if (result.hash) {
+        updatePaymentPayInTxHash({
+          paymentId,
+          txHash: result.hash,
+          senderAddress: rozoWalletAddress,
+        }).catch((e) => {
+          console.log(e);
+          capture(PAYMENT_EVENTS.PAYMENT_TX_HASH_IN_FAILED, {
+            merchant_id: restaurant._id,
+            merchant_name: restaurant.name,
+            payment_method: "rozo_wallet",
+            amount_usd: usdAmount,
+            order_id: paymentId,
+          });
+        });
+
         // Store receipt data
         const receiptData: PaymentData = {
-          from_address: rozoWalletAddress || "",
+          from_address: rozoWalletAddress,
           to_handle:
             restaurant.handle ||
             restaurant.name.toLowerCase().replace(/\s+/g, ""),

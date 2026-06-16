@@ -1,4 +1,4 @@
-import servicesData from "../../public/ai-services/services.json";
+import { SERVICES } from "./data";
 
 type AiService = {
   id: string;
@@ -11,7 +11,7 @@ type AiService = {
   sold_out?: boolean;
 };
 
-const aiServices = servicesData as AiService[];
+const aiServices = SERVICES as AiService[];
 
 export function getAiServiceById(id: string): AiService | null {
   return aiServices.find((service) => service.id === id) ?? null;

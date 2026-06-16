@@ -17,6 +17,7 @@ export const PAYMENT_EVENTS = {
   PAYMENT_COMPLETED: "payment_completed",
   PAYMENT_FAILED: "payment_failed",
   PAYMENT_CANCELLED: "payment_cancelled",
+  PAYMENT_TX_HASH_IN_FAILED: "payment_tx_hash_in_failed",
 } as const;
 
 export const REWARDS_EVENTS = {

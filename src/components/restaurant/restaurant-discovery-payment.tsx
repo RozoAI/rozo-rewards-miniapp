@@ -16,7 +16,7 @@ import { capture } from "@/lib/analytics/index";
 import { PAYMENT_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
 import { savePaymentReceipt } from "@/lib/payment-storage";
 import { Restaurant } from "@/types/restaurant";
-import { PaymentData } from "@/app/receipt/receipt-content";
+import { PaymentData } from "@/app/(main)/receipt/receipt-content";
 import { useAppKitAccount } from "@reown/appkit/react";
 import {
   baseUSDC,
