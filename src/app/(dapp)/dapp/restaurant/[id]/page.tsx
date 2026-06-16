@@ -2,7 +2,6 @@
 
 import { RestaurantDappDetail } from "@/components/restaurant/restaurant-dapp-detail";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
-import { installMockRozoWallet } from "@/lib/mock-rozo-wallet";
 import { getRestaurantById } from "@/lib/restaurants";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -13,8 +12,9 @@ export default function DappRestaurantDetailPage() {
   const router = useRouter();
   const restaurantId = params.id as string;
 
-  installMockRozoWallet();
-
+  // Deep-link / webview fallback — handles direct URL access from Rozo Wallet webview.
+  // In-app flow renders RestaurantDappDetail inline via dapp-content.tsx without navigation.
+  // Redirects to /restaurant/[id] when wallet provider is unavailable.
   const { isAvailable, isConnected, isChecking } = useRozoWallet();
 
   const restaurant = React.useMemo(
