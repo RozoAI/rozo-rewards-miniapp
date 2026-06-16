@@ -30,8 +30,8 @@ import { updatePaymentPayInTxHash } from "@rozoai/intent-common";
  * Tell the backend to settle a contract payin immediately.
  *
  * Returns nothing and never throws — call it WITHOUT await right before navigating
- * away. The underlying request is kicked off synchronously so it's queued before
- * the caller navigates (router.push).
+ * away. The request is kicked off synchronously so it's in flight before the caller
+ * navigates (router.push); an in-flight SPA navigation does not cancel it.
  *
  * @param paymentId Rozo payment UUID (PaymentResponse.id). No-op if falsy.
  * @param txHash    Stellar contract pay() tx hash (64 hex, no 0x). No-op if falsy.
@@ -44,17 +44,30 @@ export function notifyPayin(
 ): void {
   if (!paymentId || !txHash) return;
   try {
-    // No await: kick off the request synchronously so it's queued before the
+    // No await: kick off the request synchronously so it's in flight before the
     // caller navigates. Cron is the backstop, so any failure only gets logged.
     void updatePaymentPayInTxHash({
       paymentId,
       txHash,
       senderAddress: fromAddress,
-    }).catch((err) => {
-      // Network/HTTP error. A failed hint never costs a payment (cron backs it
-      // up), so log for observability but never surface to the UI.
-      console.warn("[notifyPayin] fast-path hint failed (cron will back it up):", err);
-    });
+    })
+      .then((res) => {
+        // The SDK NEVER rejects: fetchApi catches HTTP 4xx/5xx and network errors
+        // internally and resolves { data: null, error, status: null }. So a .catch()
+        // alone would silently treat a backend rejection as success — we must inspect
+        // res.error / res.data here. Cron backs it up, so we only log, never surface.
+        if (res?.error || !res?.data) {
+          console.warn(
+            "[notifyPayin] fast-path hint not accepted (cron will back it up):",
+            res?.error ?? `status=${res?.status ?? "unknown"}`,
+          );
+        }
+      })
+      .catch((err) => {
+        // Defensive: SDK shouldn't reject, but if a future version does, don't let
+        // it become an unhandled rejection.
+        console.warn("[notifyPayin] fast-path hint threw (cron will back it up):", err);
+      });
   } catch (err) {
     // Defensive: even constructing the request must not break the payment flow.
     console.warn("[notifyPayin] fast-path hint threw (cron will back it up):", err);
