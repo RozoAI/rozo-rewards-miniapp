@@ -35,11 +35,18 @@ export const DISCOVERY_EVENTS = {
   SUPPORT_CONTACTED: "support_contacted",
 } as const;
 
+export const DAPP_EVENTS = {
+  DAPP_PAGE_VIEWED: "dapp_page_viewed",
+  DAPP_FILTER_CHANGED: "dapp_filter_changed",
+  DAPP_MERCHANT_SEARCHED: "dapp_merchant_searched",
+} as const;
+
 export const ROZO_EVENTS = {
   ...GLOBAL_EVENTS,
   ...PAYMENT_EVENTS,
   ...REWARDS_EVENTS,
   ...DISCOVERY_EVENTS,
+  ...DAPP_EVENTS,
 } as const;
 
 export type RozoEventName = (typeof ROZO_EVENTS)[keyof typeof ROZO_EVENTS];

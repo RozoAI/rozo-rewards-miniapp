@@ -3,6 +3,8 @@
 import { RestaurantDappPayment } from "@/components/restaurant/restaurant-dapp-payment";
 import { RestaurantDetailBase } from "@/components/restaurant/restaurant-detail-base";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
+import { GLOBAL_EVENTS } from "@/lib/analytics/events";
+import { capture } from "@/lib/analytics/index";
 import { Restaurant } from "@/types/restaurant";
 import React from "react";
 
@@ -45,7 +47,12 @@ export function RestaurantDappDetail({
     try {
       await navigator.share({ title: text, url: window.location.href });
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
       console.error(`Error sharing: ${err}`);
+      capture(GLOBAL_EVENTS.ERROR_OCCURRED, {
+        error_message: message,
+        error_context: "share",
+      });
     }
   };
 

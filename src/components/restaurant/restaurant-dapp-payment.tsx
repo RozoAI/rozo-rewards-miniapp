@@ -160,16 +160,37 @@ export function RestaurantDappPayment({
       });
 
       // Transfer USDC on Stellar network
+      let bridgeResult: Awaited<ReturnType<typeof generateBridgeAddress>>;
+      try {
+        bridgeResult = await generateBridgeAddress({
+          amountUsd: usdAmount,
+          amountLocal: paymentAmount,
+          currencyLocal: displayCurrency,
+        });
+      } catch (bridgeError: unknown) {
+        const errorMessage =
+          bridgeError instanceof Error
+            ? bridgeError.message
+            : "Failed to generate bridge address";
+        capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
+          merchant_id: restaurant._id,
+          merchant_name: restaurant.name,
+          payment_method: "rozo_wallet",
+          amount_usd: usdAmount,
+          order_id: merchantOrderId,
+          error_message: errorMessage,
+          error_context: "bridge_address",
+        });
+        toast.error(errorMessage);
+        return;
+      }
+
       const {
         paymentId,
         amount,
         receiverAddressContract,
         receiverMemoContract,
-      } = await generateBridgeAddress({
-        amountUsd: usdAmount,
-        amountLocal: paymentAmount,
-        currencyLocal: displayCurrency,
-      });
+      } = bridgeResult;
 
       const result = await rozoWalletTransfer(
         amount,
@@ -236,6 +257,17 @@ export function RestaurantDappPayment({
         router.push(
           `/receipt?payment_id=${merchantOrderId}&withRozoWallet=true`,
         );
+      } else {
+        capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
+          merchant_id: restaurant._id,
+          merchant_name: restaurant.name,
+          payment_method: "rozo_wallet",
+          amount_usd: usdAmount,
+          order_id: merchantOrderId,
+          error_message: "Transfer completed but no transaction hash returned",
+          error_context: "missing_tx_hash",
+        });
+        toast.error("Payment failed. No transaction hash received.");
       }
     } catch (error: unknown) {
       console.error("Rozo Wallet payment error:", error);
