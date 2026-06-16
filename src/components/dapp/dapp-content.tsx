@@ -6,12 +6,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
+import { DAPP_EVENTS, GLOBAL_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
+import { capture } from "@/lib/analytics/index";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
 import { Globe, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type DappRestaurant = Restaurant;
 
@@ -77,9 +79,36 @@ export function DappContent({
     (evmConnected && evmAddress) ||
     "";
 
+  const mountedRef = useRef(false);
   useEffect(() => {
-    setSearchValue("");
+    if (mountedRef.current) return;
+    mountedRef.current = true;
+    capture(DAPP_EVENTS.DAPP_PAGE_VIEWED);
+  }, []);
+
+  const prevFilterRef = useRef<FilterRegion>(null);
+  useEffect(() => {
+    if (prevFilterRef.current === null) {
+      prevFilterRef.current = filter;
+      return;
+    }
+    if (prevFilterRef.current !== filter) {
+      prevFilterRef.current = filter;
+      capture(DAPP_EVENTS.DAPP_FILTER_CHANGED, { action: filter ?? "" });
+      setSearchValue("");
+    }
   }, [filter]);
+
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleSearchChange = (value: string) => {
+    setSearchValue(value);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    if (value.trim().length >= 2) {
+      searchDebounceRef.current = setTimeout(() => {
+        capture(DAPP_EVENTS.DAPP_MERCHANT_SEARCHED, { action: value.trim() });
+      }, 600);
+    }
+  };
 
   const setFilterInUrl = (nextFilter: Exclude<FilterRegion, null>) => {
     if (nextFilter === filter) return;
@@ -177,7 +206,14 @@ export function DappContent({
         {isDapp ? (
           <button
             type="button"
-            onClick={() => setSelectedRestaurant(restaurant)}
+            onClick={() => {
+              capture(REWARDS_EVENTS.MERCHANT_VIEWED, {
+                merchant_id: restaurant._id,
+                merchant_name: restaurant.name,
+                category: "network_schools",
+              });
+              setSelectedRestaurant(restaurant);
+            }}
             className={itemClassName}
           >
             {itemContent}
@@ -218,6 +254,13 @@ export function DappContent({
             "flex items-start gap-3 px-4 py-4",
             "transition-colors duration-200 hover:bg-muted/40",
           )}
+          onClick={() =>
+            capture(REWARDS_EVENTS.MERCHANT_VIEWED, {
+              merchant_id: service.id,
+              merchant_name: service.name,
+              category: "ai_services",
+            })
+          }
         >
           <Avatar className="size-12 shrink-0">
             <AvatarImage src={service.logoUrl} alt={`${service.name} logo`} />
@@ -315,7 +358,7 @@ export function DappContent({
         <div className="px-4 sm:px-0">
           <Input
             value={searchValue}
-            onChange={(event) => setSearchValue(event.target.value)}
+            onChange={(event) => handleSearchChange(event.target.value)}
             placeholder={"Search..."}
             aria-label="Search list"
           />
