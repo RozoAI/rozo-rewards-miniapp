@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { capture } from "@/lib/analytics/index";
 import { PAYMENT_EVENTS } from "@/lib/analytics/events";
+import { notifyPayin } from "@/lib/notify-payin";
 import {
   formatRozoErrorMessage,
   isRozoProviderError,
@@ -91,6 +92,7 @@ export function AiServiceDappPayment({
   const generateBridgeAddress = async (
     amount: string,
   ): Promise<{
+    paymentId: string;
     amount: string;
     bridgeAddress: string;
     memo: string;
@@ -118,6 +120,7 @@ export function AiServiceDappPayment({
     }
 
     return {
+      paymentId: payment.id,
       amount: payment.source.amount,
       bridgeAddress: payment.source.receiverAddress,
       memo: payment.source.receiverMemo,
@@ -151,7 +154,7 @@ export function AiServiceDappPayment({
         order_id: merchantOrderId,
       });
 
-      const { amount, receiverAddressContract, receiverMemoContract } =
+      const { paymentId, amount, receiverAddressContract, receiverMemoContract } =
         await generateBridgeAddress(usdAmount);
 
       const result = await rozoWalletTransfer(
@@ -196,6 +199,11 @@ export function AiServiceDappPayment({
           amount_usd: usdAmount,
           order_id: merchantOrderId,
         });
+
+        // Hint the backend to settle this contract payin instantly (fast-path)
+        // instead of waiting for the every-minute cron. Fire-and-forget, kicked
+        // off BEFORE router.push so keepalive carries it across the navigation.
+        notifyPayin(paymentId, result.hash, rozoWalletAddress ?? undefined);
 
         toast.success(`Payment successful to ${service.name}!`);
         router.push(`/receipt?payment_id=${merchantOrderId}`);
