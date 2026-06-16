@@ -1,12 +1,17 @@
-// notify-payin: report the on-chain txHash to the Rozo backend so a Stellar
-// CONTRACT payment settles via the instant fast-path instead of waiting for the
-// every-minute cron (17-42s).
+// notify-payin: report the on-chain txHash to the Rozo intents backend so a
+// Stellar CONTRACT payment settles via the instant fast-path instead of waiting
+// for the every-minute cron (17-42s).
 //
-// Trigger contract (backend, rozo-intents-api, already shipped — commit 133b51b):
-//   POST /payments/{id}/payin  body { txHash, fromAddress? }  — NO auth header.
-// The backend point-looks-up the tx's payment_event over Soroban RPC, runs the
-// full validation chain (contractId allowlist + topic + official USDC + 1:1 memo
-// + amount gate + CAS), and settles in seconds. On-chain amount <= $20 settles
+// Uses the SDK's updatePaymentPayInTxHash (POST /payment-api/payments/{id}/payin)
+// rather than a hand-rolled fetch. That matters: it shares the SAME apiClient base
+// URL that createPayment used (intentapiv4.rozo.ai by default), so the /payin call
+// can never drift to a different backend than the one that created the payment —
+// otherwise the paymentId wouldn't exist there.
+//
+// Backend trigger contract (rozo-intents-api, already shipped — commit 133b51b):
+// it point-looks-up the tx's payment_event over Soroban RPC, runs the full
+// validation chain (contractId allowlist + topic + official USDC + 1:1 memo +
+// amount gate + CAS), and settles in seconds. On-chain amount <= $20 settles
 // instantly; > $20 defers to cron. If the tx is not yet indexed (we fired before
 // confirmation) the backend schedules one 5s recheck, then cron is the backstop.
 //
@@ -17,21 +22,20 @@
 // SECURITY: /payin takes no secret by design. txHash is public on-chain data; the
 // backend settles purely on its own validation (memo is 1:1 with the order, asset
 // must be the official USDC issuer), so a forged/wrong txHash just makes the backend
-// look up a tx that doesn't match this order → it rejects, no side effect.
+// look up a tx that doesn't match this order -> it rejects, no side effect.
 
-const PAYMENT_API_BASE =
-  process.env.NEXT_PUBLIC_ROZO_PAYMENT_API ??
-  "https://aozudqtlykbhzbuzalzz.supabase.co/functions/v1/payment-api";
+import { updatePaymentPayInTxHash } from "@rozoai/intent-common";
 
 /**
  * Tell the backend to settle a contract payin immediately.
  *
  * Returns nothing and never throws — call it WITHOUT await right before navigating
- * away. `keepalive: true` lets the request outlive the page transition (router.push).
+ * away. The underlying request is kicked off synchronously so it's queued before
+ * the caller navigates (router.push).
  *
  * @param paymentId Rozo payment UUID (PaymentResponse.id). No-op if falsy.
  * @param txHash    Stellar contract pay() tx hash (64 hex, no 0x). No-op if falsy.
- * @param fromAddress Optional payer address; backend works without it.
+ * @param fromAddress Optional payer address; backend works without it (advisory).
  */
 export function notifyPayin(
   paymentId: string | undefined,
@@ -40,29 +44,17 @@ export function notifyPayin(
 ): void {
   if (!paymentId || !txHash) return;
   try {
-    // No await: kick off the request synchronously so it's queued in the network
-    // stack before the caller navigates. keepalive keeps it alive across the nav.
-    void fetch(`${PAYMENT_API_BASE}/payments/${paymentId}/payin`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ txHash, fromAddress }),
-      keepalive: true,
-    })
-      .then((res) => {
-        // A 4xx/5xx RESOLVES (fetch only rejects on network/CORS/abort), so an
-        // HTTP error would be fully silent without this check. Cron still backs
-        // it up, so we only log — never surface to UI.
-        if (!res.ok) {
-          console.warn(
-            `[notifyPayin] fast-path hint got HTTP ${res.status} (cron will back it up)`,
-          );
-        }
-      })
-      .catch((err) => {
-        // Network/CORS/abort. Cron is the backstop, so a failed hint never costs
-        // a payment. Log for observability, never surface to UI.
-        console.warn("[notifyPayin] fast-path hint failed (cron will back it up):", err);
-      });
+    // No await: kick off the request synchronously so it's queued before the
+    // caller navigates. Cron is the backstop, so any failure only gets logged.
+    void updatePaymentPayInTxHash({
+      paymentId,
+      txHash,
+      senderAddress: fromAddress,
+    }).catch((err) => {
+      // Network/HTTP error. A failed hint never costs a payment (cron backs it
+      // up), so log for observability but never surface to the UI.
+      console.warn("[notifyPayin] fast-path hint failed (cron will back it up):", err);
+    });
   } catch (err) {
     // Defensive: even constructing the request must not break the payment flow.
     console.warn("[notifyPayin] fast-path hint threw (cron will back it up):", err);
