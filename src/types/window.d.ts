@@ -13,9 +13,15 @@ interface WindowRozoProvider {
   getAddress(): Promise<{ address: string }>;
 
   /**
-   * Get the USDC balance in stroops (7 decimals)
+   * Get the USDC/EURC balance in stroops (7 decimals)
+   * usdc and eurc are the current fields; balance is kept for older app versions.
    */
-  getBalance(): Promise<{ balance: string }>;
+  getBalance(): Promise<{ usdc: string; eurc: string; balance?: string }>;
+
+  /**
+   * Get the user's active display currency
+   */
+  getActiveCurrency(): Promise<{ currency: "USDC" | "EURC" }>;
 
   /**
    * Get network details
@@ -41,6 +47,8 @@ interface WindowRozoProvider {
       func: string;
       submit: boolean;
       message: string;
+      paymentId?: string;
+      fromAddress?: string;
     },
   ): Promise<{
     signedAuthEntry: string;
@@ -48,6 +56,21 @@ interface WindowRozoProvider {
     status: string;
     error?: string;
   }>;
+}
+
+interface RozoReadyDetail {
+  provider: WindowRozoProvider;
+  isConnected?: boolean;
+  address?: string | null;
+  usdc?: string | null;
+  eurc?: string | null;
+  /** @deprecated use usdc */
+  balance?: string | null;
+}
+
+interface WindowEventMap {
+  "rozo:ready": CustomEvent<RozoReadyDetail>;
+  "rozo:state": CustomEvent<RozoReadyDetail>;
 }
 
 interface Window {

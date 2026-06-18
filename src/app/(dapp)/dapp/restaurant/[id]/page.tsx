@@ -2,20 +2,16 @@
 
 import { RestaurantDappDetail } from "@/components/restaurant/restaurant-dapp-detail";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
-import { installMockRozoWallet } from "@/lib/mock-rozo-wallet";
 import { GLOBAL_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
 import { getRestaurantById } from "@/lib/restaurants";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
-import React from "react";
+import React, { useEffect } from "react";
 
 export default function DappRestaurantDetailPage() {
   const params = useParams();
   const router = useRouter();
   const restaurantId = params.id as string;
-
-  installMockRozoWallet();
 
   const { isAvailable, isConnected, isChecking } = useRozoWallet();
 
@@ -42,7 +38,7 @@ export default function DappRestaurantDetailPage() {
       merchant_name: restaurant.name,
       category: "network_schools",
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurant?._id]);
 
   if (!restaurant || isChecking || !isAvailable || !isConnected) {
