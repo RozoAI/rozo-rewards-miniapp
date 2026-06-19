@@ -12,7 +12,6 @@ export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 if (POSTHOG_KEY) {
-  console.log({ POSTHOG_KEY });
   posthog.init(POSTHOG_KEY, {
     api_host:
       process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
