@@ -64,11 +64,57 @@ export function isRetryableRozoError(error: unknown): boolean {
   }
 }
 
+/** Maps structured error codes and raw message patterns to human-readable text. */
+function humanizeRozoMessage(error: RozoProviderError): string {
+  switch (error.code) {
+    case "USER_REJECTED":
+    case "USER_CANCELLED":
+    case "PASSKEY_CANCELLED":
+      return "Payment cancelled.";
+    case "INSUFFICIENT_BALANCE":
+      return "Insufficient balance to complete this payment.";
+    case "WALLET_NOT_CONNECTED":
+      return "Wallet not connected. Please reconnect and try again.";
+    case "WALLET_NOT_DEPLOYED":
+      return "Wallet not set up yet. Please complete wallet setup first.";
+    case "INVALID_AMOUNT":
+    case "AMOUNT_TOO_LOW":
+      return "Payment amount is too low. Please enter a larger amount.";
+    case "AMOUNT_TOO_HIGH":
+      return "Payment amount exceeds your limit.";
+    case "NETWORK_ERROR":
+      return "Network error. Please check your connection and try again.";
+    case "TIMEOUT":
+      return "Request timed out. Please try again.";
+    case "RATE_LIMITED":
+      return "Too many requests. Please wait a moment and try again.";
+    case "SERVICE_UNAVAILABLE":
+      return "Payment service temporarily unavailable. Please try again later.";
+    case "SIGNING_FAILED":
+    case "AUTHORIZATION_FAILED":
+      return "Authorization failed. Please try again.";
+    case "SIMULATION_FAILED": {
+      const msg = error.message ?? "";
+      if (msg.includes("balance is not sufficient to spend")) {
+        return "Insufficient balance to complete this payment.";
+      }
+      if (msg.includes("contract call failed")) {
+        return "Payment contract error. Please try again or contact support.";
+      }
+      return "Transaction simulation failed. Please try again.";
+    }
+    case "SUBMISSION_FAILED":
+      return "Failed to submit transaction. Please try again.";
+    default:
+      return error.message || "Payment failed. Please try again.";
+  }
+}
+
 /**
- * User-facing text: wallet `message` plus optional `recoverySuggestion`.
+ * User-facing text: maps error codes and raw messages to readable strings,
+ * appending recoverySuggestion when present.
  */
 export function formatRozoErrorMessage(error: RozoProviderError): string {
-  return error.recoverySuggestion
-    ? `${error.message}. ${error.recoverySuggestion}`
-    : error.message;
+  const base = humanizeRozoMessage(error);
+  return error.recoverySuggestion ? `${base} ${error.recoverySuggestion}` : base;
 }
