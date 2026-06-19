@@ -36,7 +36,6 @@ export const DISCOVERY_EVENTS = {
 } as const;
 
 export const DAPP_EVENTS = {
-  DAPP_PAGE_VIEWED: "dapp_page_viewed",
   DAPP_FILTER_CHANGED: "dapp_filter_changed",
   DAPP_MERCHANT_SEARCHED: "dapp_merchant_searched",
 } as const;

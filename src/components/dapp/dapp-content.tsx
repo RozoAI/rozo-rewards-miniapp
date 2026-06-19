@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
-import { DAPP_EVENTS, GLOBAL_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
+import { DAPP_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
@@ -78,13 +78,6 @@ export function DappContent({
     (isRozoWalletConnected && walletAddress) ||
     (evmConnected && evmAddress) ||
     "";
-
-  const mountedRef = useRef(false);
-  useEffect(() => {
-    if (mountedRef.current) return;
-    mountedRef.current = true;
-    capture(DAPP_EVENTS.DAPP_PAGE_VIEWED);
-  }, []);
 
   const prevFilterRef = useRef<FilterRegion>(null);
   useEffect(() => {
