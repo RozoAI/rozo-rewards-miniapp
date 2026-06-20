@@ -1,4 +1,4 @@
-import { isRozoProviderError, isUserCancellation } from "@/lib/rozo-errors";
+import { isUserCancellation } from "@/lib/rozo-errors";
 import { useEffect, useState } from "react";
 
 /**
@@ -55,6 +55,7 @@ interface TransferResult {
   hash: string;
   status: string;
   signedAuthEntry: string;
+  error?: string;
 }
 
 export function useRozoWallet() {
@@ -285,12 +286,7 @@ export function useRozoWallet() {
     } catch (error: unknown) {
       console.error("Transfer error:", error);
 
-      if (isUserCancellation(error) || isRozoProviderError(error)) {
-        throw error;
-      }
-      if (error instanceof Error) {
-        throw error;
-      }
+      if (error instanceof Error) throw error;
       throw new Error(String(error));
     } finally {
       setIsLoading(false);
