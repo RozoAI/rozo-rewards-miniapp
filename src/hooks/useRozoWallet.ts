@@ -1,20 +1,29 @@
-import { isUserCancellation } from "@/lib/rozo-errors";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-/**
- * Convert USDC amount to Stellar stroops (7 decimals)
- * Example: "10.50" -> 105000000n
- */
+// Cached after first import — subsequent transferUSDC calls skip the dynamic import cost
+let stellarSdkPromise: Promise<
+  [
+    typeof import("@stellar/stellar-sdk"),
+    typeof import("@stellar/stellar-sdk/rpc"),
+  ]
+> | null = null;
+
+function getStellarSdk() {
+  if (!stellarSdkPromise) {
+    stellarSdkPromise = Promise.all([
+      import("@stellar/stellar-sdk"),
+      import("@stellar/stellar-sdk/rpc"),
+    ]);
+  }
+  return stellarSdkPromise;
+}
+
 function toStroops(amount: string): bigint {
   const [whole, decimal = ""] = amount.split(".");
   const paddedDecimal = decimal.padEnd(7, "0").slice(0, 7);
   return BigInt(whole + paddedDecimal);
 }
 
-/**
- * Convert Stellar stroops to USDC display format
- * Example: "105000000" -> "10.50"
- */
 function fromStroops(stroops: string): string {
   const amount = BigInt(stroops);
   const whole = amount / BigInt(10_000_000);
@@ -51,6 +60,15 @@ function balanceFromStroops(balanceStroops: string): {
   };
 }
 
+/** Extract usdc stroops from getBalance response, falling back to legacy `balance` field. */
+function extractUsdcStroops(
+  res: { usdc: string; eurc: string; balance?: string } | { balance: string },
+): string {
+  if ("usdc" in res && res.usdc) return res.usdc;
+  if ("balance" in res && res.balance) return res.balance;
+  return "0";
+}
+
 interface TransferResult {
   hash: string;
   status: string;
@@ -64,93 +82,183 @@ export function useRozoWallet() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [balance, setBalance] = useState<string | null>(null);
   const [balanceUsd, setBalanceUsd] = useState<number | null>(null);
+  const [activeCurrency, setActiveCurrency] = useState<"USDC" | "EURC" | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  // Cached network details — network doesn't change mid-session
+  const networkDetailsRef = useRef<{
+    sorobanRpcUrl: string;
+    networkPassphrase: string;
+    network: "PUBLIC" | "TESTNET";
+  } | null>(null);
 
-  // Check if window.rozo is available and connected
   useEffect(() => {
     let cancelled = false;
-    let readyTimeoutId: ReturnType<typeof setTimeout> | undefined;
 
-    async function checkRozoWallet() {
-      // Wait for window.rozo to be injected
-      if (typeof window === "undefined") return;
-
-      if (!window.rozo) {
-        // Wait for rozo:ready event
-        await new Promise<void>((resolve) => {
-          readyTimeoutId = setTimeout(resolve, 3000);
-          window.addEventListener(
-            "rozo:ready",
-            () => {
-              clearTimeout(readyTimeoutId);
-              resolve();
-            },
-            { once: true },
-          );
-        });
+    function applyState(detail: {
+      isConnected?: boolean;
+      address?: string | null;
+      usdc?: string | null;
+      eurc?: string | null;
+      balance?: string | null;
+    }): boolean {
+      if (typeof detail.isConnected !== "boolean") return false;
+      setIsConnected(detail.isConnected);
+      if (detail.address) setWalletAddress(detail.address);
+      const stroops = detail.usdc ?? detail.balance;
+      if (stroops) {
+        const parsed = balanceFromStroops(stroops);
+        if (parsed) {
+          setBalance(parsed.formatted);
+          setBalanceUsd(parsed.usdAmount);
+        }
       }
-
-      if (cancelled) return;
-
-      if (!window.rozo) {
-        setIsAvailable(false);
-        setIsChecking(false);
-        return;
+      // Prefetch SDK + network details once on first connect
+      if (detail.isConnected && window.rozo && !networkDetailsRef.current) {
+        getStellarSdk();
+        window.rozo
+          .getNetworkDetails()
+          .then((d) => {
+            networkDetailsRef.current = d;
+          })
+          .catch(() => {});
       }
+      return true;
+    }
 
-      setIsAvailable(true);
-      setIsLoading(true);
-
+    async function fallbackBridgeCalls() {
+      if (!window.rozo || cancelled) return;
       try {
-        // Check connection
         const { isConnected: connected } = await window.rozo.isConnected();
+        if (cancelled) return;
         setIsConnected(connected);
-
         if (connected) {
-          // Get wallet info
-          const { address } = await window.rozo.getAddress();
+          const [{ address }, balRes, { currency }] = await Promise.all([
+            window.rozo.getAddress(),
+            window.rozo.getBalance(),
+            window.rozo.getActiveCurrency(),
+          ]);
+          if (cancelled) return;
           setWalletAddress(address);
-
-          // Get balance
-          const { balance: balanceStroops } = await window.rozo.getBalance();
-          const parsed = balanceFromStroops(balanceStroops);
+          setActiveCurrency(currency);
+          const stroops = extractUsdcStroops(balRes);
+          const parsed = balanceFromStroops(stroops);
           if (parsed) {
             setBalance(parsed.formatted);
             setBalanceUsd(parsed.usdAmount);
-          } else {
-            setBalance(null);
-            setBalanceUsd(null);
           }
+          // Prefetch SDK + network details in background so transferUSDC is instant
+          getStellarSdk();
+          window.rozo
+            .getNetworkDetails()
+            .then((d) => {
+              networkDetailsRef.current = d;
+            })
+            .catch(() => {});
         }
       } catch (error) {
         console.error("Failed to check Rozo Wallet:", error);
         setIsAvailable(false);
-      } finally {
+      }
+    }
+
+    async function init() {
+      if (typeof window === "undefined") return;
+
+      if (!window.rozo) {
+        // Wait for rozo:ready — detail includes pre-fetched wallet state
+        const detail = await new Promise<
+          Parameters<typeof applyState>[0] | null
+        >((resolve) => {
+          const t = setTimeout(() => resolve(null), 3000);
+          window.addEventListener(
+            "rozo:ready",
+            (e) => {
+              clearTimeout(t);
+              resolve(e.detail);
+            },
+            { once: true },
+          );
+        });
+
+        if (cancelled) return;
+        if (!window.rozo) {
+          setIsAvailable(false);
+          setIsChecking(false);
+          return;
+        }
+
+        setIsAvailable(true);
+        setIsLoading(true);
+        // Use pushed state if available — zero bridge round-trips
+        if (!detail || !applyState(detail)) {
+          await fallbackBridgeCalls();
+        }
+        if (!cancelled) {
+          setIsLoading(false);
+          setIsChecking(false);
+        }
+        return;
+      }
+
+      // Provider already injected (page reload / already in WebView)
+      setIsAvailable(true);
+      setIsLoading(true);
+
+      // rozo:state fires shortly after load with fresh state from native
+      const stateReceived = await new Promise<boolean>((resolve) => {
+        const t = setTimeout(() => resolve(false), 500);
+        window.addEventListener(
+          "rozo:state",
+          (e) => {
+            clearTimeout(t);
+            resolve(applyState(e.detail));
+          },
+          { once: true },
+        );
+      });
+
+      if (!cancelled) {
+        if (!stateReceived) {
+          await fallbackBridgeCalls();
+        }
         setIsLoading(false);
         setIsChecking(false);
       }
     }
 
-    checkRozoWallet();
+    // Subscribe to ongoing rozo:state pushes for live balance/connection updates
+    function onRozoState(e: CustomEvent<Parameters<typeof applyState>[0]>) {
+      if (!cancelled) applyState(e.detail);
+    }
+    window.addEventListener("rozo:state", onRozoState as EventListener);
+
+    init().catch((err) => {
+      console.error("useRozoWallet init failed:", err);
+      if (!cancelled) {
+        setIsAvailable(false);
+        setIsChecking(false);
+      }
+    });
+
     return () => {
       cancelled = true;
-      clearTimeout(readyTimeoutId);
+      window.removeEventListener("rozo:state", onRozoState as EventListener);
     };
   }, []);
 
-  /**
-   * Refresh wallet data (address and balance)
-   */
   const refreshData = async () => {
     if (!window.rozo || !isConnected) return;
-
     try {
-      const { address } = await window.rozo.getAddress();
-      setWalletAddress(address);
-
-      const { balance: balanceStroops } = await window.rozo.getBalance();
-      const parsed = balanceFromStroops(balanceStroops);
+      const [balRes, { currency }] = await Promise.all([
+        window.rozo.getBalance(),
+        window.rozo.getActiveCurrency(),
+      ]);
+      setActiveCurrency(currency);
+      const stroops = extractUsdcStroops(balRes);
+      const parsed = balanceFromStroops(stroops);
       if (parsed) {
         setBalance(parsed.formatted);
         setBalanceUsd(parsed.usdAmount);
@@ -163,88 +271,88 @@ export function useRozoWallet() {
     }
   };
 
-  /**
-   * Transfer USDC using Rozo Wallet
-   * @param amount - Amount in USD (e.g., "10.50")
-   * @returns Transaction result with hash
-   */
+  // Lightweight post-payment balance refresh — currency won't change mid-payment
+  const refreshBalance = async () => {
+    if (!window.rozo || !isConnected) return;
+    try {
+      const balRes = await window.rozo.getBalance();
+      const stroops = extractUsdcStroops(balRes);
+      const parsed = balanceFromStroops(stroops);
+      if (parsed) {
+        setBalance(parsed.formatted);
+        setBalanceUsd(parsed.usdAmount);
+      }
+    } catch (error) {
+      console.error("Failed to refresh balance:", error);
+    }
+  };
+
   const transferUSDC = async (
     amount: string,
     receiverAddressContract?: string,
     receiverMemoContract?: string,
+    paymentId?: string,
   ): Promise<TransferResult> => {
-    if (!window.rozo) {
-      throw new Error("Rozo Wallet not available");
-    }
-
+    if (!window.rozo) throw new Error("Rozo Wallet not available");
     if (!receiverAddressContract || !receiverMemoContract) {
       throw new Error("Receiver address and memo contract are required");
     }
-
-    if (!isConnected) {
-      throw new Error("Rozo Wallet not connected");
-    }
+    if (!isConnected) throw new Error("Rozo Wallet not connected");
 
     setIsLoading(true);
 
     try {
-      // Dynamically import Stellar SDK (to avoid SSR issues)
+      // SDK cached at module level; network details cached in ref — both usually pre-warmed
       const [
-        { Account, Address, Contract, nativeToScVal, TransactionBuilder },
-        { Server },
+        [
+          { Account, Address, Contract, nativeToScVal, TransactionBuilder },
+          { Server },
+        ],
+        networkDetails,
       ] = await Promise.all([
-        import("@stellar/stellar-sdk"),
-        import("@stellar/stellar-sdk/rpc"),
+        getStellarSdk(),
+        networkDetailsRef.current
+          ? Promise.resolve(networkDetailsRef.current)
+          : window.rozo.getNetworkDetails().then((d) => {
+              networkDetailsRef.current = d;
+              return d;
+            }),
       ]);
 
-      // Get wallet and network info in parallel
-      const [{ address: fromAddress }, { sorobanRpcUrl, networkPassphrase }] =
-        await Promise.all([
-          window.rozo.getAddress(),
-          window.rozo.getNetworkDetails(),
-        ]);
+      const fromAddress =
+        walletAddress ?? (await window.rozo.getAddress()).address;
+      const { sorobanRpcUrl, networkPassphrase } = networkDetails;
 
-      // Setup RPC and contract
       const server = new Server(sorobanRpcUrl);
-      // Contract ID for pay function
       const payContract = new Contract(receiverAddressContract);
-
-      // Convert amount to stroops (7 decimals)
       const amountStroops = toStroops(amount);
 
-      // Build pay function call: pay(env, from: Address, amount: i128, memo: String)
       const hostFunction = payContract.call(
         "pay",
         new Address(fromAddress).toScVal(),
         nativeToScVal(amountStroops, { type: "i128" }),
-        // `receiverMemoContract` is guaranteed to be set by the guard above.
         nativeToScVal(receiverMemoContract, { type: "string" }),
       );
 
-      // Create dummy source for simulation (Relayer will set the real source)
       const dummySource = new Account(
         "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
         "0",
       );
 
-      // Build transaction
       const tx = new TransactionBuilder(dummySource, {
         fee: "100",
         networkPassphrase,
       })
         .addOperation(hostFunction)
-        // .addMemo(Memo.text(receiverMemoContract))
         .setTimeout(30)
         .build();
 
-      // Simulate transaction to get auth entries
       const simulation = await server.simulateTransaction(tx);
 
       if ("error" in simulation) {
         throw new Error(`Simulation failed: ${simulation.error}`);
       }
 
-      // Extract auth entries
       const authEntries = simulation.result?.auth || [];
       if (authEntries.length === 0) {
         throw new Error("No auth entries found");
@@ -255,37 +363,31 @@ export function useRozoWallet() {
           ? authEntries[0]
           : authEntries[0].toXDR("base64");
 
-      // Extract host function XDR
       const txXdr = tx.toEnvelope().v1().tx();
       const opXdr = txXdr.operations()[0].body().invokeHostFunctionOp();
       const funcXdr = opXdr.hostFunction().toXDR("base64");
 
-      // Sign and submit via window.rozo (gasless!)
       const result = await window.rozo.signAuthEntry(authEntryXdr, {
         func: funcXdr,
-        submit: true, // Submit via OpenZeppelin Relayer (gasless!)
+        submit: true,
         message: `Pay ${amount} USDC`,
+        ...(paymentId && { paymentId }),
+        ...(fromAddress && { fromAddress }),
       });
 
       if (!result.hash) {
         if (result.error) {
-          // Show specific error to user
           throw new Error(`Payment failed: ${result.error}`);
         } else {
-          // Generic fallback
           throw new Error("Transaction submission failed. Please try again.");
         }
       }
 
-      // Refresh balance after successful payment
-      refreshData().catch((error) => {
-        console.error("Failed to refresh balance:", error);
-      });
+      refreshBalance().catch(() => {});
 
       return result;
     } catch (error: unknown) {
       console.error("Transfer error:", error);
-
       if (error instanceof Error) throw error;
       throw new Error(String(error));
     } finally {
@@ -300,8 +402,10 @@ export function useRozoWallet() {
     walletAddress,
     balance,
     balanceUsd,
+    activeCurrency,
     isLoading,
     transferUSDC,
     refreshData,
+    refreshBalance,
   };
 }

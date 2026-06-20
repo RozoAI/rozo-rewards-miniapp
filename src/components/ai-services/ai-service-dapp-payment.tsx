@@ -44,6 +44,7 @@ export function AiServiceDappPayment({
     isConnected: isRozoWalletConnected,
     walletAddress: rozoWalletAddress,
     balance: rozoWalletBalance,
+    activeCurrency: rozoActiveCurrency,
     transferUSDC: rozoWalletTransfer,
   } = useRozoWallet();
 
@@ -91,6 +92,7 @@ export function AiServiceDappPayment({
   const generateBridgeAddress = async (
     amount: string,
   ): Promise<{
+    paymentId: string;
     amount: string;
     bridgeAddress: string;
     memo: string;
@@ -118,6 +120,7 @@ export function AiServiceDappPayment({
     }
 
     return {
+      paymentId: payment.id,
       amount: payment.source.amount,
       bridgeAddress: payment.source.receiverAddress,
       memo: payment.source.receiverMemo,
@@ -143,13 +146,6 @@ export function AiServiceDappPayment({
         merchant_name: service.name,
         payment_method: "rozo_wallet",
       });
-      capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
-        merchant_id: service.id,
-        merchant_name: service.name,
-        payment_method: "rozo_wallet",
-        amount_usd: usdAmount,
-        order_id: merchantOrderId,
-      });
 
       let bridgeResult: Awaited<ReturnType<typeof generateBridgeAddress>>;
       try {
@@ -172,13 +168,22 @@ export function AiServiceDappPayment({
         return;
       }
 
-      const { amount, receiverAddressContract, receiverMemoContract } =
+      capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
+        merchant_id: service.id,
+        merchant_name: service.name,
+        payment_method: "rozo_wallet",
+        amount_usd: usdAmount,
+        order_id: merchantOrderId,
+      });
+
+      const { paymentId, amount, receiverAddressContract, receiverMemoContract } =
         bridgeResult;
 
       const result = await rozoWalletTransfer(
         amount,
         receiverAddressContract,
         receiverMemoContract,
+        paymentId,
       );
 
       if (result.status === "FAILED") {
@@ -213,18 +218,7 @@ export function AiServiceDappPayment({
           is_using_points: false,
         };
 
-        console.log(
-          "[AI Services] Pay with Rozo Wallet - About to save receipt:",
-          {
-            merchantOrderId,
-            receiptData,
-          },
-        );
         savePaymentReceipt(merchantOrderId, receiptData);
-        console.log(
-          "[AI Services] Pay with Rozo Wallet - Receipt saved, navigating to /receipt?payment_id=" +
-            merchantOrderId,
-        );
 
         capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
           merchant_id: service.id,
@@ -280,6 +274,8 @@ export function AiServiceDappPayment({
     return null;
   }
 
+  const isEurcActive = rozoActiveCurrency === "EURC";
+
   return (
     <div className="space-y-2">
       {/* Balance Display */}
@@ -289,12 +285,19 @@ export function AiServiceDappPayment({
         </p>
       )}
 
+      {/* EURC notice */}
+      {isEurcActive && (
+        <p className="text-xs text-amber-600 text-center">
+          Pay with Rozo Wallet requires USDC. Switch to USDC in your Rozo Wallet to pay.
+        </p>
+      )}
+
       {/* Pay with Rozo Wallet Button */}
       <Button
         variant="default"
         className="w-full h-11 sm:h-12 cursor-pointer font-semibold text-sm sm:text-base"
         onClick={handlePayWithRozoWallet}
-        disabled={isRozoWalletPaymentLoading}
+        disabled={isEurcActive || isRozoWalletPaymentLoading}
         size="lg"
       >
         {isRozoWalletPaymentLoading ? (
