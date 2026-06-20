@@ -1,74 +1,47 @@
 /**
- * Structured errors from `window.rozo` (see docs/WINDOW_ROZO_INTEGRATION.md).
+ * Error handling for `window.rozo` (see docs/WINDOW_ROZO_INTEGRATION.md).
+ * The wallet app does not send error.code — all errors are matched by message string.
  */
-
-export type RozoErrorCode =
-  | "USER_REJECTED"
-  | "USER_CANCELLED"
-  | "PASSKEY_CANCELLED"
-  | "WALLET_NOT_CONNECTED"
-  | "WALLET_NOT_DEPLOYED"
-  | "BRIDGE_NOT_AVAILABLE"
-  | "INVALID_PARAMS"
-  | "INSUFFICIENT_BALANCE"
-  | "INVALID_AMOUNT"
-  | "AMOUNT_TOO_LOW"
-  | "AMOUNT_TOO_HIGH"
-  | "SIGNING_FAILED"
-  | "SUBMISSION_FAILED"
-  | "SIMULATION_FAILED"
-  | "AUTHORIZATION_FAILED"
-  | "NETWORK_ERROR"
-  | "TIMEOUT"
-  | "RATE_LIMITED"
-  | "SERVICE_UNAVAILABLE"
-  | "UNSUPPORTED_METHOD"
-  | "UNKNOWN_ERROR"
-  | (string & {});
-
-export interface RozoProviderError {
-  code: RozoErrorCode;
-  message: string;
-  recoverySuggestion?: string;
-}
-
-export function isRozoProviderError(
-  error: unknown,
-): error is RozoProviderError {
-  if (!error || typeof error !== "object") return false;
-  const e = error as Record<string, unknown>;
-  return typeof e.code === "string" && typeof e.message === "string";
-}
 
 export function isUserCancellation(error: unknown): boolean {
-  if (!isRozoProviderError(error)) return false;
-  const { code } = error;
-  return (
-    code === "USER_REJECTED" ||
-    code === "USER_CANCELLED" ||
-    code === "PASSKEY_CANCELLED"
-  );
+  const msg = errorToString(error);
+  return /user.*(rejected|cancelled)|passkey.*cancelled/i.test(msg);
 }
 
-/** Retryable network / infra errors (for future use, e.g. retry UI). */
-export function isRetryableRozoError(error: unknown): boolean {
-  if (!isRozoProviderError(error)) return false;
-  switch (error.code) {
-    case "TIMEOUT":
-    case "NETWORK_ERROR":
-    case "SERVICE_UNAVAILABLE":
-    case "RATE_LIMITED":
-      return true;
-    default:
-      return false;
-  }
+/** Maps a raw error string to a user-safe message. Single source of truth for all Rozo payment errors. */
+export function formatRozoErrorMessage(raw: string | undefined): string {
+  const s = raw ?? "";
+  if (/balance is not sufficient|INSUFFICIENT_BALANCE/i.test(s))
+    return "Insufficient balance to complete this payment.";
+  if (/timed out|TIMEOUT/i.test(s))
+    return "Request timed out. Please try again.";
+  if (/too many requests|RATE_LIMITED/i.test(s))
+    return "Too many requests. Please wait a moment and try again.";
+  if (/service.*unavailable|SERVICE_UNAVAILABLE|relayer/i.test(s))
+    return "Payment service temporarily unavailable. Please try again later.";
+  if (/simulation failed|simulation did not return|SIMULATION_FAILED/i.test(s))
+    return "Payment could not be processed. Please try again.";
+  if (/no auth entries|AUTHORIZATION_FAILED|signing.*failed|SIGNING_FAILED/i.test(s))
+    return "Authorization failed. Please try again.";
+  if (/submission.*failed|SUBMISSION_FAILED/i.test(s))
+    return "Failed to submit transaction. Please try again.";
+  if (/wallet.*not.*connected|WALLET_NOT_CONNECTED/i.test(s))
+    return "Wallet not connected. Please reconnect and try again.";
+  if (/wallet.*not.*deployed|WALLET_NOT_DEPLOYED/i.test(s))
+    return "Wallet not set up yet. Please complete wallet setup first.";
+  if (/amount.*too.*low|AMOUNT_TOO_LOW|INVALID_AMOUNT/i.test(s))
+    return "Payment amount is too low. Please enter a larger amount.";
+  if (/amount.*too.*high|AMOUNT_TOO_HIGH/i.test(s))
+    return "Payment amount exceeds your limit.";
+  if (/network.*error|NETWORK_ERROR/i.test(s))
+    return "Network error. Please check your connection and try again.";
+  return "Payment failed. Please try again.";
 }
 
-/**
- * User-facing text: wallet `message` plus optional `recoverySuggestion`.
- */
-export function formatRozoErrorMessage(error: RozoProviderError): string {
-  return error.recoverySuggestion
-    ? `${error.message}. ${error.recoverySuggestion}`
-    : error.message;
+export function errorToString(error: unknown): string {
+  if (typeof error === "string") return error;
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object" && "message" in error)
+    return String((error as Record<string, unknown>).message);
+  return String(error);
 }

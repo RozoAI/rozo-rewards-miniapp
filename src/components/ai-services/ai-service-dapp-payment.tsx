@@ -5,8 +5,8 @@ import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { capture } from "@/lib/analytics/index";
 import { PAYMENT_EVENTS } from "@/lib/analytics/events";
 import {
+  errorToString,
   formatRozoErrorMessage,
-  isRozoProviderError,
   isUserCancellation,
 } from "@/lib/rozo-errors";
 import { savePaymentReceipt } from "@/lib/payment-storage";
@@ -186,6 +186,22 @@ export function AiServiceDappPayment({
         paymentId,
       );
 
+      if (result.status === "FAILED") {
+        console.error("[rozoWallet] transfer failed:", result.error);
+        const msg = formatRozoErrorMessage(result.error);
+        capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
+          merchant_id: service.id,
+          merchant_name: service.name,
+          payment_method: "rozo_wallet",
+          amount_usd: usdAmount,
+          order_id: merchantOrderId,
+          error_message: result.error,
+          error_context: "transfer_failed_status",
+        });
+        toast.error(msg);
+        return;
+      }
+
       if (result.hash) {
         // Store receipt data
         const receiptData = {
@@ -239,23 +255,14 @@ export function AiServiceDappPayment({
         return;
       }
 
-      const errorMessage = isRozoProviderError(error)
-        ? formatRozoErrorMessage(error)
-        : error instanceof Error
-          ? error.message
-          : "Payment failed. Please try again.";
+      const errorMessage = formatRozoErrorMessage(errorToString(error));
 
       capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
         merchant_id: service.id,
         merchant_name: service.name,
         payment_method: "rozo_wallet",
-        error_message: errorMessage,
+        error_message: errorToString(error),
       });
-
-      if (isRozoProviderError(error)) {
-        toast.error(formatRozoErrorMessage(error));
-        return;
-      }
 
       toast.error(errorMessage);
     } finally {

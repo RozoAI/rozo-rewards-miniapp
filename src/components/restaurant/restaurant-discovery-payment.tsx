@@ -25,7 +25,7 @@ import {
 import { RozoPayButton, useRozoPay, useRozoPayUI } from "@rozoai/intent-pay";
 import { Coins, CreditCard, HelpCircle, Loader2, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 interface RestaurantDiscoveryPaymentProps {
@@ -151,7 +151,7 @@ export function RestaurantDiscoveryPayment({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentAmount]);
 
-  const handlePaymentCompleted = (args?: PaymentCompletedEvent) => {
+  const handlePaymentCompleted = useCallback((args?: PaymentCompletedEvent) => {
     console.log("[Restaurant] Payment completed:", args);
 
     if (!restaurant) return;
@@ -203,7 +203,8 @@ export function RestaurantDiscoveryPayment({
       setLoading(false);
       router.push(`/receipt?payment_id=${merchantOrderId}`);
     }, 1000);
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restaurant, address, paymentAmount, merchantOrderId]);
 
   const handlePayWithPoints = () => {
     if (restaurant) {
@@ -344,9 +345,7 @@ export function RestaurantDiscoveryPayment({
             order_id: merchantOrderId,
           });
         }}
-        onPaymentCompleted={(args: PaymentCompletedEvent) => {
-          handlePaymentCompleted(args);
-        }}
+        onPaymentCompleted={handlePaymentCompleted}
       >
         {({ show }) => {
           const usdAmount = convertToUSD(
