@@ -7,9 +7,5 @@ interface RozoPayClientWrapperProps {
 }
 
 export function RozoPayClientWrapper({ children }: RozoPayClientWrapperProps) {
-  return (
-    <RozoPayProvider debugMode={true} apiVersion="v2">
-      {children}
-    </RozoPayProvider>
-  );
+  return <RozoPayProvider>{children}</RozoPayProvider>;
 }

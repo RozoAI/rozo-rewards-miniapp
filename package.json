@@ -18,7 +18,7 @@
   "dependencies": {
     "@coinbase/coinbase-sdk": "^0.25.0",
     "@coinbase/onchainkit": "^1.1.2",
-    "@creit.tech/stellar-wallets-kit": "^2.1.0",
+    "@creit.tech/stellar-wallets-kit": "^1.9.5",
     "@farcaster/miniapp-sdk": "^0.2.1",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.14",
@@ -31,8 +31,8 @@
     "@reown/appkit-adapter-wagmi": "^1.8.19",
     "@rozoai/deeplink-core": "1.1.3",
     "@rozoai/deeplink-react": "1.1.3",
-    "@rozoai/intent-common": "0.1.13",
-    "@rozoai/intent-pay": "0.1.20",
+    "@rozoai/intent-common": "0.1.19",
+    "@rozoai/intent-pay": "0.1.29",
     "@sentry/nextjs": "^10",
     "@stellar/stellar-sdk": "^14.4.3",
     "@supabase/ssr": "^0.6.1",
@@ -78,5 +78,8 @@
     "tw-animate-css": "^1.3.6",
     "typescript": "^5"
   },
-  "packageManager": "bun@1.2.23"
+  "packageManager": "bun@1.2.23",
+  "overrides": {
+    "@wagmi/connectors": "5.9.2"
+  }
 }

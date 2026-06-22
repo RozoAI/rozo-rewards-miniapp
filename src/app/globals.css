@@ -125,13 +125,15 @@
 @layer base {
   * {
     @apply border-border;
-    transition-duration: 120ms;
-    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+    /* transition-duration: 120ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1); */
   }
 
   *:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring);
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 4px var(--ring);
   }
 
   body {
@@ -148,22 +150,23 @@
     @apply min-h-screen max-w-xl mx-auto;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-weight: 600;
     text-wrap: balance;
     letter-spacing: -0.02em;
   }
 
   /* Mono for addresses, hashes, amounts */
-  [data-mono], .font-mono, code, pre {
+  [data-mono],
+  .font-mono,
+  code,
+  pre {
     font-family: var(--font-mono);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    * {
-      transition-duration: 0.01ms !important;
-      animation-duration: 0.01ms !important;
-    }
   }
 }
 

@@ -1,11 +1,9 @@
 "use client";
 
-import { initializeAppKit, wagmiAdapter } from "@/lib/appkit";
-import { AppKitProvider } from "@reown/appkit/react";
+import { wagmiAdapter } from "@/lib/appkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
-import { base } from "viem/chains";
-import { Config, cookieToInitialState, WagmiProvider } from "wagmi";
+import { Config, WagmiProvider } from "wagmi";
 
 const queryClient = new QueryClient();
 
@@ -16,16 +14,7 @@ export default function Web3Provider({
   children: React.ReactNode;
   cookies: string | null;
 }) {
-  const initialState = cookieToInitialState(
-    wagmiAdapter.wagmiConfig as Config,
-    cookies
-  );
-
-  // Initialize synchronously on the client so the first client render
-  // already has the AppKit instance (avoids a render gate via useEffect).
-  const [appKitInstance] = useState(() =>
-    typeof window !== "undefined" ? initializeAppKit() : null,
-  );
+  const initialState = undefined;
 
   return (
     <WagmiProvider
@@ -33,13 +22,7 @@ export default function Web3Provider({
       initialState={initialState}
     >
       <QueryClientProvider client={queryClient}>
-        {appKitInstance ? (
-          <AppKitProvider {...appKitInstance} defaultNetwork={base}>
-            {children}
-          </AppKitProvider>
-        ) : (
-          children
-        )}
+        {children}
       </QueryClientProvider>
     </WagmiProvider>
   );

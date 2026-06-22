@@ -354,7 +354,7 @@ export function RestaurantDappPayment({
           : rozoWalletLoading
             ? "Loading..."
             : rozoWalletBalanceUsd !== null && rozoWalletBalanceUsd > 0
-              ? `Pay ~$${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount} with Rozo Wallet`
+              ? `Pay ≈$${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount} with Rozo Wallet`
               : "Insufficient Rozo Wallet Balance"}
       </Button>
     </div>

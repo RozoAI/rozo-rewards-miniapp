@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function LandingPage() {
-  const nsCafe = getAllRestaurants().find((r) => r.handle === "cafe");
+  const nsCafe = getAllRestaurants().find((r) => r.handle === "nscafe");
 
   return (
     <div className="w-full min-h-screen bg-background text-foreground flex flex-col">
@@ -49,7 +49,7 @@ export default function LandingPage() {
 
         {nsCafe && (
           <Link
-            href={`/restaurant/${nsCafe.handle}`}
+            href={`/restaurant/${nsCafe._id}`}
             className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:border-border-strong transition-colors group"
           >
             <div className="size-12 rounded-xl border border-border bg-muted overflow-hidden shrink-0 flex items-center justify-center">
@@ -92,7 +92,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <div className="mt-auto px-5 py-6 border-t border-border">
-        <div className="flex items-center gap-3">
+        <div className="flex justify-center items-center gap-3">
           <a
             href="https://x.com/rozoai"
             target="_blank"

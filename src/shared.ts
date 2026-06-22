@@ -1,1 +1,1 @@
-export const VISIBLE_HANDLES = ["cafe", "paper", "ride", "zen"];
+export const VISIBLE_HANDLES = ["nscafe", "paper", "ride", "rozostudio"];

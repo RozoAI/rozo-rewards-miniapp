@@ -2,7 +2,7 @@ export const LOCATIONS = [
   {
     _id: "88c62be12697d882a8b03e60",
     name: "NS Cafe",
-    handle: "cafe",
+    handle: "nscafe",
     currency: "RM",
     formatted:
       "Lobby, Forest City Marina Hotel, Jalan Forest City - Lebuhraya Tanjung Pelepas, 1, Pulau Satu, 81550 Gelang Patah, Johor, Malaysia",
@@ -17,7 +17,7 @@ export const LOCATIONS = [
     logo_url: "https://ns.com/favicon.ico",
     cashback_rate: 1,
     is_live: true,
-    ns_id: "cafe",
+    ns_id: "nscafe",
     price: "$",
   },
   {
@@ -109,7 +109,7 @@ export const LOCATIONS = [
   {
     _id: "18c62be12697d882a8b03e60",
     name: "Rozo Studio",
-    handle: "zen",
+    handle: "rozostudio",
     currency: "RM",
     formatted: "Rozo Studio",
     address_line1: "Pulau Satu 8, 81550 Gelang Patah",
@@ -123,7 +123,7 @@ export const LOCATIONS = [
     logo_url: "https://www.rozo.ai/rozo-logo.png",
     cashback_rate: 10,
     is_live: true,
-    ns_id: "zen",
+    ns_id: "rozostudio",
     price: "$",
   },
   {
