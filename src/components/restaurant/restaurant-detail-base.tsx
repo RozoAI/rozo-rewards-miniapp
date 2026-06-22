@@ -1,30 +1,16 @@
 "use client";
 
-import { ContactSupport } from "@/components/contact-support";
 import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useBookmarks } from "@/contexts/BookmarkContext";
 import {
   EXCHANGE_RATES,
   getDisplayCurrency,
   getFirstTwoWordInitialsFromName,
 } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
-import {
-  BadgePercent,
-  Bookmark,
-  ChevronDown,
-  ChevronUp,
-  MapPin,
-  Share,
-} from "lucide-react";
-import Link from "next/link";
 import React from "react";
-import { toast } from "sonner";
 
 export interface RestaurantDetailBaseProps {
   restaurant: Restaurant;
@@ -47,27 +33,27 @@ export function RestaurantDetailBase({
   onBack,
   paymentSlot,
 }: RestaurantDetailBaseProps) {
-  const { isBookmarked, toggleBookmark } = useBookmarks();
-  const [showFullAddress, setShowFullAddress] = React.useState(false);
+  // const { isBookmarked, toggleBookmark } = useBookmarks();
+  // const [showFullAddress, setShowFullAddress] = React.useState(false);
 
-  const handleBookmark = () => {
-    toggleBookmark({
-      id: restaurant._id,
-      title: restaurant.name,
-      logo_url: restaurant.logo_url,
-      url: `/restaurant/${restaurant._id}`,
-    });
-    toast.success(
-      isBookmarked(restaurant._id)
-        ? "Removed from bookmarks"
-        : "Added to bookmarks",
-    );
-  };
+  // const handleBookmark = () => {
+  //   toggleBookmark({
+  //     id: restaurant._id,
+  //     title: restaurant.name,
+  //     logo_url: restaurant.logo_url,
+  //     url: `/restaurant/${restaurant._id}`,
+  //   });
+  //   toast.success(
+  //     isBookmarked(restaurant._id)
+  //       ? "Removed from bookmarks"
+  //       : "Added to bookmarks",
+  //   );
+  // };
 
   const initials = getFirstTwoWordInitialsFromName(restaurant.name);
 
   return (
-    <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
+    <div className="w-full max-w-xl mx-auto mb-16 flex flex-col gap-4 mt-4 px-4 sm:px-0">
       {/* Header */}
       {mode === "dapp" ? (
         <PageHeader
@@ -77,7 +63,7 @@ export function RestaurantDetailBase({
           onBack={onBack}
         />
       ) : (
-        <PageHeader title="Back to Lifestyle" isBackButton />
+        <PageHeader title="Back to Discovery" isBackButton />
       )}
 
       {/* Restaurant Info Card */}
@@ -100,7 +86,7 @@ export function RestaurantDetailBase({
               >
                 {restaurant.name}
               </h2>
-              {mode !== "dapp" && (
+              {/* {mode !== "dapp" && (
                 <div className="flex items-start gap-2 text-muted-foreground group">
                   <MapPin className="size-4 mt-0.5 shrink-0 group-hover:text-blue-600 transition-colors" />
                   <div className="text-sm leading-relaxed flex-1">
@@ -133,21 +119,21 @@ export function RestaurantDetailBase({
                   </div>
                 </div>
               )}
-              {/* Price and Cashback Details */}
+
               <div className="flex items-center gap-3 pt-1">
                 {restaurant.cashback_rate > 0 && (
                   <Badge
                     variant="default"
-                    className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full"
+                    className="text-xs bg-success/10 text-success dark:bg-success/20 rounded-full border-0"
                   >
                     <BadgePercent className="size-3" />
                     Cashback: <b>{restaurant.cashback_rate}%</b>
                   </Badge>
                 )}
-              </div>
+              </div> */}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2">
+            {/* <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 onClick={handleBookmark}
                 variant={isBookmarked(restaurant._id) ? "default" : "outline"}
@@ -167,7 +153,7 @@ export function RestaurantDetailBase({
               <Button onClick={onShare} variant="default" size="icon">
                 <Share className="size-4" />
               </Button>
-            </div>
+            </div> */}
           </div>
         </CardHeader>
 
@@ -223,7 +209,7 @@ export function RestaurantDetailBase({
           )}
 
           {/* Contact & Support */}
-          <ContactSupport />
+          {/* <ContactSupport /> */}
         </CardContent>
       </Card>
     </div>

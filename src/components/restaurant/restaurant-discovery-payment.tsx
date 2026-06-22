@@ -1,29 +1,17 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { CustomTooltip } from "@/components/ui/custom-tooltip";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
-import { convertToUSD, getDisplayCurrency } from "@/lib/utils";
-import { capture } from "@/lib/analytics/index";
-import { PAYMENT_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
-import { savePaymentReceipt } from "@/lib/payment-storage";
-import { Restaurant } from "@/types/restaurant";
 import { PaymentData } from "@/app/(main)/receipt/receipt-content";
+import { Button } from "@/components/ui/button";
+import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
+import { PAYMENT_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
+import { capture } from "@/lib/analytics/index";
+import { savePaymentReceipt } from "@/lib/payment-storage";
+import { convertToUSD, getDisplayCurrency } from "@/lib/utils";
+import { Restaurant } from "@/types/restaurant";
 import { useAppKitAccount } from "@reown/appkit/react";
-import {
-  baseUSDC,
-  PaymentCompletedEvent,
-} from "@rozoai/intent-common";
+import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPay, useRozoPayUI } from "@rozoai/intent-pay";
-import { Coins, CreditCard, HelpCircle, Loader2, Wallet } from "lucide-react";
+import { CreditCard, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
@@ -78,13 +66,14 @@ export function RestaurantDiscoveryPayment({
     resetPayment({
       appId: appId,
       intent: `${restaurant.name} - ${displayCurrency} ${price.toFixed(2)}`,
-      toAddress: restaurant.payTo ?? "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
+      toAddress:
+        restaurant.payTo ?? "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897",
       toChain: baseUSDC.chainId,
       toToken: baseUSDC.token as `0x${string}`,
       toUnits: usdAmount,
       metadata: generateMetadata(price.toFixed(2), displayCurrency) as any,
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurant?._id]);
 
   // Fetch points balance
@@ -148,63 +137,67 @@ export function RestaurantDiscoveryPayment({
         clearTimeout(debounceTimerRef.current);
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentAmount]);
 
-  const handlePaymentCompleted = useCallback((args?: PaymentCompletedEvent) => {
-    console.log("[Restaurant] Payment completed:", args);
+  const handlePaymentCompleted = useCallback(
+    (args?: PaymentCompletedEvent) => {
+      console.log("[Restaurant] Payment completed:", args);
 
-    if (!restaurant) return;
+      if (!restaurant) return;
 
-    toast.success(`Payment successful to ${restaurant.name}!`, {
-      description:
-        "Your payment has been processed successfully. Redirecting to receipt...",
-      duration: 2000,
-    });
+      toast.success(`Payment successful to ${restaurant.name}!`, {
+        description:
+          "Your payment has been processed successfully. Redirecting to receipt...",
+        duration: 2000,
+      });
 
-    // Store payment data in sessionStorage for receipt page
-    const displayCurrency = getDisplayCurrency(restaurant?.currency);
-    const usdAmount = convertToUSD(paymentAmount, displayCurrency);
+      // Store payment data in sessionStorage for receipt page
+      const displayCurrency = getDisplayCurrency(restaurant?.currency);
+      const usdAmount = convertToUSD(paymentAmount, displayCurrency);
 
-    capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
-      merchant_id: restaurant._id,
-      merchant_name: restaurant.name,
-      payment_method: "crypto",
-      amount_usd: usdAmount,
-      order_id: merchantOrderId,
-    });
+      capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
+        merchant_id: restaurant._id,
+        merchant_name: restaurant.name,
+        payment_method: "crypto",
+        amount_usd: usdAmount,
+        order_id: merchantOrderId,
+      });
 
-    const receiptData: PaymentData = {
-      from_address: address || "",
-      to_handle:
-        restaurant.handle || restaurant.name.toLowerCase().replace(/\s+/g, ""),
-      amount_usd_cents: parseFloat(usdAmount) * 100,
-      amount_local: parseFloat(paymentAmount),
-      currency_local: displayCurrency,
-      timestamp: Date.now(),
-      order_id: merchantOrderId,
-      about: `Pay for ${restaurant.name} - ${displayCurrency} ${paymentAmount}`,
-      restaurant_name: restaurant.name,
-      restaurant_address: restaurant.address_line1,
-      is_using_points: false,
-    };
+      const receiptData: PaymentData = {
+        from_address: address || "",
+        to_handle:
+          restaurant.handle ||
+          restaurant.name.toLowerCase().replace(/\s+/g, ""),
+        amount_usd_cents: parseFloat(usdAmount) * 100,
+        amount_local: parseFloat(paymentAmount),
+        currency_local: displayCurrency,
+        timestamp: Date.now(),
+        order_id: merchantOrderId,
+        about: `Pay for ${restaurant.name} - ${displayCurrency} ${paymentAmount}`,
+        restaurant_name: restaurant.name,
+        restaurant_address: restaurant.address_line1,
+        is_using_points: false,
+      };
 
-    console.log("[Restaurant] Pay with Crypto - About to save receipt:", {
-      merchantOrderId,
-      receiptData,
-    });
-    savePaymentReceipt(merchantOrderId, receiptData);
-    console.log(
-      "[Restaurant] Pay with Crypto - Receipt saved, navigating to /receipt?payment_id=" +
+      console.log("[Restaurant] Pay with Crypto - About to save receipt:", {
         merchantOrderId,
-    );
+        receiptData,
+      });
+      savePaymentReceipt(merchantOrderId, receiptData);
+      console.log(
+        "[Restaurant] Pay with Crypto - Receipt saved, navigating to /receipt?payment_id=" +
+          merchantOrderId,
+      );
 
-    setTimeout(() => {
-      setLoading(false);
-      router.push(`/receipt?payment_id=${merchantOrderId}`);
-    }, 1000);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restaurant, address, paymentAmount, merchantOrderId]);
+      setTimeout(() => {
+        setLoading(false);
+        router.push(`/receipt?payment_id=${merchantOrderId}`);
+      }, 1000);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [restaurant, address, paymentAmount, merchantOrderId],
+  );
 
   const handlePayWithPoints = () => {
     if (restaurant) {
@@ -380,7 +373,7 @@ export function RestaurantDiscoveryPayment({
               ) : (
                 <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
               )}
-              Pay ${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount} with
+              Pay ~${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount} with
               Crypto
             </Button>
           );
@@ -388,7 +381,7 @@ export function RestaurantDiscoveryPayment({
       </RozoPayButton.Custom>
 
       {/* Pay with Points Button */}
-      {points > 0 && (
+      {/* {points > 0 && (
         <div className="space-y-2">
           <Button
             className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
@@ -444,10 +437,10 @@ export function RestaurantDiscoveryPayment({
             </CustomTooltip>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Pay with Points Confirmation Dialog */}
-      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+      {/* <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Confirm Payment with Points</DialogTitle>
@@ -570,7 +563,7 @@ export function RestaurantDiscoveryPayment({
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </>
   );
 }

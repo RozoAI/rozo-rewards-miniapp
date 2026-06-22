@@ -2,24 +2,15 @@
 
 import { PaymentData } from "@/app/(main)/receipt/receipt-content";
 import { Button } from "@/components/ui/button";
-import { CustomTooltip } from "@/components/ui/custom-tooltip";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { getAiServiceById } from "@/lib/ai-services";
-import { capture } from "@/lib/analytics/index";
 import { PAYMENT_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
+import { capture } from "@/lib/analytics/index";
 import { savePaymentReceipt } from "@/lib/payment-storage";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPayUI } from "@rozoai/intent-pay";
-import { Coins, CreditCard, HelpCircle, Wallet } from "lucide-react";
+import { CreditCard, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { toast } from "sonner";
@@ -112,7 +103,7 @@ export function AiServiceDiscoveryPayment({
       }),
       metadata: metadata as any,
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [service?.id]);
 
   // Update payment metadata when email changes (but only after initial load)
@@ -130,7 +121,7 @@ export function AiServiceDiscoveryPayment({
       }),
       metadata: metadata as any,
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userEmail]);
 
   // Fetch points balance
@@ -345,7 +336,7 @@ export function AiServiceDiscoveryPayment({
       </RozoPayButton.Custom>
 
       {/* Pay with Points Button */}
-      {points > 0 && (
+      {/* {points > 0 && (
         <div className="space-y-2">
           <Button
             className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold"
@@ -374,10 +365,10 @@ export function AiServiceDiscoveryPayment({
             </CustomTooltip>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Pay with Points Confirmation Dialog */}
-      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+      {/* <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Confirm Payment with Points</DialogTitle>
@@ -460,7 +451,7 @@ export function AiServiceDiscoveryPayment({
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </>
   );
 }

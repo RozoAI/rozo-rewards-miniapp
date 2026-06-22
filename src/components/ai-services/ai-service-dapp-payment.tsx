@@ -2,15 +2,15 @@
 
 import { Button } from "@/components/ui/button";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
-import { capture } from "@/lib/analytics/index";
+import { getAiServiceById } from "@/lib/ai-services";
 import { PAYMENT_EVENTS } from "@/lib/analytics/events";
+import { capture } from "@/lib/analytics/index";
+import { savePaymentReceipt } from "@/lib/payment-storage";
 import {
   errorToString,
   formatRozoErrorMessage,
   isUserCancellation,
 } from "@/lib/rozo-errors";
-import { savePaymentReceipt } from "@/lib/payment-storage";
-import { getAiServiceById } from "@/lib/ai-services";
 import {
   baseUSDC,
   createPayment,
@@ -176,8 +176,12 @@ export function AiServiceDappPayment({
         order_id: merchantOrderId,
       });
 
-      const { paymentId, amount, receiverAddressContract, receiverMemoContract } =
-        bridgeResult;
+      const {
+        paymentId,
+        amount,
+        receiverAddressContract,
+        receiverMemoContract,
+      } = bridgeResult;
 
       const result = await rozoWalletTransfer(
         amount,
@@ -287,8 +291,9 @@ export function AiServiceDappPayment({
 
       {/* EURC notice */}
       {isEurcActive && (
-        <p className="text-xs text-amber-600 text-center">
-          Pay with Rozo Wallet requires USDC. Switch to USDC in your Rozo Wallet to pay.
+        <p className="text-xs text-warning text-center">
+          Pay with Rozo Wallet requires USDC. Switch to USDC in your Rozo Wallet
+          to pay.
         </p>
       )}
 

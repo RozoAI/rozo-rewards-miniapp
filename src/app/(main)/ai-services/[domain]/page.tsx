@@ -1,10 +1,7 @@
 "use client";
 
-import { ContactSupport } from "@/components/contact-support";
-import { capture } from "@/lib/analytics/index";
-import { REWARDS_EVENTS } from "@/lib/analytics/events";
-import { PageHeader } from "@/components/page-header";
 import { AiServiceDappPayment } from "@/components/ai-services/ai-service-dapp-payment";
+import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -13,14 +10,11 @@ import { Label } from "@/components/ui/label";
 import { useBookmarks } from "@/contexts/BookmarkContext";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { getAiServiceById } from "@/lib/ai-services";
+import { REWARDS_EVENTS } from "@/lib/analytics/events";
+import { capture } from "@/lib/analytics/index";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
-import {
-  Bookmark,
-  CreditCard,
-  MessageCircle,
-  Share,
-} from "lucide-react";
+import { CreditCard, MessageCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
@@ -213,7 +207,7 @@ export default function AIServiceDetailPage() {
 
   if (loading) {
     return (
-      <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
+      <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4 max-w-xl mx-auto">
         <PageHeader title="Back to Discovery" isBackButton />
         <Card className="w-full">
           <CardHeader className="space-y-4 pb-4">
@@ -242,7 +236,7 @@ export default function AIServiceDetailPage() {
 
   if (error || !service) {
     return (
-      <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
+      <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4 max-w-xl mx-auto">
         <PageHeader title="Back to Discovery" isBackButton />
         <Card className="w-full">
           <CardContent className="flex flex-col items-center justify-center p-8 text-center">
@@ -265,7 +259,7 @@ export default function AIServiceDetailPage() {
   const initials = getFirstTwoWordInitialsFromName(service.name);
 
   return (
-    <div className="w-full mb-20 flex flex-col gap-4 sm:gap-6 mt-4 px-3 sm:px-4 max-w-4xl mx-auto">
+    <div className="w-full mb-20 flex flex-col gap-4 mt-4 px-4 max-w-xl mx-auto">
       {/* Header */}
       <PageHeader
         title="Back to Discovery"
@@ -274,10 +268,10 @@ export default function AIServiceDetailPage() {
       />
 
       {/* Service Info Card */}
-      <Card className="w-full overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm shadow-sm gap-0">
+      <Card className="w-full overflow-hidden gap-0">
         <CardHeader className="space-y-4 pb-5">
-          <div className="rounded-xl border border-border/60 bg-muted/20">
-            <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-lg border border-border/50 bg-background/70 aspect-video">
+          <div className="rounded-xl border border-border bg-muted/30">
+            <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-lg border border-border bg-background aspect-video">
               <Avatar className="size-full rounded-none">
                 {service.logoUrl ? (
                   <AvatarImage
@@ -288,7 +282,7 @@ export default function AIServiceDetailPage() {
                 ) : null}
                 <AvatarFallback
                   title={service.name}
-                  className="font-semibold text-2xl bg-linear-to-br from-primary/10 to-primary/5 text-primary"
+                  className="font-semibold text-2xl bg-muted text-muted-foreground"
                 >
                   {initials}
                 </AvatarFallback>
@@ -309,7 +303,7 @@ export default function AIServiceDetailPage() {
               </p>
             </div>
             {/* Top right positioning for larger screens */}
-            <div className="mt-2 sm:mt-0 sm:ml-4 sm:self-start">
+            {/* <div className="mt-2 sm:mt-0 sm:ml-4 sm:self-start">
               <div className="flex items-center justify-end gap-2">
                 <Button
                   onClick={handleBookmark}
@@ -331,17 +325,14 @@ export default function AIServiceDetailPage() {
                   <Share className="size-4" />
                 </Button>
               </div>
-            </div>
+            </div> */}
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4 sm:space-y-6 pt-0">
-          <div className="rounded-lg border border-primary/20 bg-muted/20 p-3 sm:p-4">
+          <div className="rounded-lg border border-border bg-muted/30 p-4">
             <div className="space-y-1">
               <div className="space-y-1">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  Offer Value
-                </p>
                 {hasDiscount && (
                   <p className="text-xs text-muted-foreground line-through">
                     ${service.original_price_usd}
@@ -352,7 +343,7 @@ export default function AIServiceDetailPage() {
                     {hasPrice ? `$${service.price_usd}` : "N/A"}
                   </p>
                   {hasDiscount && discountPercent !== null && (
-                    <span className="rounded-md bg-emerald-100 px-1.5 py-0 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                    <span className="rounded-md bg-success/10 px-1.5 py-0 text-[11px] font-semibold text-success dark:bg-success/20">
                       -{discountPercent}%
                     </span>
                   )}
@@ -417,8 +408,8 @@ export default function AIServiceDetailPage() {
                 </div>
 
                 {/* Payment Buttons - Conditional based on Rozo Wallet availability */}
-                {!service.sold_out && (
-                  isRozoWalletAvailable && isRozoWalletConnected ? (
+                {!service.sold_out &&
+                  (isRozoWalletAvailable && isRozoWalletConnected ? (
                     // Pay with Rozo Wallet (Stellar USDC) - REPLACES other payment methods
                     <AiServiceDappPayment
                       service={service}
@@ -441,21 +432,20 @@ export default function AIServiceDetailPage() {
                         setPaymentLoading={setPaymentLoading}
                       />
                     )
-                  )
-                )}
+                  ))}
               </>
             )}
 
             {/* Sold Out State */}
             {service.sold_out && (
-              <div className="w-full h-11 flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-lg border border-gray-300 dark:border-gray-600">
+              <div className="w-full h-11 flex items-center justify-center bg-muted text-muted-foreground rounded-lg border border-border">
                 <span className="font-medium">This item is sold out</span>
               </div>
             )}
           </div>
 
           {/* Contact & Support */}
-          <ContactSupport />
+          {/* <ContactSupport /> */}
         </CardContent>
       </Card>
     </div>

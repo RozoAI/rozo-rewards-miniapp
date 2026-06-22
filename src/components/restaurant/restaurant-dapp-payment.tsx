@@ -237,7 +237,9 @@ export function RestaurantDappPayment({
         // Store receipt data
         const receiptData: PaymentData = {
           from_address: rozoWalletAddress,
-          to_handle: restaurant.handle || restaurant.name.toLowerCase().replace(/\s+/g, ""),
+          to_handle:
+            restaurant.handle ||
+            restaurant.name.toLowerCase().replace(/\s+/g, ""),
           amount_usd_cents: parseFloat(usdAmount) * 100,
           amount_local: parseFloat(paymentAmount),
           currency_local: displayCurrency,
@@ -320,8 +322,9 @@ export function RestaurantDappPayment({
 
       {/* EURC notice */}
       {isEurcActive && (
-        <p className="text-xs text-amber-600 text-center">
-          Pay with Rozo Wallet requires USDC. Switch to USDC in your Rozo Wallet to pay.
+        <p className="text-xs text-warning text-center">
+          Pay with Rozo Wallet requires USDC. Switch to USDC in your Rozo Wallet
+          to pay.
         </p>
       )}
 
@@ -346,15 +349,13 @@ export function RestaurantDappPayment({
         ) : (
           <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
         )}
-        {isRozoWalletPaymentLoading ? (
-          "Processing Payment..."
-        ) : rozoWalletLoading ? (
-          "Loading..."
-        ) : rozoWalletBalanceUsd !== null && rozoWalletBalanceUsd > 0 ? (
-          `Pay $${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount} with Rozo Wallet`
-        ) : (
-          "Insufficient Rozo Wallet Balance"
-        )}
+        {isRozoWalletPaymentLoading
+          ? "Processing Payment..."
+          : rozoWalletLoading
+            ? "Loading..."
+            : rozoWalletBalanceUsd !== null && rozoWalletBalanceUsd > 0
+              ? `Pay ~$${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount} with Rozo Wallet`
+              : "Insufficient Rozo Wallet Balance"}
       </Button>
     </div>
   );

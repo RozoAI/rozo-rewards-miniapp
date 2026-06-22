@@ -110,9 +110,11 @@ export default async function RootLayout({
                     <NextTopLoader showSpinner={false} />
                     <MiniappPrompt />
                     {children}
-                    <IntercomInitializer
-                      appId={process.env.INTERCOM_APP_ID as string}
-                    />
+                    {process.env.INTERCOM_APP_ID && (
+                      <IntercomInitializer
+                        appId={process.env.INTERCOM_APP_ID as string}
+                      />
+                    )}
                     <Toaster position="top-center" richColors />
                   </main>
                 </ThemeProvider>

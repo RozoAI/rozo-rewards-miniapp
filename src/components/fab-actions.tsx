@@ -2,20 +2,19 @@
 
 import { cn } from "@/lib/utils";
 import { MessageCircle } from "lucide-react";
-import { useEffect, useState } from "react";
 
 /**
  * Floating Action Button with theme switcher and support actions
  */
 export function FabActions({ className }: { className?: string }) {
   // const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  // const [mounted, setMounted] = useState(false);
   // const { setThemeMode } = useAppKitTheme();
 
   // Only show theme-dependent content after mounting to avoid hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // useEffect(() => {
+  //   setMounted(true);
+  // }, []);
 
   // useEffect(() => {
   //   setThemeMode(resolvedTheme === "dark" ? "dark" : "light");
