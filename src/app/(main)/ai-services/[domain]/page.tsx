@@ -1,6 +1,5 @@
 "use client";
 
-import { AiServiceDappPayment } from "@/components/ai-services/ai-service-dapp-payment";
 import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useBookmarks } from "@/contexts/BookmarkContext";
-import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { getAiServiceById } from "@/lib/ai-services";
 import { REWARDS_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
@@ -16,7 +14,7 @@ import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { CreditCard, MessageCircle } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
@@ -31,19 +29,12 @@ const AiServiceDiscoveryPayment = dynamic(
 const APP_ID = "rozoRewardsBNBStellarMP-zen";
 
 export default function AIServiceDetailPage() {
-  const searchParams = useSearchParams();
-  const isDapp = searchParams.get("dapp") === "true";
   const params = useParams();
   const router = useRouter();
   const serviceId = params.domain as string;
   const { isInMiniApp } = useIsInMiniApp();
 
   const { composeCast } = useComposeCast();
-  const {
-    isAvailable: isRozoWalletAvailable,
-    isConnected: isRozoWalletConnected,
-    walletAddress: rozoWalletAddress,
-  } = useRozoWallet();
 
   const [service, setService] =
     React.useState<ReturnType<typeof getAiServiceById>>(null);
@@ -74,8 +65,6 @@ export default function AIServiceDetailPage() {
       )
     : null;
 
-  // Prefer Rozo Wallet account when available
-  const activeAddress = (isRozoWalletConnected && rozoWalletAddress) || "";
 
   useEffect(() => {
     function loadService() {
@@ -264,7 +253,6 @@ export default function AIServiceDetailPage() {
       <PageHeader
         title="Back to Discovery"
         isBackButton
-        paymentHistoryAddress={activeAddress}
       />
 
       {/* Service Info Card */}
@@ -407,32 +395,17 @@ export default function AIServiceDetailPage() {
                   </p>
                 </div>
 
-                {/* Payment Buttons - Conditional based on Rozo Wallet availability */}
-                {!service.sold_out &&
-                  (isRozoWalletAvailable && isRozoWalletConnected ? (
-                    // Pay with Rozo Wallet (Stellar USDC) - REPLACES other payment methods
-                    <AiServiceDappPayment
-                      service={service}
-                      merchantOrderId={merchantOrderId}
-                      userEmail={userEmail}
-                      appId={APP_ID}
-                      validateEmailInput={validateEmailInput}
-                    />
-                  ) : (
-                    // Original Payment Buttons - ONLY shown when Rozo Wallet NOT available,
-                    // and only in discovery mode (not loaded inside the Rozo Wallet dapp webview)
-                    !isDapp && (
-                      <AiServiceDiscoveryPayment
-                        service={service}
-                        merchantOrderId={merchantOrderId}
-                        userEmail={userEmail}
-                        appId={APP_ID}
-                        validateEmailInput={validateEmailInput}
-                        paymentLoading={paymentLoading}
-                        setPaymentLoading={setPaymentLoading}
-                      />
-                    )
-                  ))}
+                {!service.sold_out && (
+                  <AiServiceDiscoveryPayment
+                    service={service}
+                    merchantOrderId={merchantOrderId}
+                    userEmail={userEmail}
+                    appId={APP_ID}
+                    validateEmailInput={validateEmailInput}
+                    paymentLoading={paymentLoading}
+                    setPaymentLoading={setPaymentLoading}
+                  />
+                )}
               </>
             )}
 
