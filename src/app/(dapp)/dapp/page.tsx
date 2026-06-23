@@ -22,6 +22,7 @@ export default function DappPage() {
     <Suspense>
       <DappContent
         isDapp={true}
+        title="Merchants"
         restaurants={restaurants}
         aiServices={aiServices}
       />

@@ -53,7 +53,7 @@ export interface DappContentProps {
 
 export function DappContent({
   className,
-  title = "DApps",
+  title = "Merchants",
   icon = <Globe className="size-6" />,
   isDapp = false,
   restaurants,
@@ -176,18 +176,23 @@ export function DappContent({
           <h3 className="font-semibold text-foreground truncate text-sm leading-tight">
             {restaurant.name}
           </h3>
-          <div className="flex items-center gap-2 mt-1.5">
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded text-foreground">
-                {restaurant.cashback_rate}% Cashback
-              </span>
-            </div>
-            {restaurant.price && (
-              <span className="text-xs text-muted-foreground">
-                {restaurant.price}
-              </span>
-            )}
-          </div>
+          {/* Hide this on dApp */}
+          {!isDapp && (
+            <>
+              <div className="flex items-center gap-2 mt-1.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded text-foreground">
+                    {restaurant.cashback_rate}% Cashback
+                  </span>
+                </div>
+                {restaurant.price && (
+                  <span className="text-xs text-muted-foreground">
+                    {restaurant.price}
+                  </span>
+                )}
+              </div>
+            </>
+          )}
         </div>
         <ChevronRight className="size-4 text-muted-foreground shrink-0 self-center" />
       </>

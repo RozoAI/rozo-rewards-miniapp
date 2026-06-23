@@ -5,12 +5,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-  convertToUSD,
   EXCHANGE_RATES,
   getDisplayCurrency,
   getFirstTwoWordInitialsFromName,
 } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
+import { Info } from "lucide-react";
 import React from "react";
 
 export interface RestaurantDetailBaseProps {
@@ -52,17 +52,14 @@ export function RestaurantDetailBase({
   // };
 
   const initials = getFirstTwoWordInitialsFromName(restaurant.name);
-  const usdAmount = convertToUSD(
-    paymentAmount || "0",
-    getDisplayCurrency(restaurant?.currency),
-  );
+  const isDapp = mode === "dapp";
 
   return (
     <div className="w-full max-w-xl mx-auto mb-16 flex flex-col gap-3 mt-4 px-4 sm:px-0">
       {/* Header */}
-      {mode === "dapp" ? (
+      {isDapp ? (
         <PageHeader
-          title="Back to DApps"
+          title="Back to Merchants"
           isBackButton
           paymentHistoryAddress={rozoWalletAddress || ""}
           onBack={onBack}
@@ -92,7 +89,7 @@ export function RestaurantDetailBase({
               >
                 {restaurant.name}
               </h2>
-              {restaurant.cashback_rate > 0 && (
+              {!isDapp && restaurant.cashback_rate > 0 && (
                 <p className="text-xs text-muted-foreground">
                   Earn{" "}
                   <span className="font-semibold">
@@ -147,6 +144,17 @@ export function RestaurantDetailBase({
                   )}
                 </p>
               </div>
+
+              {isDapp && (
+                <div className="flex items-start gap-1.5">
+                  <Info className="size-4 text-muted-foreground" />
+                  <p className="text-left text-xs text-muted-foreground">
+                    This category includes physical goods and real-world
+                    services that are not delivered or consumed within the
+                    application.
+                  </p>
+                </div>
+              )}
 
               {/* Payment Buttons */}
               {paymentSlot}
