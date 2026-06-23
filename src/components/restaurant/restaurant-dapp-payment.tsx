@@ -1,6 +1,6 @@
 "use client";
 
-import { PaymentData } from "@/app/(main)/receipt/receipt-content";
+import { type PaymentData } from "@/lib/payment-storage";
 import { Button } from "@/components/ui/button";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { PAYMENT_EVENTS } from "@/lib/analytics/events";

@@ -74,7 +74,7 @@ export default function LandingPage() {
               </p>
               <div className="flex items-center gap-1.5 mt-1.5">
                 <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded text-foreground">
-                  {nsCafe.cashback_rate}% cashback
+                  {nsCafe.cashback_rate}% Cashback
                 </span>
               </div>
             </div>

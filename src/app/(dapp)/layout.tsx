@@ -51,7 +51,7 @@ export default function DappRootLayout({
           >
             <main className="flex min-h-screen flex-col justify-between md:min-h-screen md:items-center md:justify-start relative">
               {children}
-              <Toaster position="top-center" richColors />
+              <Toaster position="top-center" />
             </main>
           </ThemeProvider>
         </BookmarkProvider>

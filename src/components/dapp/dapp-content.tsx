@@ -177,13 +177,11 @@ export function DappContent({
             {restaurant.name}
           </h3>
           <div className="flex items-center gap-2 mt-1.5">
-            <Badge
-              variant="outline"
-              className="text-success border-success/30 bg-success/5 py-0 text-[11px] font-medium gap-1"
-            >
-              <span className="size-1.5 rounded-full bg-success shrink-0" />
-              {restaurant.cashback_rate}% Cashback
-            </Badge>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded text-foreground">
+                {restaurant.cashback_rate}% Cashback
+              </span>
+            </div>
             {restaurant.price && (
               <span className="text-xs text-muted-foreground">
                 {restaurant.price}

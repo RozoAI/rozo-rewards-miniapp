@@ -24,7 +24,7 @@ export async function generateMetadata({
   const priceInfo = restaurant?.price ? ` • ${restaurant.price}` : "";
   const cashbackInfo =
     restaurant?.cashback_rate && restaurant.cashback_rate > 0
-      ? ` • ${restaurant.cashback_rate}% cashback`
+      ? ` • ${restaurant.cashback_rate}% Cashback`
       : "";
 
   const description = restaurant

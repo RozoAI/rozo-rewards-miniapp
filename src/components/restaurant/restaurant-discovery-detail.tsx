@@ -92,7 +92,7 @@ export function RestaurantDiscoveryDetail({
       restaurant?.address_line1
     }!${
       restaurant?.cashback_rate
-        ? ` Get ${restaurant.cashback_rate}% cashback!`
+        ? ` Get ${restaurant.cashback_rate}% Cashback!`
         : ""
     }`;
 

@@ -95,7 +95,7 @@ export function RestaurantDetailBase({
               {restaurant.cashback_rate > 0 && (
                 <p className="text-xs text-muted-foreground">
                   Earn{" "}
-                  <span className="text-success font-medium">
+                  <span className="font-semibold">
                     {restaurant.cashback_rate}%
                   </span>{" "}
                   cashback
