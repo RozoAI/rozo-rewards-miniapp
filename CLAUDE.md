@@ -66,15 +66,12 @@ The app uses a **dual-state blockchain integration** pattern:
 - **Reconciliation**: E2E tests verify on-chain and off-chain states stay synchronized
 
 **Smart Contract**: `0x1B1129D78C9481da0EEB0bBBf2A484C06371D9eF` (Base mainnet)
-- Manages ROZO points (100 ROZO = $1 USD)
-- Handles purchases with USDC (requires ERC-20 approval)
-- Distributes cashback based on merchant rates
+- Handles USDC purchases (requires ERC-20 approval)
 
 **Critical Hooks**:
 - `useRozoPoints` (src/hooks/useRozoPoints.ts)
   - Auto-switches wallet to Base chain when connected to wrong network
   - Manages USDC approval flow before purchases
-  - Syncs on-chain points balance with React state
 - `useRozoWallet` (src/hooks/useRozoWallet.ts)
   - Integrates with Rozo Wallet mobile app via `window.rozo` provider
   - Handles Stellar USDC transfers (gasless via OpenZeppelin Relayer)
@@ -109,7 +106,7 @@ supabase/functions/
 │   ├── types.ts       # TypeScript interfaces
 │   └── utils.ts       # CORS, auth helpers
 ├── auth-wallet-login/ # Wallet-based authentication
-├── cashback-*/        # ROZO points system (balance, claim, apply-offset)
+├── cashback-*/        # Cashback system (balance, claim, apply-offset)
 ├── orders-*/          # Shopping cart & checkout
 ├── payments-*/        # Payment intent creation & processing
 ├── products-*/        # Product catalog
@@ -121,67 +118,76 @@ supabase/functions/
 - Wallet login creates/updates user profile with wallet address
 - All endpoints validate `Authorization: Bearer <token>` header
 
-#### 4. ROZO Token Economics System
-The app implements a **dual-token cashback system**:
+#### 4. Payment Flow
 
-**Token Conversion**: 100 ROZO = $1 USD (hardcoded in contract and frontend)
-
-**Payment Flow**:
-1. User adds products to cart (tracked in `orders` table)
-2. Apply ROZO offset during checkout (`cashback-apply-offset` function)
-3. Pay reduced amount via USDC (RozoPayButton component)
-4. Claim cashback after payment confirmation (`cashback-claim` function)
-
-**Tier System** (affects cashback multiplier):
-- Bronze (1.0x): $0+ lifetime earnings
-- Silver (1.2x): $500+ lifetime earnings
-- Gold (1.5x): $2,500+ lifetime earnings
-- Platinum (2.0x): $10,000+ lifetime earnings
+1. User selects merchant/product
+2. Pay via USDC (RozoPayButton component) or Rozo Wallet (Stellar)
+3. Payment confirmed on-chain
 
 **Database Schema**:
-- `profiles`: User wallet address, ROZO balance, tier
-- `cashback`: Transaction log (earn/spend records)
+- `profiles`: User wallet address and balance
 - `orders`: Shopping cart & order history
 - `order_items`: Individual products in orders
-- `merchants`: AI services with default cashback rates
-- `products`: SKUs with product-specific cashback rates (override merchant defaults)
+- `merchants`: Merchant catalog
+- `products`: SKUs per merchant
 
-#### 5. Payment Methods Integration
-The restaurant detail page (`src/app/restaurant/[id]/page.tsx`) supports **three payment methods** with conditional rendering:
+#### 5. Route Groups & Layouts
+
+The app has three isolated route groups, each with its own layout:
+
+| Route Group | Path | Layout | Purpose |
+|-------------|------|---------|---------|
+| `(landing)` | `/` | Minimal, no Web3 | Public landing page |
+| `(dapp-merchants)` | `/merchants` | Lightweight, no Web3 | Merchant dApp embedded in Rozo Wallet |
+| `(main)` | all other routes | Full Web3 + Supabase auth | Discovery, payments, profile |
+
+#### 6. Routing & URL Changes
+
+**Permanent redirect** (`next.config.ts`):
+```
+/dapp → /merchants (301)
+```
+
+**Middleware** (`src/middleware.ts`):
+```
+/restaurant/:id → /ns/[handle] (301)
+```
+Middleware validates the `_id` exists in `LOCATIONS` (with `is_live: true`) before redirecting. Non-matching requests pass through.
+
+**Current merchant URL pattern**: `/ns/[handle]` (e.g. `/ns/nscafe`)
+
+**Removed routes**:
+- `/lifestyle` — page deleted
+- `/api/merchants` — replaced by `src/lib/api.ts`
+- `/api/dappapi` — replaced by `src/lib/api.ts`
+
+#### 7. Payment Methods Integration
+The merchant detail page (`src/app/(main)/ns/[handle]/page.tsx`) supports **three payment methods**:
 
 **Payment Priority**:
 1. **Pay with Rozo Wallet** (when `window.rozo` is available)
    - Only shown in Rozo Wallet mobile app webview
    - Uses Stellar USDC transfers (gasless via OpenZeppelin Relayer)
    - Replaces crypto and points buttons when available
-   - Temporary Stellar destination until bridge is implemented
 
 2. **Pay with Crypto** (fallback when Rozo Wallet not available)
    - Multi-chain support via RozoPayButton
    - Base USDC payment
-   - Integrates with wallet providers (MetaMask, WalletConnect, etc.)
-
-3. **Pay with Points** (fallback when Rozo Wallet not available)
-   - Only shown if user has ROZO points balance > 0
-   - Requires wallet signature for authorization
-   - Deducts from user's points balance
 
 **Conditional Rendering Logic**:
 ```typescript
 {isRozoWalletAvailable && isRozoWalletConnected ? (
   <RozoWalletButton /> // Single payment option
 ) : (
-  <>
-    <CryptoPaymentButton />
-    {points > 0 && <PointsPaymentButton />}
-  </>
+  <CryptoPaymentButton />
 )}
 ```
 
 **Key Files**:
 - `src/types/window.d.ts`: TypeScript definitions for `window.rozo` provider
 - `src/hooks/useRozoWallet.ts`: Rozo Wallet integration hook
-- `src/app/restaurant/[id]/page.tsx`: Payment UI implementation
+- `src/app/(main)/ns/[handle]/page.tsx`: Payment UI implementation
+- `src/middleware.ts`: Legacy `/restaurant/:id` redirect
 
 ## Code Style Guidelines
 
@@ -242,6 +248,8 @@ lefthook install
 - Dev server runs on **port 3001** (not 3000)
 - Webpack configured to ignore Node.js modules (fs, net, tls)
 - Dev indicators disabled
+- Permanent redirect: `/dapp` → `/merchants`
+- Remote image hostnames: `mugglespublicweb.s3.ap-southeast-1.amazonaws.com`, `imagedelivery.net`, `cdn1.npcdn.net`, `ns.com`, `www.rozo.ai`
 
 ## Common Patterns
 
@@ -274,29 +282,6 @@ const response = await fetch(`${SUPABASE_URL}/functions/v1/endpoint`, {
 });
 ```
 
-### Smart Contract Interactions
-```typescript
-import { useReadContract, useWriteContract } from 'wagmi';
-import { ROZO_POINTS_ABI, ROZO_POINTS_CONTRACT_ADDRESS } from '@/lib/contracts';
-
-// Read contract state
-const { data: points } = useReadContract({
-  address: ROZO_POINTS_CONTRACT_ADDRESS,
-  abi: ROZO_POINTS_ABI,
-  functionName: 'getUserPoints',
-  args: [address],
-});
-
-// Write to contract
-const { writeContract } = useWriteContract();
-writeContract({
-  address: ROZO_POINTS_CONTRACT_ADDRESS,
-  abi: ROZO_POINTS_ABI,
-  functionName: 'purchase',
-  args: [merchantId, amount],
-});
-```
-
 ## Critical Files Reference
 
 ### Core Configuration
@@ -305,27 +290,33 @@ writeContract({
 - `src/wagmi.ts` - (Commented out, using appkit.ts instead)
 
 ### Key Hooks
-- `src/hooks/useRozoPoints.ts` - ROZO points balance & transactions
+- `src/hooks/useRozoPoints.ts` - On-chain balance & USDC approval
 - `src/hooks/useRozoAPI.ts` - API client for Supabase functions
 - `src/hooks/useCDPPermissions.ts` - Coinbase CDP permissions
 - `src/hooks/useUSDCBalance.ts` - USDC token balance
 
 ### Providers
-- `src/providers/Web3Provider.tsx` - Wagmi + AppKit setup
+- `src/providers/Web3Provider.tsx` - Wagmi + AppKit setup (used in `(main)`)
+- `src/providers/Web3ProviderMiniApp.tsx` - Lightweight provider for miniapp contexts
+- `src/providers/landing-providers.tsx` - Minimal providers for `(landing)` route group
 - `src/providers/MiniKitProvider.tsx` - Farcaster MiniKit integration
 
 ### API Routes
-- `src/app/api/webhook/route.ts` - Payment webhooks
-- `src/app/api/notify/route.ts` - Notifications
-- `src/app/api/merchants/route.ts` - Merchant data proxy
-- `src/app/api/dappapi/route.ts` - DApp API proxy
+- `src/app/(main)/api/webhook/route.ts` - Payment webhooks
+- `src/app/(main)/api/notify/route.ts` - Notifications
+
+### Merchant Data
+- `src/lib/api.ts` - Merchant API client (fetches from external Rozo API)
+- `src/lib/data.ts` - `LOCATIONS` static array with `_id`, `handle`, `is_live` fields
+- `src/lib/restaurants.ts` - Restaurant/merchant helper utilities
+- `src/middleware.ts` - Redirects `/restaurant/:id` → `/ns/[handle]` (301)
 
 ## Testing Notes
 
 ### E2E Test Structure
 Located in `tests/e2e/`:
 - `auth-tests.ts` - Wallet login & session management
-- `payment-tests.ts` - USDC purchases & cashback claiming
+- `payment-tests.ts` - USDC purchase flows
 - `order-tests.ts` - Shopping cart & checkout flow
 - `main-test-suite.ts` - Full integration tests
 
@@ -348,7 +339,7 @@ bun test:e2e:quick
 
 Comprehensive API docs in `docs/`:
 - `API.md` - Complete endpoint reference
-- `ROZO_CASHBACK_API.md` - ROZO token system details
+- `ROZO_CASHBACK_API.md` - Cashback system details
 - `ORDER_MANAGEMENT_API.md` - Shopping cart & orders
 - `TECHNICAL_SPEC.md` - Technical implementation details
 - `openapi.yaml` - OpenAPI 3.0 specification

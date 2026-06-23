@@ -21,8 +21,6 @@ export default function Web3Provider({
     cookies
   );
 
-  // Initialize synchronously on the client so the first client render
-  // already has the AppKit instance (avoids a render gate via useEffect).
   const [appKitInstance] = useState(() =>
     typeof window !== "undefined" ? initializeAppKit() : null,
   );

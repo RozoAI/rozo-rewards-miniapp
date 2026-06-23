@@ -1,4 +1,3 @@
-import { BottomNavbar } from "@/components/bottom-navbar";
 import IntercomInitializer from "@/components/intercom";
 import { MiniappPrompt } from "@/components/miniapp-prompt";
 import { BookmarkProvider } from "@/contexts/BookmarkContext";
@@ -9,20 +8,22 @@ import Web3Provider from "@/providers/Web3Provider";
 import { generateOgMetadata } from "@/lib/og-image";
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "next-themes";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "sonner";
 import "../globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -91,7 +92,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased pr-0! relative`}
+        className={`${inter.variable} ${jetbrainsMono.variable} antialiased pr-0! relative`}
         suppressHydrationWarning={true}
       >
         <Web3Provider cookies={cookies}>
@@ -101,18 +102,20 @@ export default async function RootLayout({
                 <ThemeProvider
                   attribute="class"
                   defaultTheme="light"
+                  forcedTheme="light"
                   enableSystem={false}
                   disableTransitionOnChange
                 >
-                  <main className="flex min-h-screen flex-col justify-between md:min-h-screen md:items-center md:justify-start relative">
+                  <main className="flex min-h-screen flex-col md:min-h-screen md:items-center relative">
                     <NextTopLoader showSpinner={false} />
                     <MiniappPrompt />
                     {children}
-                    <IntercomInitializer
-                      appId={process.env.INTERCOM_APP_ID as string}
-                    />
-                    <Toaster position="top-center" richColors />
-                    <BottomNavbar />
+                    {process.env.INTERCOM_APP_ID && (
+                      <IntercomInitializer
+                        appId={process.env.INTERCOM_APP_ID as string}
+                      />
+                    )}
+                    <Toaster position="top-center" />
                   </main>
                 </ThemeProvider>
               </BookmarkProvider>

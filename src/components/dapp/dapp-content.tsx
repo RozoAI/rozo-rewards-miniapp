@@ -3,14 +3,14 @@
 import { PageHeader } from "@/components/page-header";
 import { RestaurantDappDetail } from "@/components/restaurant/restaurant-dapp-detail";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { DAPP_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
-import { Globe, Sparkles } from "lucide-react";
+import { ChevronRight, Globe, Sparkles, Store } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -53,8 +53,8 @@ export interface DappContentProps {
 
 export function DappContent({
   className,
-  title = "DApps",
-  icon = <Globe className="size-6" />,
+  title = "Merchants",
+  icon = <Store className="size-6" />,
   isDapp = false,
   restaurants,
   aiServices,
@@ -68,9 +68,10 @@ export function DappContent({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const typeParam = searchParams.get("type");
-  const filter: FilterRegion = isFilterRegion(typeParam)
-    ? typeParam
-    : "network-schools";
+  const filter: FilterRegion =
+    isFilterRegion(typeParam) && !(isDapp && typeParam === "ai-services")
+      ? typeParam
+      : "network-schools";
 
   const { walletAddress, isConnected: isRozoWalletConnected } = useRozoWallet();
 
@@ -165,33 +166,41 @@ export function DappContent({
 
     const itemContent = (
       <>
-        <Avatar className="size-12 rounded-lg ring-1 ring-border bg-muted shrink-0">
+        <Avatar className="size-11 rounded-lg ring-1 ring-border bg-muted shrink-0">
           <AvatarImage src={restaurant.logo_url} alt={restaurant.name} />
           <AvatarFallback className="rounded-lg font-medium text-sm">
             {initials}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-foreground truncate">
+          <h3 className="font-semibold text-foreground truncate text-sm leading-tight">
             {restaurant.name}
           </h3>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs text-emerald-600 font-medium">
-              {restaurant.cashback_rate}% cashback
-            </span>
-            <span className="text-xs text-muted-foreground">•</span>
-            <span className="text-xs text-muted-foreground">
-              {restaurant.price}
-            </span>
-          </div>
+          {/* Hide this on dApp */}
+          {!isDapp && (
+            <>
+              <div className="flex items-center gap-2 mt-1.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded text-foreground">
+                    {restaurant.cashback_rate}% Cashback
+                  </span>
+                </div>
+                {restaurant.price && (
+                  <span className="text-xs text-muted-foreground">
+                    {restaurant.price}
+                  </span>
+                )}
+              </div>
+            </>
+          )}
         </div>
+        <ChevronRight className="size-4 text-muted-foreground shrink-0 self-center" />
       </>
     );
 
     const itemClassName = cn(
-      "flex items-start gap-3 px-4 py-4 w-full text-left",
-      "hover:bg-muted/50 transition-colors",
-      "active:bg-muted",
+      "flex items-center gap-3 px-4 py-3.5 w-full text-left",
+      "hover:bg-muted/50 active:bg-muted transition-colors duration-150",
     );
 
     return (
@@ -212,10 +221,7 @@ export function DappContent({
             {itemContent}
           </button>
         ) : (
-          <Link
-            href={`/restaurant/${restaurant._id}`}
-            className={itemClassName}
-          >
+          <Link href={`/ns/${restaurant.handle}`} className={itemClassName}>
             {itemContent}
           </Link>
         )}
@@ -242,10 +248,10 @@ export function DappContent({
     return (
       <li key={service.id}>
         <Link
-          href={`/ai-services/${encodeURIComponent(service.id)}?dapp=${isDapp}`}
+          href={`/ai-services/${encodeURIComponent(service.id)}`}
           className={cn(
-            "flex items-start gap-3 px-4 py-4",
-            "transition-colors duration-200 hover:bg-muted/40",
+            "flex items-center gap-3 px-4 py-3.5",
+            "transition-colors duration-150 hover:bg-muted/50 active:bg-muted",
           )}
           onClick={() =>
             capture(REWARDS_EVENTS.MERCHANT_VIEWED, {
@@ -255,36 +261,45 @@ export function DappContent({
             })
           }
         >
-          <Avatar className="size-12 shrink-0">
+          <Avatar className="size-11 rounded-lg ring-1 ring-border shrink-0">
             <AvatarImage src={service.logoUrl} alt={`${service.name} logo`} />
-            <AvatarFallback className="rounded-md text-xs font-semibold">
+            <AvatarFallback className="rounded-lg text-xs font-semibold">
               {initials}
             </AvatarFallback>
           </Avatar>
 
-          <div className="min-w-0 flex-1 flex items-start justify-between gap-3">
-            <div className="space-y-1">
-              <h3 className="font-semibold text-foreground truncate leading-tight">
-                {service.name}
-              </h3>
-              <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
-                {service.description}
-              </p>
-            </div>
-            <div className="mb-auto shrink-0 text-right leading-tight">
-              {hasDiscount && (
-                <p className="text-[11px] text-muted-foreground line-through">
-                  ${service.original_price_usd}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-semibold text-foreground text-sm leading-tight truncate">
+                  {service.name}
+                </h3>
+                <p className="text-xs text-muted-foreground truncate mt-0.5">
+                  {service.description}
                 </p>
-              )}
-              <p className="font-semibold text-foreground">{priceLabel}</p>
-              {hasDiscount && discountPercent !== null && (
-                <p className="text-[11px] font-medium text-emerald-600">
-                  save {discountPercent}%
+              </div>
+              <div className="shrink-0 text-right">
+                {hasDiscount && (
+                  <p className="text-[11px] text-muted-foreground line-through font-mono leading-tight">
+                    ${service.original_price_usd}
+                  </p>
+                )}
+                <p className="text-sm font-semibold text-foreground font-mono leading-tight">
+                  {priceLabel}
                 </p>
-              )}
+                {hasDiscount && discountPercent !== null && (
+                  <Badge
+                    variant="outline"
+                    className="text-success border-success/30 bg-success/5 py-0 text-[10px] font-medium mt-0.5"
+                  >
+                    -{discountPercent}%
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
+
+          <ChevronRight className="size-4 text-muted-foreground shrink-0" />
         </Link>
       </li>
     );
@@ -308,41 +323,54 @@ export function DappContent({
       />
 
       <div className="px-4 sm:px-0">
-        <div className="flex gap-2 overflow-x-auto sm:overflow-visible">
-          <Button
-            variant={filter === "network-schools" ? "default" : "outline"}
-            size="sm"
-            className="flex-1 sm:flex-none justify-start"
+        <div
+          role="tablist"
+          aria-label="Filter category"
+          className="inline-flex w-full rounded-lg border border-border bg-muted p-1 gap-1"
+        >
+          <button
+            role="tab"
+            aria-selected={filter === "network-schools"}
             onClick={() => setFilterInUrl("network-schools")}
+            className={cn(
+              "flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-150",
+              filter === "network-schools"
+                ? "bg-background text-foreground shadow-xs border border-border"
+                : "text-muted-foreground hover:text-foreground",
+            )}
           >
             <svg
-              width="24"
-              height="16"
+              width="14"
+              height="10"
               viewBox="0 0 30 20"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="size-4"
               aria-hidden="true"
               focusable="false"
+              className="shrink-0"
             >
               <path
                 d="M9.04883 0C14.4015 1.58136e-05 18.0466 0.857342 21.4111 0.857422C24.5739 0.857419 26.8592 0.730968 29.0273 0.478516C29.2469 0.453142 29.4413 0.621298 29.4414 0.838867V19.2832C29.4411 19.4516 29.323 19.5976 29.1543 19.626C27.6623 19.8749 24.1475 20 21.4111 20C18.4798 19.9999 14.1466 19.1426 9.55859 19.1426C5.14747 19.1426 2.72034 19.3956 0.432617 19.7822C0.207077 19.8203 0.000341557 19.6499 0 19.4248V1.0332C3.69636e-05 0.851129 0.136849 0.697243 0.320312 0.673828C2.56107 0.389876 5.35291 0 9.04883 0ZM13.4951 8.76074C11.9493 8.65328 10.6111 8.66895 9.43164 8.66895V11.1475C10.2548 11.1475 11.7426 11.1495 13.4922 11.2998C13.4903 13.3072 13.492 15.0743 13.5088 15.4326C14.1458 15.5754 14.5286 15.5754 15.791 15.8018V11.5508C17.549 11.7554 18.8433 11.8613 20.1377 11.8613V9.29004C18.7357 9.29004 17.6985 9.187 15.791 8.98242V4.79199C15.7758 4.78999 14.1434 4.57627 13.5088 4.57617C13.5086 4.61678 13.5007 6.53989 13.4951 8.76074Z"
                 fill="currentColor"
-              ></path>
+              />
             </svg>
-
-            <span>Network Schools</span>
-          </Button>
+            Network Schools
+          </button>
           {!isDapp && (
-            <Button
-              variant={filter === "ai-services" ? "default" : "outline"}
-              size="sm"
-              className="flex-1 sm:flex-none justify-start"
+            <button
+              role="tab"
+              aria-selected={filter === "ai-services"}
               onClick={() => setFilterInUrl("ai-services")}
+              className={cn(
+                "flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-150",
+                filter === "ai-services"
+                  ? "bg-background text-foreground shadow-xs border border-border"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
             >
-              <Sparkles className="size-4  text-yellow-500" />
-              <span>AI Services</span>
-            </Button>
+              <Sparkles className="size-3.5 shrink-0" />
+              AI Services
+            </button>
           )}
         </div>
       </div>
@@ -361,19 +389,19 @@ export function DappContent({
       )}
 
       <div className="px-4 sm:px-0">
-        <ul className="divide-y rounded-md border bg-card">
+        <ul className="divide-y divide-border rounded-xl border border-border bg-card overflow-hidden">
           {filter === "ai-services"
             ? searchedAiServices.map(renderAiServiceItem)
             : searchedRestaurants.map(renderRestaurantItem)}
         </ul>
 
         {filter !== "ai-services" && searchedRestaurants.length === 0 && (
-          <div className="text-center py-8 px-4">
-            <Globe className="size-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
+          <div className="flex flex-col items-center justify-center py-12 px-4 rounded-xl border border-border bg-card">
+            <Globe className="size-8 text-muted-foreground mb-3" />
+            <h3 className="text-sm font-semibold text-foreground mb-1">
               Coming soon
             </h3>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground text-center">
               Try changing the filter region.
             </p>
           </div>

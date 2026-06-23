@@ -1,11 +1,11 @@
 "use client";
 
-import { PaymentData } from "@/app/(main)/receipt/receipt-content";
 import { Button } from "@/components/ui/button";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { PAYMENT_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
-import { savePaymentReceipt } from "@/lib/payment-storage";
+import { createMerchantPayment } from "@/lib/api";
+import { savePaymentReceipt, type PaymentData } from "@/lib/payment-storage";
 import {
   errorToString,
   formatRozoErrorMessage,
@@ -13,13 +13,8 @@ import {
 } from "@/lib/rozo-errors";
 import { convertToUSD, getDisplayCurrency } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
-import {
-  baseUSDC,
-  createPayment,
-  rozoStellarUSDC,
-  updatePaymentPayInTxHash,
-} from "@rozoai/intent-common";
-import { Loader2, Wallet } from "lucide-react";
+import { updatePaymentPayInTxHash } from "@rozoai/intent-common";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
@@ -49,8 +44,8 @@ export function RestaurantDappPayment({
     transferUSDC: rozoWalletTransfer,
   } = useRozoWallet();
 
-  const [isRozoWalletPaymentLoading, setIsRozoWalletPaymentLoading] =
-    React.useState(false);
+  const [isCreatingPayment, setIsCreatingPayment] = React.useState(false);
+  const [isTransferring, setIsTransferring] = React.useState(false);
 
   const toAddress = React.useMemo(() => {
     return restaurant?.payTo ?? "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897";
@@ -103,10 +98,7 @@ export function RestaurantDappPayment({
   // Pay with Rozo Wallet (Stellar USDC)
   // Only shown when page is opened in Rozo Wallet mobile app
   // Uses window.rozo provider for gasless USDC transfers
-  const generateBridgeAddress = async (params: {
-    amountUsd: string;
-    amountLocal: string;
-  }): Promise<{
+  const generateBridgeAddress = async (): Promise<{
     paymentId: string;
     amount: string;
     bridgeAddress: string;
@@ -114,16 +106,11 @@ export function RestaurantDappPayment({
     receiverAddressContract?: string;
     receiverMemoContract?: string;
   }> => {
-    const payment = await createPayment({
+    const payment = await createMerchantPayment({
       appId: appId,
-      toAddress: toAddress,
-      toChain: baseUSDC.chainId,
-      toToken: baseUSDC.token,
-      toUnits: params.amountUsd,
-      preferredChain: rozoStellarUSDC.chainId,
-      preferredTokenAddress: rozoStellarUSDC.token,
-      metadata: generateMetadata(params.amountLocal) as any,
-      title: `Pay for ${restaurant?.name} - ${displayCurrency} ${params.amountLocal} ($${params.amountUsd})`,
+      amount_local: paymentAmount,
+      currency_local: displayCurrency,
+      source: { chainId: "1500", tokenSymbol: "USDC" },
     });
 
     if (
@@ -148,7 +135,7 @@ export function RestaurantDappPayment({
     if (!restaurant || !paymentAmount || !rozoWalletAddress) return;
 
     try {
-      setIsRozoWalletPaymentLoading(true);
+      setIsCreatingPayment(true);
 
       capture(PAYMENT_EVENTS.PAYMENT_METHOD_SELECTED, {
         merchant_id: restaurant._id,
@@ -158,10 +145,7 @@ export function RestaurantDappPayment({
 
       let bridgeResult: Awaited<ReturnType<typeof generateBridgeAddress>>;
       try {
-        bridgeResult = await generateBridgeAddress({
-          amountUsd: usdAmount,
-          amountLocal: paymentAmount,
-        });
+        bridgeResult = await generateBridgeAddress();
       } catch (bridgeError: unknown) {
         const errorMessage =
           bridgeError instanceof Error
@@ -187,6 +171,9 @@ export function RestaurantDappPayment({
         amount_usd: usdAmount,
         order_id: merchantOrderId,
       });
+
+      setIsCreatingPayment(false);
+      setIsTransferring(true);
 
       const {
         paymentId,
@@ -237,7 +224,9 @@ export function RestaurantDappPayment({
         // Store receipt data
         const receiptData: PaymentData = {
           from_address: rozoWalletAddress,
-          to_handle: restaurant.handle || restaurant.name.toLowerCase().replace(/\s+/g, ""),
+          to_handle:
+            restaurant.handle ||
+            restaurant.name.toLowerCase().replace(/\s+/g, ""),
           amount_usd_cents: parseFloat(usdAmount) * 100,
           amount_local: parseFloat(paymentAmount),
           currency_local: displayCurrency,
@@ -299,7 +288,8 @@ export function RestaurantDappPayment({
 
       toast.error(errorMessage);
     } finally {
-      setIsRozoWalletPaymentLoading(false);
+      setIsCreatingPayment(false);
+      setIsTransferring(false);
     }
   };
 
@@ -320,8 +310,9 @@ export function RestaurantDappPayment({
 
       {/* EURC notice */}
       {isEurcActive && (
-        <p className="text-xs text-amber-600 text-center">
-          Pay with Rozo Wallet requires USDC. Switch to USDC in your Rozo Wallet to pay.
+        <p className="text-xs text-warning text-center">
+          Pay with Rozo Wallet requires USDC. Switch to USDC in your Rozo Wallet
+          to pay.
         </p>
       )}
 
@@ -332,7 +323,8 @@ export function RestaurantDappPayment({
         onClick={handlePayWithRozoWallet}
         disabled={
           isEurcActive ||
-          isRozoWalletPaymentLoading ||
+          isCreatingPayment ||
+          isTransferring ||
           !paymentAmount ||
           parseFloat(paymentAmount) <= 0 ||
           isNaN(parseFloat(paymentAmount)) ||
@@ -341,20 +333,18 @@ export function RestaurantDappPayment({
         }
         size="lg"
       >
-        {isRozoWalletPaymentLoading || rozoWalletLoading ? (
+        {isCreatingPayment || isTransferring || rozoWalletLoading ? (
           <Loader2 className="mr-2 size-4 animate-spin" />
-        ) : (
-          <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-        )}
-        {isRozoWalletPaymentLoading ? (
-          "Processing Payment..."
-        ) : rozoWalletLoading ? (
-          "Loading..."
-        ) : rozoWalletBalanceUsd !== null && rozoWalletBalanceUsd > 0 ? (
-          `Pay $${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount} with Rozo Wallet`
-        ) : (
-          "Insufficient Rozo Wallet Balance"
-        )}
+        ) : null}
+        {isCreatingPayment
+          ? "Creating Payment..."
+          : isTransferring
+            ? "Processing Payment..."
+            : rozoWalletLoading
+              ? "Loading..."
+              : rozoWalletBalanceUsd !== null && rozoWalletBalanceUsd > 0
+                ? `Pay $${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount} with Rozo Wallet`
+                : "Insufficient Rozo Wallet Balance"}
       </Button>
     </div>
   );
