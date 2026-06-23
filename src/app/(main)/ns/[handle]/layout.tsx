@@ -1,6 +1,6 @@
 import { RozoPayClientWrapper } from "@/components/rozo-pay-client-wrapper";
 import { createMiniAppMetadata } from "@/lib/miniapp-embed";
-import { getRestaurantById } from "@/lib/restaurants";
+import { getRestaurantByHandle } from "@/lib/restaurants";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { FabActionsOrNothing } from "./fab-actions-or-nothing";
@@ -8,10 +8,10 @@ import { FabActionsOrNothing } from "./fab-actions-or-nothing";
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ handle: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
-  const restaurant = await getRestaurantById(id);
+  const { handle } = await params;
+  const restaurant = await getRestaurantByHandle(handle);
 
   const title = restaurant
     ? `${restaurant.name} — Restaurant`
@@ -42,7 +42,7 @@ export async function generateMetadata({
         ? `🍽️ Visit ${restaurant.name}`
         : "🍽️ View Restaurant",
       name: restaurant ? restaurant.name : "Restaurant Details",
-      url: `${process.env.NEXT_PUBLIC_URL}/restaurant/${id}`,
+      url: `${process.env.NEXT_PUBLIC_URL}/ns/${handle}`,
     },
     {
       title,
@@ -52,7 +52,7 @@ export async function generateMetadata({
         description,
       },
       alternates: {
-        canonical: `/restaurant/${id}`,
+        canonical: `/ns/${handle}`,
       },
       other: restaurant
         ? {

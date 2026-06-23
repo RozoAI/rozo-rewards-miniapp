@@ -4,18 +4,18 @@ import { PageHeader } from "@/components/page-header";
 import { RestaurantDiscoveryDetail } from "@/components/restaurant/restaurant-discovery-detail";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getRestaurantById } from "@/lib/restaurants";
+import { getRestaurantByHandle } from "@/lib/restaurants";
 import { useParams, useRouter } from "next/navigation";
 import React from "react";
 
 export default function RestaurantDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const restaurantId = params.id as string;
+  const handle = params.handle as string;
 
   const restaurant = React.useMemo(
-    () => getRestaurantById(restaurantId),
-    [restaurantId],
+    () => getRestaurantByHandle(handle),
+    [handle],
   );
 
   if (!restaurant) {

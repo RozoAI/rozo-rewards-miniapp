@@ -49,7 +49,7 @@ export default function LandingPage() {
 
         {nsCafe && (
           <Link
-            href={`/restaurant/${nsCafe._id}`}
+            href={`/ns/${nsCafe.handle}`}
             className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:border-border-strong transition-colors group"
           >
             <div className="size-12 rounded-xl border border-border bg-muted overflow-hidden shrink-0 flex items-center justify-center">

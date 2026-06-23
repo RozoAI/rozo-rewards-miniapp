@@ -204,7 +204,7 @@ export function GoogleMap({
                           </div>
 
                           <Button asChild size="sm" className="w-full mt-3">
-                            <Link href={`/restaurant/${restaurant._id}`}>
+                            <Link href={`/ns/${restaurant.handle}`}>
                               View Details
                             </Link>
                           </Button>

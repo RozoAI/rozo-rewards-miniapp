@@ -4,6 +4,7 @@ import React from "react";
 
 type LocationItem = {
   _id: string;
+  handle?: string;
   name: string;
   formatted: string;
   address_line1: string;
@@ -107,8 +108,8 @@ export function SimpleMap({ center, locations }: SimpleMapProps) {
                 <p style="font-size: 11px; font-weight: 600; color: #2563eb; margin-bottom: 8px;">${location.distance?.toFixed(
                   1
                 )} miles away</p>
-                <a href="/restaurant/${
-                  location._id
+                <a href="/ns/${
+                  location.handle ?? location._id
                 }" style="display: inline-block; padding: 4px 8px; background-color: #0052ff; color: white; text-decoration: none; border-radius: 4px; font-size: 11px; font-weight: 600;">Pay with Base</a>
               </div>
             `);

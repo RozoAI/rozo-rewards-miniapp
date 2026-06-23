@@ -218,7 +218,7 @@ export function DappContent({
           </button>
         ) : (
           <Link
-            href={`/restaurant/${restaurant._id}`}
+            href={`/ns/${restaurant.handle}`}
             className={itemClassName}
           >
             {itemContent}

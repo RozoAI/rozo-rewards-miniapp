@@ -27,7 +27,7 @@ export default function DappRestaurantDetailPage() {
         error_message: "Rozo Wallet not available or not connected",
         error_context: "wallet_not_available",
       });
-      router.replace(`/restaurant/${restaurantId}`);
+      router.replace(`/ns/${restaurant?.handle ?? restaurantId}`);
     }
   }, [isChecking, isAvailable, isConnected, restaurantId, router]);
 

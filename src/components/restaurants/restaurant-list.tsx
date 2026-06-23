@@ -18,7 +18,7 @@ function ListRow({ location }: { location: Restaurant }) {
   return (
     <li>
       <Link
-        href={`/restaurant/${location._id}`}
+        href={`/ns/${location.handle}`}
         className="flex items-start gap-3 px-4 py-4 border-b !border-gray-400 last:border-b-0 hover:bg-accent/30 transition-colors"
       >
         <Avatar className="size-12 sm:size-16 rounded-lg ring-1 ring-border bg-muted flex-shrink-0">
