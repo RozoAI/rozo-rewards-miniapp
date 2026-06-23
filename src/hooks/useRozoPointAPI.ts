@@ -56,7 +56,7 @@ export function useRozoPointAPI() {
       try {
         const addressLower = address.toLowerCase();
         const response = await fetch(
-          `https://auth0.rozo.ai/functions/v1/cashback?evm_address=${addressLower}`
+          `https://auth0.rozo.ai/functions/v1/cashback?evm_address=${addressLower}`,
         );
 
         if (response.ok) {
@@ -94,7 +94,7 @@ export function useRozoPointAPI() {
     amountUsdCents: number,
     timestamp: number,
     orderId: string = "",
-    about: string = ""
+    about: string = "",
   ): string {
     const dollars = Math.floor(amountUsdCents / 100);
     const cents = amountUsdCents % 100;
@@ -110,7 +110,7 @@ About: ${about}
   }
 
   const spendPoints = async (
-    payload: SpendPointsRequest
+    payload: SpendPointsRequest,
   ): Promise<SpendPointsResponse | null> => {
     setIsLoading(true);
     setError(null);
@@ -123,7 +123,7 @@ About: ${about}
         payload.amount_usd_cents,
         payload.timestamp,
         payload.order_id,
-        payload.about
+        payload.about,
       );
 
       // Get signature from wallet
@@ -136,7 +136,7 @@ About: ${about}
 
       const currentConnector = wagmiAdapter.getConnectorId("eip155");
       const connector = wagmiAdapter.wagmiConfig.connectors.find(
-        (connector) => connector.id === currentConnector
+        (connector) => connector.id === currentConnector,
       );
 
       const signature = await signMessage(wagmiAdapter.wagmiConfig, {

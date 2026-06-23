@@ -1,14 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { PAYMENT_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
 import { createMerchantPayment } from "@/lib/api";
 import { savePaymentReceipt, type PaymentData } from "@/lib/payment-storage";
 import { convertToUSD, getDisplayCurrency } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
-import { useAppKitAccount } from "@reown/appkit/react";
 import { PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton } from "@rozoai/intent-pay";
 import { CreditCard, Loader2 } from "lucide-react";
@@ -38,10 +36,8 @@ export function RestaurantDiscoveryPayment({
   setLoading,
 }: RestaurantDiscoveryPaymentProps) {
   const router = useRouter();
-  const { getPoints, spendPoints } = useRozoPointAPI();
-  const { address, isConnected } = useAppKitAccount();
-
-  const [points, setPoints] = React.useState(0);
+  // const { getPoints, spendPoints } = useRozoPointAPI(); // ponytail: points disabled
+  const [points] = React.useState(0);
   const [pointsLoading, setPointsLoading] = React.useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
   const [dialogLoading, setDialogLoading] = React.useState(false);
@@ -69,19 +65,6 @@ export function RestaurantDiscoveryPayment({
       return () => clearTimeout(timer);
     }
   }, [paymentId]);
-
-  // Fetch points balance
-  useEffect(() => {
-    const fetchPoints = async () => {
-      if (!address) return;
-
-      setPointsLoading(true);
-      const pts = await getPoints(address);
-      setPoints(pts / 100);
-      setPointsLoading(false);
-    };
-    fetchPoints();
-  }, [isConnected, address, getPoints]);
 
   const handleCreatePayment = useCallback(async () => {
     if (!restaurant || !paymentAmount || parseFloat(paymentAmount) <= 0) return;
@@ -134,7 +117,8 @@ export function RestaurantDiscoveryPayment({
       });
 
       const receiptData: PaymentData = {
-        from_address: address || "",
+        // from_address: address || "",
+        from_address: "",
         to_handle:
           restaurant.handle ||
           restaurant.name.toLowerCase().replace(/\s+/g, ""),
@@ -164,7 +148,7 @@ export function RestaurantDiscoveryPayment({
         router.push(`/receipt?payment_id=${merchantOrderId}`);
       }, 1000);
     },
-    [restaurant, address, paymentAmount, merchantOrderId],
+    [restaurant, paymentAmount, merchantOrderId],
   );
 
   const handlePayWithPoints = () => {
@@ -178,89 +162,89 @@ export function RestaurantDiscoveryPayment({
     setShowConfirmDialog(true);
   };
 
-  const confirmPaymentWithPoints = async () => {
-    try {
-      if (!address || !restaurant || !paymentAmount) return;
+  // const confirmPaymentWithPoints = async () => {
+  //   try {
+  //     if (!address || !restaurant || !paymentAmount) return;
 
-      setDialogLoading(true);
+  //     setDialogLoading(true);
 
-      const displayCurrency = getDisplayCurrency(restaurant?.currency);
-      const usdAmount = convertToUSD(paymentAmount, displayCurrency);
+  //     const displayCurrency = getDisplayCurrency(restaurant?.currency);
+  //     const usdAmount = convertToUSD(paymentAmount, displayCurrency);
 
-      capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
-        merchant_id: restaurant._id,
-        merchant_name: restaurant.name,
-        payment_method: "points",
-        amount_usd: usdAmount,
-        order_id: merchantOrderId,
-      });
+  //     capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
+  //       merchant_id: restaurant._id,
+  //       merchant_name: restaurant.name,
+  //       payment_method: "points",
+  //       amount_usd: usdAmount,
+  //       order_id: merchantOrderId,
+  //     });
 
-      const paymentData = {
-        from_address: address,
-        to_handle:
-          restaurant.handle ||
-          restaurant.name.toLowerCase().replace(/\s+/g, ""),
-        amount_usd_cents: parseFloat(usdAmount) * 100,
-        amount_local: parseFloat(paymentAmount),
-        currency_local: displayCurrency,
-        timestamp: Date.now(),
-        order_id: merchantOrderId,
-        about: `Pay for ${restaurant.name} - $${paymentAmount}`,
-      };
-      const response = await spendPoints(paymentData);
+  //     const paymentData = {
+  //       from_address: address,
+  //       to_handle:
+  //         restaurant.handle ||
+  //         restaurant.name.toLowerCase().replace(/\s+/g, ""),
+  //       amount_usd_cents: parseFloat(usdAmount) * 100,
+  //       amount_local: parseFloat(paymentAmount),
+  //       currency_local: displayCurrency,
+  //       timestamp: Date.now(),
+  //       order_id: merchantOrderId,
+  //       about: `Pay for ${restaurant.name} - $${paymentAmount}`,
+  //     };
+  //     const response = await spendPoints(paymentData);
 
-      if (response && response.status === "success") {
-        const receiptData: PaymentData = {
-          ...response.data,
-          restaurant_name: restaurant.name,
-          restaurant_address: restaurant.address_line1,
-          is_using_points: true,
-        };
+  //     if (response && response.status === "success") {
+  //       const receiptData: PaymentData = {
+  //         ...response.data,
+  //         restaurant_name: restaurant.name,
+  //         restaurant_address: restaurant.address_line1,
+  //         is_using_points: true,
+  //       };
 
-        console.log("[Restaurant] Pay with Points - About to save receipt:", {
-          merchantOrderId,
-          receiptData,
-        });
-        savePaymentReceipt(merchantOrderId, receiptData);
-        console.log(
-          "[Restaurant] Pay with Points - Receipt saved, navigating to /receipt?payment_id=" +
-            merchantOrderId,
-        );
+  //       console.log("[Restaurant] Pay with Points - About to save receipt:", {
+  //         merchantOrderId,
+  //         receiptData,
+  //       });
+  //       savePaymentReceipt(merchantOrderId, receiptData);
+  //       console.log(
+  //         "[Restaurant] Pay with Points - Receipt saved, navigating to /receipt?payment_id=" +
+  //           merchantOrderId,
+  //       );
 
-        capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
-          merchant_id: restaurant._id,
-          merchant_name: restaurant.name,
-          payment_method: "points",
-          amount_usd: usdAmount,
-          order_id: merchantOrderId,
-        });
+  //       capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
+  //         merchant_id: restaurant._id,
+  //         merchant_name: restaurant.name,
+  //         payment_method: "points",
+  //         amount_usd: usdAmount,
+  //         order_id: merchantOrderId,
+  //       });
 
-        setShowConfirmDialog(false);
-        toast.success("Points spent successfully");
-        router.push(`/receipt?payment_id=${merchantOrderId}`);
-      } else {
-        capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
-          merchant_id: restaurant._id,
-          merchant_name: restaurant.name,
-          payment_method: "points",
-          error_message: "Failed to spend points",
-        });
-        toast.error("Failed to spend points");
-        setDialogLoading(false);
-      }
-    } catch {
-      if (restaurant) {
-        capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
-          merchant_id: restaurant._id,
-          merchant_name: restaurant.name,
-          payment_method: "points",
-          error_message: "Failed to spend points",
-        });
-      }
-      toast.error("Failed to spend points");
-      setDialogLoading(false);
-    }
-  };
+  //       setShowConfirmDialog(false);
+  //       toast.success("Points spent successfully");
+  //       router.push(`/receipt?payment_id=${merchantOrderId}`);
+  //     } else {
+  //       capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
+  //         merchant_id: restaurant._id,
+  //         merchant_name: restaurant.name,
+  //         payment_method: "points",
+  //         error_message: "Failed to spend points",
+  //       });
+  //       toast.error("Failed to spend points");
+  //       setDialogLoading(false);
+  //     }
+  //   } catch {
+  //     if (restaurant) {
+  //       capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
+  //         merchant_id: restaurant._id,
+  //         merchant_name: restaurant.name,
+  //         payment_method: "points",
+  //         error_message: "Failed to spend points",
+  //       });
+  //     }
+  //     toast.error("Failed to spend points");
+  //     setDialogLoading(false);
+  //   }
+  // };
 
   if (!restaurant) return null;
 

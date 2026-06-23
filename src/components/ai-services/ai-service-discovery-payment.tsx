@@ -1,12 +1,10 @@
 "use client";
 
-import { type PaymentData } from "@/lib/payment-storage";
 import { Button } from "@/components/ui/button";
-import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { getAiServiceById } from "@/lib/ai-services";
-import { PAYMENT_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
+import { PAYMENT_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
-import { savePaymentReceipt } from "@/lib/payment-storage";
+import { savePaymentReceipt, type PaymentData } from "@/lib/payment-storage";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPayUI } from "@rozoai/intent-pay";
@@ -38,7 +36,7 @@ export function AiServiceDiscoveryPayment({
 }: AiServiceDiscoveryPaymentProps) {
   const router = useRouter();
   const { resetPayment } = useRozoPayUI();
-  const { getPoints, spendPoints } = useRozoPointAPI();
+  // const { getPoints, spendPoints } = useRozoPointAPI();
   const { address, isConnected } = useAppKitAccount();
 
   const [points, setPoints] = React.useState(0);
@@ -125,15 +123,15 @@ export function AiServiceDiscoveryPayment({
   }, [userEmail]);
 
   // Fetch points balance
-  useEffect(() => {
-    const fetchPoints = async () => {
-      if (!address || !isConnected) return;
+  // useEffect(() => {
+  //   const fetchPoints = async () => {
+  //     if (!address || !isConnected) return;
 
-      const pts = await getPoints(address);
-      setPoints(pts / 100);
-    };
-    fetchPoints();
-  }, [isConnected, address, getPoints]);
+  //     const pts = await getPoints(address);
+  //     setPoints(pts / 100);
+  //   };
+  //   fetchPoints();
+  // }, [isConnected, address, getPoints]);
 
   const handlePaymentCompleted = (_args: PaymentCompletedEvent) => {
     if (!service) return;
@@ -198,80 +196,80 @@ export function AiServiceDiscoveryPayment({
     setShowConfirmDialog(true);
   };
 
-  const confirmPaymentWithPoints = async () => {
-    if (!address || !service) return;
+  // const confirmPaymentWithPoints = async () => {
+  //   if (!address || !service) return;
 
-    setDialogLoading(true);
+  //   setDialogLoading(true);
 
-    const paymentData = {
-      from_address: address,
-      to_handle: service.id,
-      amount_usd_cents: priceUsd * 100,
-      amount_local: priceUsd,
-      currency_local: "USD",
-      timestamp: Date.now(),
-      order_id: merchantOrderId,
-      about: `Pay for ${service.name}`,
-    };
+  //   const paymentData = {
+  //     from_address: address,
+  //     to_handle: service.id,
+  //     amount_usd_cents: priceUsd * 100,
+  //     amount_local: priceUsd,
+  //     currency_local: "USD",
+  //     timestamp: Date.now(),
+  //     order_id: merchantOrderId,
+  //     about: `Pay for ${service.name}`,
+  //   };
 
-    capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
-      merchant_id: service.id,
-      merchant_name: service.name,
-      payment_method: "points",
-      amount_usd: priceUsd.toString(),
-      order_id: merchantOrderId,
-    });
+  //   capture(PAYMENT_EVENTS.PAYMENT_CONFIRMED, {
+  //     merchant_id: service.id,
+  //     merchant_name: service.name,
+  //     payment_method: "points",
+  //     amount_usd: priceUsd.toString(),
+  //     order_id: merchantOrderId,
+  //   });
 
-    const response = await spendPoints(paymentData);
+  //   const response = await spendPoints(paymentData);
 
-    if (response && response.status === "success") {
-      // Store payment data in localStorage for receipt page
-      const receiptData = {
-        ...response.data,
-        service_name: service.name,
-        service_domain: service.id,
-        is_using_points: true,
-      };
+  //   if (response && response.status === "success") {
+  //     // Store payment data in localStorage for receipt page
+  //     const receiptData = {
+  //       ...response.data,
+  //       service_name: service.name,
+  //       service_domain: service.id,
+  //       is_using_points: true,
+  //     };
 
-      console.log("[AI Services] Pay with Points - About to save receipt:", {
-        merchantOrderId,
-        receiptData,
-      });
-      savePaymentReceipt(merchantOrderId, receiptData);
-      console.log(
-        "[AI Services] Pay with Points - Receipt saved, navigating to /receipt?payment_id=" +
-          merchantOrderId,
-      );
+  //     console.log("[AI Services] Pay with Points - About to save receipt:", {
+  //       merchantOrderId,
+  //       receiptData,
+  //     });
+  //     savePaymentReceipt(merchantOrderId, receiptData);
+  //     console.log(
+  //       "[AI Services] Pay with Points - Receipt saved, navigating to /receipt?payment_id=" +
+  //         merchantOrderId,
+  //     );
 
-      capture(REWARDS_EVENTS.REWARDS_REDEEMED, {
-        merchant_id: service.id,
-        merchant_name: service.name,
-        usd_value_offset: priceUsd.toString(),
-        order_id: merchantOrderId,
-      });
-      capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
-        merchant_id: service.id,
-        merchant_name: service.name,
-        payment_method: "points",
-        amount_usd: priceUsd.toString(),
-        order_id: merchantOrderId,
-      });
+  //     capture(REWARDS_EVENTS.REWARDS_REDEEMED, {
+  //       merchant_id: service.id,
+  //       merchant_name: service.name,
+  //       usd_value_offset: priceUsd.toString(),
+  //       order_id: merchantOrderId,
+  //     });
+  //     capture(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
+  //       merchant_id: service.id,
+  //       merchant_name: service.name,
+  //       payment_method: "points",
+  //       amount_usd: priceUsd.toString(),
+  //       order_id: merchantOrderId,
+  //     });
 
-      setShowConfirmDialog(false);
+  //     setShowConfirmDialog(false);
 
-      // Navigate to receipt page
-      router.push(`/receipt?payment_id=${merchantOrderId}`);
-    } else {
-      capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
-        merchant_id: service.id,
-        merchant_name: service.name,
-        payment_method: "points",
-        error_message: "Failed to spend points",
-      });
-      toast.error("Failed to spend points");
-      setDialogLoading(false);
-    }
-  };
+  //     // Navigate to receipt page
+  //     router.push(`/receipt?payment_id=${merchantOrderId}`);
+  //   } else {
+  //     capture(PAYMENT_EVENTS.PAYMENT_FAILED, {
+  //       merchant_id: service.id,
+  //       merchant_name: service.name,
+  //       payment_method: "points",
+  //       error_message: "Failed to spend points",
+  //     });
+  //     toast.error("Failed to spend points");
+  //     setDialogLoading(false);
+  //   }
+  // };
 
   if (!service) return null;
 
