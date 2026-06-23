@@ -100,7 +100,7 @@ export function RestaurantDiscoveryPayment({
         appId: `pos_${restaurant.handle}`,
         amount_local: paymentAmount,
         currency_local: displayCurrency,
-        partner: "rozo",
+        source: { chainId: "8453", tokenSymbol: "USDC" },
       });
       setPaymentId(response.id);
     } catch (error) {

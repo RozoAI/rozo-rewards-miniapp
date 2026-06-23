@@ -11,17 +11,11 @@ import {
   formatRozoErrorMessage,
   isUserCancellation,
 } from "@/lib/rozo-errors";
-import {
-  baseUSDC,
-  createPayment,
-  rozoStellarUSDC,
-} from "@rozoai/intent-common";
+import { createMerchantPayment } from "@/lib/api";
 import { Loader2, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
-
-const toAddress = "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897";
 
 interface AiServiceDappPaymentProps {
   service: NonNullable<ReturnType<typeof getAiServiceById>>;
@@ -89,9 +83,7 @@ export function AiServiceDappPayment({
   // Pay with Rozo Wallet (Stellar USDC)
   // Only shown when page is opened in Rozo Wallet mobile app
   // Uses window.rozo provider for gasless USDC transfers
-  const generateBridgeAddress = async (
-    amount: string,
-  ): Promise<{
+  const generateBridgeAddress = async (): Promise<{
     paymentId: string;
     amount: string;
     bridgeAddress: string;
@@ -99,16 +91,11 @@ export function AiServiceDappPayment({
     receiverAddressContract?: string;
     receiverMemoContract?: string;
   }> => {
-    const payment = await createPayment({
+    const payment = await createMerchantPayment({
       appId: appId,
-      toAddress: toAddress,
-      toChain: baseUSDC.chainId,
-      toToken: baseUSDC.token,
-      toUnits: amount,
-      preferredChain: rozoStellarUSDC.chainId,
-      preferredTokenAddress: rozoStellarUSDC.token,
-      metadata: generateMetadata() as any,
-      title: `Pay for ${service?.name}`,
+      amount_local: service.price_usd!.toString(),
+      currency_local: "USD",
+      source: { chainId: "1500", tokenSymbol: "USDC" },
     });
 
     if (
@@ -149,7 +136,7 @@ export function AiServiceDappPayment({
 
       let bridgeResult: Awaited<ReturnType<typeof generateBridgeAddress>>;
       try {
-        bridgeResult = await generateBridgeAddress(usdAmount);
+        bridgeResult = await generateBridgeAddress();
       } catch (bridgeError: unknown) {
         const errorMessage =
           bridgeError instanceof Error

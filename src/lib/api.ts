@@ -4,7 +4,7 @@ export interface MerchantPaymentRequest {
   appId: string;
   amount_local: string;
   currency_local: string;
-  partner: string;
+  source?: { chainId: string; tokenSymbol: string };
 }
 
 export interface MerchantPaymentResponse {
@@ -38,6 +38,8 @@ export interface MerchantPaymentResponse {
     amount: string;
     receiverAddress: string;
     receiverMemo: string | null;
+    receiverAddressContract?: string;
+    receiverMemoContract?: string;
     fee: string;
     senderAddress: string | null;
     txHash: string | null;
