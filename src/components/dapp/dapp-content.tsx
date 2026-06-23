@@ -68,9 +68,10 @@ export function DappContent({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const typeParam = searchParams.get("type");
-  const filter: FilterRegion = isFilterRegion(typeParam)
-    ? typeParam
-    : "network-schools";
+  const filter: FilterRegion =
+    isFilterRegion(typeParam) && !(isDapp && typeParam === "ai-services")
+      ? typeParam
+      : "network-schools";
 
   const { walletAddress, isConnected: isRozoWalletConnected } = useRozoWallet();
 
