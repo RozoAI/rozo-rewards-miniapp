@@ -333,15 +333,17 @@ export function DappContent({
 
             <span>Network Schools</span>
           </Button>
-          <Button
-            variant={filter === "ai-services" ? "default" : "outline"}
-            size="sm"
-            className="flex-1 sm:flex-none justify-start"
-            onClick={() => setFilterInUrl("ai-services")}
-          >
-            <Sparkles className="size-4  text-yellow-500" />
-            <span>AI Services</span>
-          </Button>
+          {!isDapp && (
+            <Button
+              variant={filter === "ai-services" ? "default" : "outline"}
+              size="sm"
+              className="flex-1 sm:flex-none justify-start"
+              onClick={() => setFilterInUrl("ai-services")}
+            >
+              <Sparkles className="size-4  text-yellow-500" />
+              <span>AI Services</span>
+            </Button>
+          )}
         </div>
       </div>
 
