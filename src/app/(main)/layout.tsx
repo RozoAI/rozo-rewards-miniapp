@@ -1,8 +1,6 @@
 import IntercomInitializer from "@/components/intercom";
 import { MiniappPrompt } from "@/components/miniapp-prompt";
 import { BookmarkProvider } from "@/contexts/BookmarkContext";
-import { CreditProvider } from "@/contexts/CreditContext";
-import { MiniKitContextProvider } from "@/providers/MiniKitProvider";
 import Web3Provider from "@/providers/Web3Provider";
 // import "@coinbase/onchainkit/styles.css";
 import { generateOgMetadata } from "@/lib/og-image";
@@ -96,31 +94,31 @@ export default async function RootLayout({
         suppressHydrationWarning={true}
       >
         <Web3Provider cookies={cookies}>
-          <MiniKitContextProvider>
-            <CreditProvider>
-              <BookmarkProvider>
-                <ThemeProvider
-                  attribute="class"
-                  defaultTheme="light"
-                  forcedTheme="light"
-                  enableSystem={false}
-                  disableTransitionOnChange
-                >
-                  <main className="flex min-h-screen flex-col md:min-h-screen md:items-center relative">
-                    <NextTopLoader showSpinner={false} />
-                    <MiniappPrompt />
-                    {children}
-                    {process.env.INTERCOM_APP_ID && (
-                      <IntercomInitializer
-                        appId={process.env.INTERCOM_APP_ID as string}
-                      />
-                    )}
-                    <Toaster position="top-center" />
-                  </main>
-                </ThemeProvider>
-              </BookmarkProvider>
-            </CreditProvider>
-          </MiniKitContextProvider>
+          {/* <MiniKitContextProvider> */}
+          {/* <CreditProvider> */}
+          <BookmarkProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              forcedTheme="light"
+              enableSystem={false}
+              disableTransitionOnChange
+            >
+              <main className="flex min-h-screen flex-col md:min-h-screen md:items-center relative">
+                <NextTopLoader showSpinner={false} />
+                <MiniappPrompt />
+                {children}
+                {process.env.INTERCOM_APP_ID && (
+                  <IntercomInitializer
+                    appId={process.env.INTERCOM_APP_ID as string}
+                  />
+                )}
+                <Toaster position="top-center" />
+              </main>
+            </ThemeProvider>
+          </BookmarkProvider>
+          {/* </CreditProvider> */}
+          {/* </MiniKitContextProvider> */}
         </Web3Provider>
       </body>
     </html>

@@ -1,14 +1,10 @@
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import {
   arbitrum as arbitrumNetwork,
-  avalanche as avalancheNetwork,
   base as baseNetwork,
   bsc as bscNetwork,
-  gnosis as gnosisNetwork,
   mainnet as mainnetNetwork,
-  optimism as optimismNetwork,
   polygon as polygonNetwork,
-  worldchain as worldchainNetwork,
 } from "@reown/appkit/networks";
 import { createAppKit } from "@reown/appkit/react";
 import { http } from "viem";
@@ -24,7 +20,6 @@ import {
   polygon,
   worldchain,
 } from "wagmi/chains";
-import { injected } from "wagmi/connectors";
 
 // WalletConnect v2 Project ID - you should get your own from https://cloud.walletconnect.com
 const WALLETCONNECT_PROJECT_ID =
@@ -46,29 +41,29 @@ const metadata = {
 export const wagmiAdapter = new WagmiAdapter({
   networks: [
     arbitrumNetwork,
-    avalancheNetwork,
+    // avalancheNetwork,
     baseNetwork,
     bscNetwork,
-    gnosisNetwork,
+    // gnosisNetwork,
     hyperEvm,
     mainnetNetwork,
-    optimismNetwork,
+    // optimismNetwork,
     polygonNetwork,
-    worldchainNetwork,
+    // worldchainNetwork,
   ],
   projectId: WALLETCONNECT_PROJECT_ID,
   ssr: true,
   chains: [
     arbitrum,
-    avalanche,
+    // avalanche,
     base,
     bsc,
-    gnosis,
+    // gnosis,
     hyperEvm,
     mainnet,
-    optimism,
+    // optimism,
     polygon,
-    worldchain,
+    // worldchain,
   ],
   transports: {
     [arbitrum.id]: http(),
@@ -82,11 +77,11 @@ export const wagmiAdapter = new WagmiAdapter({
     [polygon.id]: http(),
     [worldchain.id]: http(),
   },
-  connectors: [
-    injected({
-      shimDisconnect: true,
-    }),
-  ],
+  // connectors: [
+  //   injected({
+  //     shimDisconnect: true,
+  //   }),
+  // ],
 });
 
 // 4. Create modal - only initialize once
@@ -112,9 +107,5 @@ export function initializeAppKit() {
       allowUnsupportedChain: true,
     });
   }
-  return appKitInstance;
-}
-
-function getAppKitInstance() {
   return appKitInstance;
 }

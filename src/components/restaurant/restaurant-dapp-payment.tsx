@@ -101,8 +101,6 @@ export function RestaurantDappPayment({
   const generateBridgeAddress = async (): Promise<{
     paymentId: string;
     amount: string;
-    bridgeAddress: string;
-    memo: string;
     receiverAddressContract?: string;
     receiverMemoContract?: string;
   }> => {
@@ -114,18 +112,16 @@ export function RestaurantDappPayment({
     });
 
     if (
-      !payment.source.receiverAddress ||
-      !payment.source.amount ||
-      !payment.source.receiverMemo
+      !payment.source.receiverAddressContract ||
+      !payment.source.receiverMemoContract ||
+      !payment.source.amount
     ) {
-      throw new Error("Failed to generate bridge address");
+      throw new Error("Failed to generate payment");
     }
 
     return {
       paymentId: payment.id,
       amount: payment.source.amount,
-      bridgeAddress: payment.source.receiverAddress,
-      memo: payment.source.receiverMemo,
       receiverAddressContract: payment.source.receiverAddressContract,
       receiverMemoContract: payment.source.receiverMemoContract,
     };

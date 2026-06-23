@@ -1,13 +1,15 @@
 "use client";
 
-import { initializeAppKit, wagmiAdapter } from "@/lib/appkit";
-import { AppKitProvider } from "@reown/appkit/react";
+import { getDefaultConfig } from "@rozoai/intent-pay";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
-import { base } from "viem/chains";
-import { Config, cookieToInitialState, WagmiProvider } from "wagmi";
+import { createConfig, WagmiProvider } from "wagmi";
 
 const queryClient = new QueryClient();
+export const wagmiConfig = createConfig(
+  getDefaultConfig({
+    appName: "Your App Name",
+  }),
+);
 
 export default function Web3Provider({
   children,
@@ -16,29 +18,18 @@ export default function Web3Provider({
   children: React.ReactNode;
   cookies: string | null;
 }) {
-  const initialState = cookieToInitialState(
-    wagmiAdapter.wagmiConfig as Config,
-    cookies
-  );
+  // const initialState = cookieToInitialState(
+  //   wagmiAdapter.wagmiConfig as Config,
+  //   cookies,
+  // );
 
-  const [appKitInstance] = useState(() =>
-    typeof window !== "undefined" ? initializeAppKit() : null,
-  );
+  // const [appKitInstance] = useState(() =>
+  //   typeof window !== "undefined" ? initializeAppKit() : null,
+  // );
 
   return (
-    <WagmiProvider
-      config={wagmiAdapter.wagmiConfig as Config}
-      initialState={initialState}
-    >
-      <QueryClientProvider client={queryClient}>
-        {appKitInstance ? (
-          <AppKitProvider {...appKitInstance} defaultNetwork={base}>
-            {children}
-          </AppKitProvider>
-        ) : (
-          children
-        )}
-      </QueryClientProvider>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
   );
 }
