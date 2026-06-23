@@ -217,10 +217,7 @@ export function DappContent({
             {itemContent}
           </button>
         ) : (
-          <Link
-            href={`/ns/${restaurant.handle}`}
-            className={itemClassName}
-          >
+          <Link href={`/ns/${restaurant.handle}`} className={itemClassName}>
             {itemContent}
           </Link>
         )}
@@ -355,20 +352,22 @@ export function DappContent({
             </svg>
             Network Schools
           </button>
-          <button
-            role="tab"
-            aria-selected={filter === "ai-services"}
-            onClick={() => setFilterInUrl("ai-services")}
-            className={cn(
-              "flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-150",
-              filter === "ai-services"
-                ? "bg-background text-foreground shadow-xs border border-border"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <Sparkles className="size-3.5 shrink-0" />
-            AI Services
-          </button>
+          {!isDapp && (
+            <button
+              role="tab"
+              aria-selected={filter === "ai-services"}
+              onClick={() => setFilterInUrl("ai-services")}
+              className={cn(
+                "flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-150",
+                filter === "ai-services"
+                  ? "bg-background text-foreground shadow-xs border border-border"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Sparkles className="size-3.5 shrink-0" />
+              AI Services
+            </button>
+          )}
         </div>
       </div>
 
