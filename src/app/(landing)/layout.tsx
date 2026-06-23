@@ -1,3 +1,4 @@
+import { LandingProviders } from "@/providers/landing-providers";
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "../globals.css";
@@ -34,7 +35,7 @@ export default function LandingLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
-        {children}
+        <LandingProviders>{children}</LandingProviders>
       </body>
     </html>
   );

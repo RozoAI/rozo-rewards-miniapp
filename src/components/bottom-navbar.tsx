@@ -20,9 +20,9 @@ export function BottomNavbar() {
     return pathname.startsWith(href);
   };
 
-  // Hide navbar on /dapp route
+  // Hide navbar on /merchants route
   if (
-    pathname === "/dapp" ||
+    pathname === "/merchants" ||
     pathname === "/wallet" ||
     pathname === "/qr" ||
     (isRozoWalletAvailable && isRozoWalletConnected)

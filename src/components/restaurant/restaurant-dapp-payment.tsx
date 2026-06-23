@@ -1,11 +1,11 @@
 "use client";
 
-import { type PaymentData } from "@/lib/payment-storage";
 import { Button } from "@/components/ui/button";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { PAYMENT_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
-import { savePaymentReceipt } from "@/lib/payment-storage";
+import { createMerchantPayment } from "@/lib/api";
+import { savePaymentReceipt, type PaymentData } from "@/lib/payment-storage";
 import {
   errorToString,
   formatRozoErrorMessage,
@@ -14,8 +14,7 @@ import {
 import { convertToUSD, getDisplayCurrency } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
 import { updatePaymentPayInTxHash } from "@rozoai/intent-common";
-import { createMerchantPayment } from "@/lib/api";
-import { Loader2, Wallet } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
@@ -336,9 +335,7 @@ export function RestaurantDappPayment({
       >
         {isCreatingPayment || isTransferring || rozoWalletLoading ? (
           <Loader2 className="mr-2 size-4 animate-spin" />
-        ) : (
-          <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-        )}
+        ) : null}
         {isCreatingPayment
           ? "Creating Payment..."
           : isTransferring
@@ -346,7 +343,7 @@ export function RestaurantDappPayment({
             : rozoWalletLoading
               ? "Loading..."
               : rozoWalletBalanceUsd !== null && rozoWalletBalanceUsd > 0
-                ? `Pay ≈$${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount} with Rozo Wallet`
+                ? `Pay $${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount} with Rozo Wallet`
                 : "Insufficient Rozo Wallet Balance"}
       </Button>
     </div>

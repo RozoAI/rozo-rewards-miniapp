@@ -248,7 +248,7 @@ export function DappContent({
     return (
       <li key={service.id}>
         <Link
-          href={`/ai-services/${encodeURIComponent(service.id)}?dapp=${isDapp}`}
+          href={`/ai-services/${encodeURIComponent(service.id)}`}
           className={cn(
             "flex items-center gap-3 px-4 py-3.5",
             "transition-colors duration-150 hover:bg-muted/50 active:bg-muted",

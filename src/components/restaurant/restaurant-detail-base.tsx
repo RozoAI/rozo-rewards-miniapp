@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-  EXCHANGE_RATES,
+  convertToUSD,
   getDisplayCurrency,
   getFirstTwoWordInitialsFromName,
 } from "@/lib/utils";
@@ -89,7 +89,7 @@ export function RestaurantDetailBase({
               >
                 {restaurant.name}
               </h2>
-              {!isDapp && restaurant.cashback_rate > 0 && (
+              {/* {!isDapp && restaurant.cashback_rate > 0 && (
                 <p className="text-xs text-muted-foreground">
                   Earn{" "}
                   <span className="font-semibold">
@@ -97,7 +97,7 @@ export function RestaurantDetailBase({
                   </span>{" "}
                   cashback
                 </p>
-              )}
+              )} */}
             </div>
           </div>
 
@@ -128,21 +128,15 @@ export function RestaurantDetailBase({
                   />
                 </div>
 
-                {/* USD Equivalent - Inline */}
-                <p className="text-sm text-muted-foreground">
-                  {getDisplayCurrency(restaurant?.currency) !== "USD" && (
-                    <span className="ml-2 text-xs">
-                      1 {getDisplayCurrency(restaurant?.currency)} ={" "}
-                      {(
-                        1 /
-                        (EXCHANGE_RATES[
-                          getDisplayCurrency(restaurant?.currency)
-                        ] || 1)
-                      ).toFixed(2)}{" "}
-                      USD
-                    </span>
-                  )}
-                </p>
+                {getDisplayCurrency(restaurant?.currency) !== "USD" && (
+                  <p className="text-xs text-muted-foreground">
+                    Equivalent in USD: $
+                    {convertToUSD(
+                      paymentAmount,
+                      getDisplayCurrency(restaurant?.currency),
+                    )}
+                  </p>
+                )}
               </div>
 
               {isDapp && (

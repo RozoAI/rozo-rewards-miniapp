@@ -1,12 +1,11 @@
 "use client";
 
-import { type PaymentData } from "@/lib/payment-storage";
 import { Button } from "@/components/ui/button";
 import { useRozoPointAPI } from "@/hooks/useRozoPointAPI";
 import { PAYMENT_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
 import { createMerchantPayment } from "@/lib/api";
-import { savePaymentReceipt } from "@/lib/payment-storage";
+import { savePaymentReceipt, type PaymentData } from "@/lib/payment-storage";
 import { convertToUSD, getDisplayCurrency } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
 import { useAppKitAccount } from "@reown/appkit/react";
@@ -303,12 +302,10 @@ export function RestaurantDiscoveryPayment({
               >
                 {loading || isPreparingPayment ? (
                   <Loader2 className="mr-2 size-4 animate-spin" />
-                ) : (
-                  <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                )}
+                ) : null}
                 {isPreparingPayment
                   ? "Preparing Payment..."
-                  : `Pay ≈$${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount} with Crypto`}
+                  : `Pay $${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount} with Crypto`}
               </Button>
             );
           }}
@@ -328,7 +325,7 @@ export function RestaurantDiscoveryPayment({
           )}
           {isCreatingPayment
             ? "Creating Payment..."
-            : `Pay ≈$${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount} with Crypto`}
+            : `Pay $${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount} with Crypto`}
         </Button>
       )}
 

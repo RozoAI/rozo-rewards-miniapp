@@ -1,5 +1,5 @@
-import { withSentryConfig } from "@sentry/nextjs";
 import createBundleAnalyzer from "@next/bundle-analyzer";
+import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 const withBundleAnalyzer = createBundleAnalyzer({
@@ -10,12 +10,24 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "mugglespublicweb.s3.ap-southeast-1.amazonaws.com" },
+      {
+        protocol: "https",
+        hostname: "mugglespublicweb.s3.ap-southeast-1.amazonaws.com",
+      },
       { protocol: "https", hostname: "imagedelivery.net" },
       { protocol: "https", hostname: "cdn1.npcdn.net" },
       { protocol: "https", hostname: "ns.com" },
       { protocol: "https", hostname: "www.rozo.ai" },
     ],
+  },
+  async redirects() {
+    return [
+      {
+        source: "/dapp",
+        destination: "/merchants",
+        permanent: true,
+      },
+    ];
   },
   webpack: (config) => {
     config.resolve.fallback = {

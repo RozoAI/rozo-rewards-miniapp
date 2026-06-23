@@ -68,12 +68,12 @@ export default function ReceiptContent() {
   const [paymentData] = useState(() => readPaymentData(searchParams));
 
   if (!paymentData) {
-    router.replace(withRozoWallet ? "/dapp" : "/");
+    router.replace(withRozoWallet ? "/merchants" : "/");
     return null;
   }
 
   const handleBackToHome = () => {
-    router.push(withRozoWallet ? "/dapp" : "/");
+    router.push(withRozoWallet ? "/merchants" : "/");
   };
 
   const merchant =
