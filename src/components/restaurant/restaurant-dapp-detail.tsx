@@ -28,7 +28,7 @@ export function RestaurantDappDetail({
   });
 
   const [appId] = React.useState<string>(
-    () => `rozoRewardsBNBStellarMP-${restaurant?.handle || ""}`,
+    () => `pos_${restaurant?.handle || ""}`,
   );
 
   const [merchantOrderId] = React.useState<string>(
