@@ -10,7 +10,7 @@ import { DAPP_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
-import { ChevronRight, Globe, Sparkles } from "lucide-react";
+import { ChevronRight, Globe, Sparkles, Store } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -54,7 +54,7 @@ export interface DappContentProps {
 export function DappContent({
   className,
   title = "Merchants",
-  icon = <Globe className="size-6" />,
+  icon = <Store className="size-6" />,
   isDapp = false,
   restaurants,
   aiServices,
