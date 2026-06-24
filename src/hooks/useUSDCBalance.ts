@@ -1,11 +1,10 @@
-import { useAppKitAccount } from "@reown/appkit/react";
 import { useEffect, useState } from "react";
-import { useBalance } from "wagmi";
+import { useAccount, useBalance } from "wagmi";
 // USDC token address on Base
 const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 
 export function useUSDCBalance() {
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useAccount();
   const [usdcBalance, setUsdcBalance] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 

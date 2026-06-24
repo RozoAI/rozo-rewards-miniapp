@@ -10,11 +10,10 @@ import { useUSDCBalance } from "@/hooks/useUSDCBalance";
 import { GLOBAL_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
 import { capture, identifyUser, resetUser } from "@/lib/analytics/index";
 import { sdk } from "@farcaster/miniapp-sdk";
-import { useAppKitAccount } from "@reown/appkit/react";
 import { Loader2, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useConnect, useDisconnect } from "wagmi";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
 
 export default function ProfilePageContent({ isBeta }: { isBeta: boolean }) {
   const hasMounted = useHasMounted();
@@ -34,7 +33,7 @@ export default function ProfilePageContent({ isBeta }: { isBeta: boolean }) {
 }
 
 function ProfilePageContentInternal({ isBeta }: { isBeta: boolean }) {
-  const { address, isConnected, status } = useAppKitAccount();
+  const { address, isConnected, status } = useAccount();
   const { disconnect } = useDisconnect();
   const { connectors } = useConnect();
   const { getPoints } = useRozoPointAPI();
