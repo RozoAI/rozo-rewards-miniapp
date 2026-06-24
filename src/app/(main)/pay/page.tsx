@@ -27,7 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { WalletComponents } from "@/components/wallet-connect-button";
 import { formatAddress } from "@/lib/utils";
 import { type DeeplinkData } from "@rozoai/deeplink-core";
 import { ScanQr } from "@rozoai/deeplink-react";
@@ -601,9 +600,6 @@ export default function PayPage() {
           </p>
         </div>
 
-        <div className="flex justify-center">
-          <WalletComponents />
-        </div>
       </div>
     );
   }

@@ -11,7 +11,6 @@ import { getAiServiceById } from "@/lib/ai-services";
 import { REWARDS_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
 import { getFirstTwoWordInitialsFromName } from "@/lib/utils";
-import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import { CreditCard, MessageCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
@@ -32,10 +31,6 @@ export default function AIServiceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const serviceId = params.domain as string;
-  const { isInMiniApp } = useIsInMiniApp();
-
-  const { composeCast } = useComposeCast();
-
   const [service, setService] =
     React.useState<ReturnType<typeof getAiServiceById>>(null);
   const [loading, setLoading] = React.useState(true);
@@ -123,29 +118,17 @@ export default function AIServiceDetailPage() {
       capture(REWARDS_EVENTS.MERCHANT_SHARE_CLICKED, {
         merchant_id: service.id,
         merchant_name: service.name,
-        channel: isInMiniApp ? "farcaster" : "native_share",
+        channel: "native_share",
       });
     }
 
-    if (isInMiniApp) {
-      composeCast({
-        text,
-        embeds: [window.location.href],
-      });
-    } else {
-      (async () => {
-        try {
-          const shareData: ShareData = {
-            title: text,
-            url: window.location.href,
-          };
-          await navigator.share(shareData);
-          console.log("Shared successfully");
-        } catch (err) {
-          console.error(`Error sharing: ${err}`);
-        }
-      })();
-    }
+    (async () => {
+      try {
+        await navigator.share({ title: text, url: window.location.href });
+      } catch (err) {
+        console.error(`Error sharing: ${err}`);
+      }
+    })();
   };
 
   const handleBookmark = () => {

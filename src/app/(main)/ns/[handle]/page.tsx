@@ -3,6 +3,7 @@
 import { PageHeader } from "@/components/page-header";
 import { RestaurantDappDetail } from "@/components/restaurant/restaurant-dapp-detail";
 import { RestaurantDiscoveryDetail } from "@/components/restaurant/restaurant-discovery-detail";
+import { RozoPayClientWrapper } from "@/components/rozo-pay-client-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getRestaurantByHandle } from "@/lib/restaurants";
@@ -47,8 +48,20 @@ export default function RestaurantDetailPage() {
   }
 
   if (isRozoWallet) {
-    return <RestaurantDappDetail restaurant={restaurant} />;
+    return (
+      <RestaurantDappDetail
+        restaurant={restaurant}
+        onBack={() => router.push("/dapp")}
+      />
+    );
   }
 
-  return <RestaurantDiscoveryDetail restaurant={restaurant} />;
+  return (
+    <RozoPayClientWrapper>
+      <RestaurantDiscoveryDetail
+        restaurant={restaurant}
+        onBack={() => router.push("/discovery")}
+      />
+    </RozoPayClientWrapper>
+  );
 }
