@@ -13,10 +13,9 @@ export function middleware(request: NextRequest) {
     const handle = nsMatch[1];
     const rest = nsMatch[2];
     if (NS_ALIASES[handle]) {
-      return NextResponse.redirect(
-        new URL(`/ns/${NS_ALIASES[handle]}${rest}`, request.url),
-        { status: 301 },
-      );
+      const target = new URL(`/ns/${NS_ALIASES[handle]}${rest}`, request.url);
+      target.search = request.nextUrl.search;
+      return NextResponse.redirect(target, { status: 301 });
     }
   }
 
