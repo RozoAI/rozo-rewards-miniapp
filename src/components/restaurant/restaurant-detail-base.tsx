@@ -109,7 +109,7 @@ export function RestaurantDetailBase({
                   htmlFor="payment-amount"
                   className="text-xs font-medium text-muted-foreground"
                 >
-                  Amount to Pay
+                  Amount
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base font-medium text-muted-foreground">
@@ -143,9 +143,8 @@ export function RestaurantDetailBase({
                 <div className="flex items-start gap-1.5">
                   <Info className="size-4 text-muted-foreground" />
                   <p className="text-left text-xs text-muted-foreground">
-                    This category includes physical goods and real-world
-                    services that are not delivered or consumed within the
-                    application.
+                    Physical goods & services only. No digital content or in-app
+                    features.
                   </p>
                 </div>
               )}

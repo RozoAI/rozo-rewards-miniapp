@@ -300,15 +300,14 @@ export function RestaurantDappPayment({
       {/* Balance Display */}
       {rozoWalletBalance && (
         <p className="text-xs text-muted-foreground text-center">
-          Rozo Wallet Balance: {rozoWalletBalance}
+          Balance: {rozoWalletBalance}
         </p>
       )}
 
       {/* EURC notice */}
       {isEurcActive && (
         <p className="text-xs text-warning text-center">
-          Pay with Rozo Wallet requires USDC. Switch to USDC in your Rozo Wallet
-          to pay.
+          Switch to USDC in your Rozo Wallet to pay.
         </p>
       )}
 
@@ -339,8 +338,8 @@ export function RestaurantDappPayment({
             : rozoWalletLoading
               ? "Loading..."
               : rozoWalletBalanceUsd !== null && rozoWalletBalanceUsd > 0
-                ? `Pay $${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount} with Rozo Wallet`
-                : "Insufficient Rozo Wallet Balance"}
+                ? `Pay $${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount}`
+                : "Insufficient Balance"}
       </Button>
     </div>
   );

@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/select";
 import { WalletComponents } from "@/components/wallet-connect-button";
 import { formatAddress } from "@/lib/utils";
-import { useAppKitAccount } from "@reown/appkit/react";
 import { type DeeplinkData } from "@rozoai/deeplink-core";
 import { ScanQr } from "@rozoai/deeplink-react";
 import {
@@ -54,6 +53,7 @@ import { ArrowLeft, QrCode, ScanLine, Wallet } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { formatUnits } from "viem";
+import { useAccount } from "wagmi";
 
 const chainToLogo = {
   [arbitrum.chainId]: <Arbitrum width={12} height={12} />,
@@ -583,7 +583,7 @@ function PayPageContent() {
 }
 
 export default function PayPage() {
-  const { isConnected } = useAppKitAccount();
+  const { isConnected } = useAccount();
 
   if (!isConnected) {
     return (

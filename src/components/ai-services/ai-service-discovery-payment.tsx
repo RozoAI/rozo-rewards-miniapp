@@ -5,13 +5,13 @@ import { getAiServiceById } from "@/lib/ai-services";
 import { PAYMENT_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
 import { savePaymentReceipt, type PaymentData } from "@/lib/payment-storage";
-import { useAppKitAccount } from "@reown/appkit/react";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPayUI } from "@rozoai/intent-pay";
 import { CreditCard, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { toast } from "sonner";
+import { useAccount } from "wagmi";
 
 const toAddress = "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897";
 
@@ -37,7 +37,7 @@ export function AiServiceDiscoveryPayment({
   const router = useRouter();
   const { resetPayment } = useRozoPayUI();
   // const { getPoints, spendPoints } = useRozoPointAPI();
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useAccount();
 
   const [points, setPoints] = React.useState(0);
   const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);

@@ -1,4 +1,4 @@
-import { useAppKitAccount } from "@reown/appkit/react";
+import { useAccount } from "wagmi";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useSignMessage } from "wagmi";
@@ -142,7 +142,7 @@ const getMockApiResponse = (endpoint: string, options: RequestInit = {}) => {
 };
 
 export const useRozoAPI = () => {
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useAccount();
   const { signMessageAsync } = useSignMessage();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

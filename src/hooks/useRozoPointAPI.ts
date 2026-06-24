@@ -1,4 +1,4 @@
-import { wagmiAdapter } from "@/lib/appkit";
+import { wagmiConfig } from "@/providers/Web3Provider";
 import { ConnectorNotConnectedError, signMessage } from "@wagmi/core";
 import { useRef, useState } from "react";
 
@@ -134,12 +134,11 @@ About: ${about}
       // const signer = await provider.getSigner();
       // const signature = await signer.signMessage(message);
 
-      const currentConnector = wagmiAdapter.getConnectorId("eip155");
-      const connector = wagmiAdapter.wagmiConfig.connectors.find(
-        (connector) => connector.id === currentConnector,
+      const connector = wagmiConfig.connectors.find(
+        (c) => c.type === "injected",
       );
 
-      const signature = await signMessage(wagmiAdapter.wagmiConfig, {
+      const signature = await signMessage(wagmiConfig, {
         message,
         account: payload.from_address as `0x${string}`,
         connector,

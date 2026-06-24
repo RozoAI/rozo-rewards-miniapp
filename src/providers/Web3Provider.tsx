@@ -7,7 +7,10 @@ import { createConfig, WagmiProvider } from "wagmi";
 const queryClient = new QueryClient();
 export const wagmiConfig = createConfig(
   getDefaultConfig({
-    appName: "Your App Name",
+    appName: "Rozo Rewards",
+    // ponytail: "eoaOnly" prevents Coinbase Wallet from opening its keys.coinbase.com popup
+    // on wagmi's auto-reconnect at page load when a wallet was previously connected.
+    coinbaseWalletPreference: "eoaOnly",
   }),
 );
 

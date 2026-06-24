@@ -5,24 +5,20 @@ import { useRozoAPI } from "@/hooks/useRozoAPI";
 import { formatAddress } from "@/lib/utils";
 import { WalletProvider } from "@coinbase/onchainkit/wallet";
 import sdk from "@farcaster/miniapp-sdk";
-import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
 import { UserIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useConnect } from "wagmi";
+import { useAccount, useConnect } from "wagmi";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 
-// Internal component that contains wagmi hooks - only rendered after hydration
 function WalletComponentsInternal() {
-  const { address: accountAddress, status } = useAppKitAccount();
-  const { status: connectStatus } = useConnect();
+  const { address, status } = useAccount();
+  const { connect, connectors, isPending } = useConnect();
   const { isAuthenticated } = useRozoAPI();
-  const { open: openConnectModal } = useAppKit();
   const [pfpUrl, setPfpUrl] = useState<string | null>(null);
 
-  // Ensure consistent rendering between server and client
-  const displayAddress = accountAddress || "";
+  const displayAddress = address || "";
 
   useEffect(() => {
     const fetchPfpUrl = async () => {
@@ -36,9 +32,11 @@ function WalletComponentsInternal() {
 
   return (
     <WalletProvider>
-      {status === "disconnected" && openConnectModal ? (
-        <Button onClick={() => openConnectModal()}>Connect Wallet</Button>
-      ) : connectStatus === "pending" ? (
+      {status === "disconnected" ? (
+        <Button onClick={() => connect({ connector: connectors[0] })}>
+          Connect Wallet
+        </Button>
+      ) : isPending ? (
         <Button disabled>Connecting...</Button>
       ) : (
         <Button asChild variant="secondary">
@@ -69,16 +67,9 @@ function WalletComponentsInternal() {
 export function WalletComponents() {
   const hasMounted = useHasMounted();
 
-  // Show loading state until mounted to prevent hydration mismatch
   if (!hasMounted) {
-    return (
-      // <WalletProvider>
-      <Button disabled>Loading...</Button>
-      // </WalletProvider>
-    );
+    return <Button disabled>Loading...</Button>;
   }
 
-  // Render the internal component only after mounting
   return <WalletComponentsInternal />;
-  // return <appkit-button balance="hide" label="Connect Wallet" />;
 }

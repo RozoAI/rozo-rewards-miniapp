@@ -1,6 +1,6 @@
 "use client";
 
-import { useAppKitAccount } from "@reown/appkit/react";
+import { useAccount } from "wagmi";
 import { DappContent, type DappContentProps } from "./dapp-content";
 
 type DiscoveryDappContentProps = Omit<
@@ -9,7 +9,7 @@ type DiscoveryDappContentProps = Omit<
 >;
 
 export function DiscoveryDappContent(props: DiscoveryDappContentProps) {
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useAccount();
 
   return (
     <DappContent {...props} evmAddress={address} evmConnected={isConnected} />
