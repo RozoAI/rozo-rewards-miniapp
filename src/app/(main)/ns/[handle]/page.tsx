@@ -1,17 +1,23 @@
 "use client";
 
 import { PageHeader } from "@/components/page-header";
+import { RestaurantDappDetail } from "@/components/restaurant/restaurant-dapp-detail";
 import { RestaurantDiscoveryDetail } from "@/components/restaurant/restaurant-discovery-detail";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getRestaurantByHandle } from "@/lib/restaurants";
 import { useParams, useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 export default function RestaurantDetailPage() {
   const params = useParams();
   const router = useRouter();
   const handle = params.handle as string;
+  const [isRozoWallet, setIsRozoWallet] = useState(false);
+
+  useEffect(() => {
+    setIsRozoWallet(typeof window !== "undefined" && !!window.rozo);
+  }, []);
 
   const restaurant = React.useMemo(
     () => getRestaurantByHandle(handle),
@@ -38,6 +44,10 @@ export default function RestaurantDetailPage() {
         </Card>
       </div>
     );
+  }
+
+  if (isRozoWallet) {
+    return <RestaurantDappDetail restaurant={restaurant} />;
   }
 
   return <RestaurantDiscoveryDetail restaurant={restaurant} />;
