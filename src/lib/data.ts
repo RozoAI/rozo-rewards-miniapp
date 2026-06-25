@@ -14,7 +14,7 @@ export const LOCATIONS = [
     createdAt: "2025-08-09T12:21:20.572Z",
     updatedAt: "2025-08-09T12:21:20.572Z",
     __v: 0,
-    logo_url: "https://ns.com/favicon.ico",
+    logo_url: "https://dcdn.rozo.ai/ns-logo.webp",
     cashback_rate: 1,
     is_live: true,
     ns_id: "nscafe",
@@ -77,8 +77,7 @@ export const LOCATIONS = [
     createdAt: "2025-08-09T12:21:20.572Z",
     updatedAt: "2025-08-09T12:21:20.572Z",
     __v: 0,
-    logo_url:
-      "https://cdn1.npcdn.net/images/1694139822288-Limousine-Service_BUTTON.webp?md5id=cec819fa603e0b3f17e6aeaf4a6e6890&new_width=1600&new_height=1600&size=max&type=8&w=1697996365&off_wm=1&from=png",
+    logo_url: "https://dcdn.rozo.ai/limousine.webp",
     cashback_rate: 1,
     is_live: true,
     ns_id: "ride",
