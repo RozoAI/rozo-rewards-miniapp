@@ -120,7 +120,7 @@ export const LOCATIONS = [
     createdAt: "2025-08-09T12:21:20.572Z",
     updatedAt: "2025-08-09T12:21:20.572Z",
     __v: 0,
-    logo_url: "https://www.rozo.ai/rozo-logo.png",
+    logo_url: "https://dcdn.rozo.ai/rozo-logo.webp",
     cashback_rate: 10,
     is_live: true,
     ns_id: "rozostudio",
