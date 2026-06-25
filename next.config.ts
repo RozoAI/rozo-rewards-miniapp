@@ -7,6 +7,7 @@ const withBundleAnalyzer = createBundleAnalyzer({
 });
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["@rozoai/intent-pay"],
   devIndicators: false,
   images: {
     remotePatterns: [

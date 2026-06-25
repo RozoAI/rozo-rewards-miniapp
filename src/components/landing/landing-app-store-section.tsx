@@ -1,12 +1,6 @@
 "use client";
 
-import { useIsInMiniApp } from "@coinbase/onchainkit/minikit";
-
 export function LandingAppStoreSection() {
-  const { isInMiniApp } = useIsInMiniApp();
-
-  if (isInMiniApp !== false) return null;
-
   return (
     <section className="px-5 py-6 border-t border-border flex flex-col gap-3">
       <h2 className="text-xs font-semibold text-muted-foreground">

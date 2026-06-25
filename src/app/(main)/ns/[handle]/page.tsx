@@ -1,17 +1,29 @@
 "use client";
 
 import { PageHeader } from "@/components/page-header";
+import { RestaurantDappDetail } from "@/components/restaurant/restaurant-dapp-detail";
 import { RestaurantDiscoveryDetail } from "@/components/restaurant/restaurant-discovery-detail";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getRestaurantByHandle } from "@/lib/restaurants";
 import { useParams, useRouter } from "next/navigation";
-import React from "react";
+import dynamic from "next/dynamic";
+import React, { useEffect, useState } from "react";
+
+const RozoPayClientWrapper = dynamic(
+  () => import("@/components/rozo-pay-client-wrapper").then((m) => ({ default: m.RozoPayClientWrapper })),
+  { ssr: false },
+);
 
 export default function RestaurantDetailPage() {
   const params = useParams();
   const router = useRouter();
   const handle = params.handle as string;
+  const [isRozoWallet, setIsRozoWallet] = useState(false);
+
+  useEffect(() => {
+    setIsRozoWallet(typeof window !== "undefined" && !!window.rozo);
+  }, []);
 
   const restaurant = React.useMemo(
     () => getRestaurantByHandle(handle),
@@ -40,5 +52,21 @@ export default function RestaurantDetailPage() {
     );
   }
 
-  return <RestaurantDiscoveryDetail restaurant={restaurant} />;
+  if (isRozoWallet) {
+    return (
+      <RestaurantDappDetail
+        restaurant={restaurant}
+        onBack={() => router.push("/dapp")}
+      />
+    );
+  }
+
+  return (
+    <RozoPayClientWrapper>
+      <RestaurantDiscoveryDetail
+        restaurant={restaurant}
+        onBack={() => router.push("/discovery")}
+      />
+    </RozoPayClientWrapper>
+  );
 }

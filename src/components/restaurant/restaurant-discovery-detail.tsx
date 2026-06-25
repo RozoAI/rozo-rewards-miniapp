@@ -3,7 +3,6 @@
 import { RestaurantDetailBase } from "@/components/restaurant/restaurant-detail-base";
 import { convertToUSD, getDisplayCurrency } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
-import { useComposeCast, useIsInMiniApp } from "@coinbase/onchainkit/minikit";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo } from "react";
@@ -18,14 +17,14 @@ const RestaurantDiscoveryPayment = dynamic(
 
 export interface RestaurantDiscoveryDetailProps {
   restaurant: Restaurant;
+  onBack?: () => void;
 }
 
 export function RestaurantDiscoveryDetail({
   restaurant,
+  onBack,
 }: RestaurantDiscoveryDetailProps) {
   const router = useRouter();
-  const { isInMiniApp } = useIsInMiniApp();
-  const { composeCast } = useComposeCast();
 
   const [loading, setLoading] = React.useState(false);
   const [paymentAmount, setPaymentAmount] = React.useState<string>(() => {
@@ -96,25 +95,13 @@ export function RestaurantDiscoveryDetail({
         : ""
     }`;
 
-    if (isInMiniApp) {
-      composeCast({
-        text,
-        embeds: [window.location.href],
-      });
-    } else {
-      (async () => {
-        try {
-          const shareData: ShareData = {
-            title: text,
-            url: window.location.href,
-          };
-          await navigator.share(shareData);
-          console.log("Shared successfully");
-        } catch (err) {
-          console.error(`Error sharing: ${err}`);
-        }
-      })();
-    }
+    (async () => {
+      try {
+        await navigator.share({ title: text, url: window.location.href });
+      } catch (err) {
+        console.error(`Error sharing: ${err}`);
+      }
+    })();
   };
 
   return (
@@ -124,6 +111,7 @@ export function RestaurantDiscoveryDetail({
       paymentAmount={paymentAmount}
       onAmountChange={setPaymentAmount}
       onShare={handleShare}
+      onBack={onBack}
       paymentSlot={
         <RestaurantDiscoveryPayment
           restaurant={restaurant}
