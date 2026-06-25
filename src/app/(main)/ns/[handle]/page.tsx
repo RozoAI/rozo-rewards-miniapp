@@ -3,12 +3,17 @@
 import { PageHeader } from "@/components/page-header";
 import { RestaurantDappDetail } from "@/components/restaurant/restaurant-dapp-detail";
 import { RestaurantDiscoveryDetail } from "@/components/restaurant/restaurant-discovery-detail";
-import { RozoPayClientWrapper } from "@/components/rozo-pay-client-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getRestaurantByHandle } from "@/lib/restaurants";
 import { useParams, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import React, { useEffect, useState } from "react";
+
+const RozoPayClientWrapper = dynamic(
+  () => import("@/components/rozo-pay-client-wrapper").then((m) => ({ default: m.RozoPayClientWrapper })),
+  { ssr: false },
+);
 
 export default function RestaurantDetailPage() {
   const params = useParams();
