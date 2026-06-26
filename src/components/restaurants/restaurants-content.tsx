@@ -6,7 +6,6 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { LOCATIONS } from "@/lib/data";
 import { calculateDistance, cn } from "@/lib/utils";
-import { VISIBLE_HANDLES } from "@/shared";
 import { Restaurant } from "@/types/restaurant";
 import { MapPin, RefreshCw, Search } from "lucide-react";
 import * as React from "react";
@@ -31,11 +30,7 @@ export function RestaurantsContent({ className }: { className?: string }) {
     async function load() {
       try {
         if (isMounted)
-          setLocations(
-            (LOCATIONS as Restaurant[]).filter(
-              (loc: any) => loc.handle && VISIBLE_HANDLES.includes(loc.handle),
-            ),
-          );
+          setLocations(LOCATIONS as Restaurant[]);
       } catch (err) {
         if (isMounted)
           setErrorMessage(
