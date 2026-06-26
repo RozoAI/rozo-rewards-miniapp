@@ -17,7 +17,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Rozo Rewards",
-  description: "Pay with USDC. Earn cashback instantly.",
+  description: "Pay with USDC. Earn cashback.",
   robots: { index: false, follow: false },
   other: {
     "base:app_id": "6a3ddd166c2d0cbe7329c3e7",
