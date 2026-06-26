@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { ArrowLeft, History } from "lucide-react";
+import { ArrowLeft, History, Home } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PaymentHistoryList } from "./payment-history-list";
@@ -19,12 +19,15 @@ export function PageHeader({
   title,
   icon,
   isBackButton,
+  isHomeButton,
   paymentHistoryAddress,
   onBack,
 }: {
   title: string;
   icon?: React.ReactNode;
   isBackButton?: boolean;
+  /** Render a Home icon button on the left that navigates to "/". */
+  isHomeButton?: boolean;
   /**
    * Optional wallet address used to scope the payment history sheet.
    * - When provided, history will only show receipts for this address.
@@ -41,22 +44,36 @@ export function PageHeader({
     <div
       className={cn(
         "flex items-center justify-between px-4 sm:px-0",
-        isBackButton && "pl-0",
+        (isBackButton || isHomeButton) && "pl-0",
       )}
     >
       <div className="flex items-center gap-2">
-        {isBackButton && (
+        {isHomeButton ? (
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => (onBack ? onBack() : router.back())}
+            onClick={() => router.push("/")}
             className="shrink-0 size-8"
+            aria-label="Home"
           >
-            <ArrowLeft className="size-4" />
+            <Home className="size-4" />
           </Button>
+        ) : (
+          isBackButton && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => (onBack ? onBack() : router.back())}
+              className="shrink-0 size-8"
+            >
+              <ArrowLeft className="size-4" />
+            </Button>
+          )
         )}
         {icon}
-        <h1 className="text-lg sm:text-2xl font-bold">{title}</h1>
+        {title && (
+          <h1 className="text-lg sm:text-2xl font-bold">{title}</h1>
+        )}
       </div>
 
       <Sheet open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>

@@ -65,7 +65,7 @@ export function RestaurantDetailBase({
           onBack={onBack}
         />
       ) : (
-        <PageHeader title="Back to Discovery" isBackButton />
+        <PageHeader title="" isHomeButton />
       )}
 
       {/* Payment Card */}
