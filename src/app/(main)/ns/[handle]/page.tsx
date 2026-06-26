@@ -1,8 +1,6 @@
 "use client";
 
 import { PageHeader } from "@/components/page-header";
-import { RestaurantDappDetail } from "@/components/restaurant/restaurant-dapp-detail";
-import { RestaurantDiscoveryDetail } from "@/components/restaurant/restaurant-discovery-detail";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getRestaurantByHandle } from "@/lib/restaurants";
@@ -10,8 +8,13 @@ import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import React, { useEffect, useState } from "react";
 
-const RozoPayClientWrapper = dynamic(
-  () => import("@/components/rozo-pay-client-wrapper").then((m) => ({ default: m.RozoPayClientWrapper })),
+const RestaurantDappDetail = dynamic(
+  () => import("@/components/restaurant/restaurant-dapp-detail").then((m) => ({ default: m.RestaurantDappDetail })),
+  { ssr: false },
+);
+
+const RestaurantDiscoveryDetail = dynamic(
+  () => import("@/components/restaurant/restaurant-discovery-detail").then((m) => ({ default: m.RestaurantDiscoveryDetail })),
   { ssr: false },
 );
 
@@ -33,7 +36,7 @@ export default function RestaurantDetailPage() {
   if (!restaurant) {
     return (
       <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
-        <PageHeader title="Back to Discovery" isBackButton />
+        <PageHeader title="" isHomeButton />
         <Card className="w-full">
           <CardContent className="flex flex-col items-center justify-center p-8 text-center">
             <p className="text-destructive text-lg font-medium mb-2">
@@ -62,11 +65,9 @@ export default function RestaurantDetailPage() {
   }
 
   return (
-    <RozoPayClientWrapper>
-      <RestaurantDiscoveryDetail
-        restaurant={restaurant}
-        onBack={() => router.push("/discovery")}
-      />
-    </RozoPayClientWrapper>
+    <RestaurantDiscoveryDetail
+      restaurant={restaurant}
+      onBack={() => router.push("/discovery")}
+    />
   );
 }

@@ -1,4 +1,5 @@
 import { LandingAppStoreSection } from "@/components/landing/landing-app-store-section";
+import { RozoOgNotice } from "@/components/landing/rozo-og-notice";
 import { getAllRestaurants } from "@/lib/restaurants";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
@@ -29,11 +30,11 @@ export default function LandingPage() {
           <h1 className="text-[2rem] font-semibold leading-[1.15] tracking-tight text-balance mb-3">
             Spend stablecoins.
             <br />
-            Earn real cashback.
+            Earn cashback.
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-[280px]">
             Pay at partner merchants with USDC and get up to{" "}
-            <span className="font-mono font-medium text-foreground">15%</span>{" "}
+            <span className="font-mono font-medium text-foreground">10%</span>{" "}
             back in ROZO points.
           </p>
         </div>
@@ -89,6 +90,9 @@ export default function LandingPage() {
         >
           Discover more <ArrowRight className="size-4" />
         </Link>
+
+        {/* ROZO OG announcement */}
+        <RozoOgNotice />
       </section>
 
       <LandingAppStoreSection />

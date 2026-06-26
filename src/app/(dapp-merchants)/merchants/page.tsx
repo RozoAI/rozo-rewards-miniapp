@@ -1,13 +1,10 @@
 import { DappContent } from "@/components/dapp/dapp-content";
 import { getAllAiServices } from "@/lib/ai-services";
 import { getAllRestaurants } from "@/lib/restaurants";
-import { VISIBLE_HANDLES } from "@/shared";
 import { Suspense } from "react";
 
 export default function DappPage() {
-  const restaurants = getAllRestaurants().filter((location) =>
-    VISIBLE_HANDLES.includes(location.handle),
-  );
+  const restaurants = getAllRestaurants();
 
   const aiServices = getAllAiServices().map((service) => ({
     id: service.id,

@@ -46,6 +46,7 @@ export function RestaurantDappPayment({
 
   const [isCreatingPayment, setIsCreatingPayment] = React.useState(false);
   const [isTransferring, setIsTransferring] = React.useState(false);
+  const [confirmedAmount, setConfirmedAmount] = React.useState<string | null>(null);
 
   const toAddress = React.useMemo(() => {
     return restaurant?.payTo ?? "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897";
@@ -177,6 +178,8 @@ export function RestaurantDappPayment({
         receiverAddressContract,
         receiverMemoContract,
       } = bridgeResult;
+
+      setConfirmedAmount(amount);
 
       const result = await rozoWalletTransfer(
         amount,
@@ -338,7 +341,7 @@ export function RestaurantDappPayment({
             : rozoWalletLoading
               ? "Loading..."
               : rozoWalletBalanceUsd !== null && rozoWalletBalanceUsd > 0
-                ? `Pay $${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount}`
+                ? `Pay $${confirmedAmount ?? (isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount)}`
                 : "Insufficient Balance"}
       </Button>
     </div>
