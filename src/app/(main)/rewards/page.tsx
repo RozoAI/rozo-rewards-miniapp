@@ -1,12 +1,6 @@
 "use client";
 
 import { Ethereum, Solana, Stellar } from "@/components/chain-logo";
-import { PointsCard } from "@/components/rewards/points-card";
-import { SeedsCard } from "@/components/rewards/seeds-card";
-import { TeaserCard } from "@/components/rewards/teaser-card";
-import { TierBenefitsCard } from "@/components/rewards/tier-benefits-card";
-import { TiersAccordion } from "@/components/rewards/tiers-accordion";
-import { WalletChooser } from "@/components/rewards/wallet-chooser";
 import {
   fetchPoints,
   fetchStellarRewards,
@@ -14,15 +8,43 @@ import {
   StellarRewards,
   WalletType,
 } from "@/components/rewards/lib";
+import { PointsCard } from "@/components/rewards/points-card";
+import { SeedsCard } from "@/components/rewards/seeds-card";
+import { TeaserCard } from "@/components/rewards/teaser-card";
+import { TierBenefitsCard } from "@/components/rewards/tier-benefits-card";
+import { WalletChooser } from "@/components/rewards/wallet-chooser";
 import { Button } from "@/components/ui/button";
-import { useAppKit, useAppKitAccount, useDisconnect } from "@reown/appkit/react";
+import {
+  useAppKit,
+  useAppKitAccount,
+  useDisconnect,
+} from "@reown/appkit/react";
+import {
+  isValidEvmAddress,
+  isValidSolanaAddress,
+  isValidStellarAddress,
+} from "@rozoai/intent-common";
 import { LogOut } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+function detectAddressType(addr: string): WalletType | null {
+  if (isValidStellarAddress(addr)) return "stellar";
+  if (isValidEvmAddress(addr)) return "evm";
+  if (isValidSolanaAddress(addr)) return "solana";
+  return null;
+}
+
 export default function RewardsPage() {
+  const searchParams = useSearchParams();
+  const queryAddress = searchParams.get("address") ?? "";
+  const queryAddressType = queryAddress ? detectAddressType(queryAddress) : null;
+  const hasQueryAddress = !!queryAddressType;
+
   const { open: openAppKit } = useAppKit();
   const { address: evmAddress, isConnected: evmConnected } = useAppKitAccount();
-  const { address: solanaAddress, isConnected: solanaConnected } = useAppKitAccount({ namespace: "solana" });
+  const { address: solanaAddress, isConnected: solanaConnected } =
+    useAppKitAccount({ namespace: "solana" });
   const { disconnect: disconnectAppKit } = useDisconnect();
 
   const [stellarAddress, setStellarAddress] = useState<string | null>(null);
@@ -30,7 +52,9 @@ export default function RewardsPage() {
   const [walletType, setWalletType] = useState<WalletType | null>(null);
   const [points, setPoints] = useState<number | null>(null);
   const [pointsLoading, setPointsLoading] = useState(false);
-  const [stellarRewards, setStellarRewards] = useState<StellarRewards | null>(null);
+  const [stellarRewards, setStellarRewards] = useState<StellarRewards | null>(
+    null,
+  );
   const [stellarRewardsLoading, setStellarRewardsLoading] = useState(false);
   const disconnecting = useRef(false);
 
@@ -43,46 +67,76 @@ export default function RewardsPage() {
   }, [evmConnected, solanaConnected, walletType]);
 
   const isConnected =
+    hasQueryAddress ||
     (walletType === "evm" && evmConnected) ||
     (walletType === "solana" && solanaConnected) ||
     (walletType === "stellar" && !!stellarAddress);
 
-  const displayAddress =
-    walletType === "evm" ? (evmAddress ?? null) :
-    walletType === "solana" ? (solanaAddress ?? null) :
-    stellarAddress;
+  const activeWalletType = hasQueryAddress ? queryAddressType : walletType;
+
+  const displayAddress = hasQueryAddress
+    ? queryAddress
+    : walletType === "evm"
+      ? (evmAddress ?? null)
+      : walletType === "solana"
+        ? (solanaAddress ?? null)
+        : stellarAddress;
 
   const shortAddress = displayAddress
-    ? walletType === "evm"
+    ? activeWalletType === "evm"
       ? `${displayAddress.slice(0, 6)}…${displayAddress.slice(-4)}`
       : `${displayAddress.slice(0, 4)}…${displayAddress.slice(-4)}`
     : null;
 
   useEffect(() => {
-    if (!isConnected || !displayAddress) { setPoints(null); return; }
+    if (!isConnected || !displayAddress || !activeWalletType) {
+      setPoints(null);
+      return;
+    }
     setPointsLoading(true);
-    fetchPoints(walletType!, displayAddress).then(setPoints).finally(() => setPointsLoading(false));
-  }, [isConnected, displayAddress, walletType]);
+    fetchPoints(activeWalletType, displayAddress)
+      .then(setPoints)
+      .finally(() => setPointsLoading(false));
+  }, [isConnected, displayAddress, activeWalletType]);
 
   useEffect(() => {
-    if (walletType !== "stellar" || !stellarAddress) { setStellarRewards(null); return; }
+    const addr = hasQueryAddress && queryAddressType === "stellar"
+      ? queryAddress
+      : walletType === "stellar"
+        ? stellarAddress
+        : null;
+    if (!addr) {
+      setStellarRewards(null);
+      return;
+    }
     setStellarRewardsLoading(true);
-    fetchStellarRewards(stellarAddress).then(setStellarRewards).finally(() => setStellarRewardsLoading(false));
-  }, [walletType, stellarAddress]);
+    fetchStellarRewards(addr)
+      .then(setStellarRewards)
+      .finally(() => setStellarRewardsLoading(false));
+  }, [walletType, stellarAddress, hasQueryAddress, queryAddressType, queryAddress]);
 
   useEffect(() => {
-    if (walletType === "evm" && !evmConnected) { setWalletType(null); setPoints(null); disconnecting.current = false; }
+    if (walletType === "evm" && !evmConnected) {
+      setWalletType(null);
+      setPoints(null);
+      disconnecting.current = false;
+    }
   }, [evmConnected, walletType]);
 
   useEffect(() => {
-    if (walletType === "solana" && !solanaConnected) { setWalletType(null); setPoints(null); disconnecting.current = false; }
+    if (walletType === "solana" && !solanaConnected) {
+      setWalletType(null);
+      setPoints(null);
+      disconnecting.current = false;
+    }
   }, [solanaConnected, walletType]);
 
   async function handleChoose(type: WalletType) {
     setChooser(false);
     setWalletType(type);
     if (type === "evm") openAppKit({ view: "Connect", namespace: "eip155" });
-    else if (type === "solana") openAppKit({ view: "Connect", namespace: "solana" });
+    else if (type === "solana")
+      openAppKit({ view: "Connect", namespace: "solana" });
     else if (kit) {
       const swk = kit;
       await swk.openModal({
@@ -110,33 +164,60 @@ export default function RewardsPage() {
 
   return (
     <>
-      <WalletChooser open={chooser} onChoose={handleChoose} onClose={() => setChooser(false)} />
+      <WalletChooser
+        open={chooser}
+        onChoose={handleChoose}
+        onClose={() => setChooser(false)}
+      />
 
       <div className="relative w-full py-6">
         {/* App Bar */}
         <div className="flex items-center justify-between px-4 pb-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Rewards</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Points and Seeds, in one place</p>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Points and Seeds, in one place
+            </p>
           </div>
 
           {isConnected && shortAddress ? (
             <div className="flex items-center gap-2">
               <button
                 className="flex items-center gap-1.5 h-9 px-3 border border-border rounded-full bg-card hover:bg-accent transition-colors"
-                onClick={() => (walletType === "evm" || walletType === "solana") && openAppKit({ view: "Account" })}
+                onClick={() =>
+                  !hasQueryAddress &&
+                  (walletType === "evm" || walletType === "solana") &&
+                  openAppKit({ view: "Account" })
+                }
               >
-                {walletType === "stellar" ? <Stellar width={16} height={16} /> :
-                 walletType === "solana" ? <Solana width={16} height={16} /> :
-                 <Ethereum width={16} height={16} />}
-                <span className="font-mono text-xs font-medium text-foreground">{shortAddress}</span>
+                {activeWalletType === "stellar" ? (
+                  <Stellar width={16} height={16} />
+                ) : activeWalletType === "solana" ? (
+                  <Solana width={16} height={16} />
+                ) : (
+                  <Ethereum width={16} height={16} />
+                )}
+                <span className="font-mono text-xs font-medium text-foreground">
+                  {shortAddress}
+                </span>
               </button>
-              <Button variant="outline" size="icon" className="size-9 rounded-full" onClick={handleDisconnect}>
-                <LogOut className="size-3.5" />
-              </Button>
+              {!hasQueryAddress && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="size-9 rounded-full"
+                  onClick={handleDisconnect}
+                >
+                  <LogOut className="size-3.5" />
+                </Button>
+              )}
             </div>
           ) : (
-            <Button size="sm" className="rounded-full" onClick={() => setChooser(true)}>
+            <Button
+              size="sm"
+              className="rounded-full"
+              onClick={() => setChooser(true)}
+            >
               Connect wallet
             </Button>
           )}
@@ -148,12 +229,15 @@ export default function RewardsPage() {
               <PointsCard
                 points={points}
                 pointsLoading={pointsLoading}
-                walletType={walletType!}
+                walletType={activeWalletType!}
                 stellarRewards={stellarRewards}
                 stellarRewardsLoading={stellarRewardsLoading}
               />
-              {walletType === "stellar" && (
-                <SeedsCard stellarRewards={stellarRewards} stellarRewardsLoading={stellarRewardsLoading} />
+              {activeWalletType === "stellar" && (
+                <SeedsCard
+                  stellarRewards={stellarRewards}
+                  stellarRewardsLoading={stellarRewardsLoading}
+                />
               )}
               <TierBenefitsCard />
             </>
@@ -161,7 +245,7 @@ export default function RewardsPage() {
             <TeaserCard onConnect={() => setChooser(true)} />
           )}
 
-          <TiersAccordion isConnected={!!isConnected} />
+          {/* <TiersAccordion isConnected={!!isConnected} /> */}
         </div>
       </div>
     </>
