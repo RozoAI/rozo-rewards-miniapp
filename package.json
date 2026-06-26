@@ -16,7 +16,7 @@
     "test:e2e:quick": "tsx tests/e2e/run-tests.ts quick"
   },
   "dependencies": {
-    "@creit.tech/stellar-wallets-kit": "^1.9.5",
+    "@creit.tech/stellar-wallets-kit": "1.9.5",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-popover": "^1.1.14",
@@ -33,9 +33,7 @@
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.54.0",
     "@tanstack/react-query": "^5.90.12",
-    "@upstash/redis": "^1.35.3",
     "@vercel/og": "^0.8.5",
-    "@vis.gl/react-google-maps": "^1.5.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -43,8 +41,6 @@
     "next": "15.4.10",
     "next-themes": "^0.4.6",
     "nextjs-toploader": "^3.8.16",
-    "ox": "^0.8.7",
-    "pino-pretty": "^13.1.2",
     "posthog-js": "^1.384.2",
     "react": "19.0.0-rc.1",
     "react-dom": "19.0.0-rc.1",

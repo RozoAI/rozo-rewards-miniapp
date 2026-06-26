@@ -1,14 +1,11 @@
 import { DiscoveryDappContent } from "@/components/dapp/discovery-dapp-content";
 import { getAllAiServices } from "@/lib/ai-services";
 import { getAllRestaurants } from "@/lib/restaurants";
-import { VISIBLE_HANDLES } from "@/shared";
 import { Binoculars } from "lucide-react";
 import { Suspense } from "react";
 
 export default function AiServicesPage() {
-  const restaurants = getAllRestaurants().filter((location) =>
-    VISIBLE_HANDLES.includes(location.handle),
-  );
+  const restaurants = getAllRestaurants();
 
   const aiServices = getAllAiServices().map((service) => ({
     id: service.id,
