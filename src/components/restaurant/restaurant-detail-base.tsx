@@ -34,23 +34,6 @@ export function RestaurantDetailBase({
   onBack,
   paymentSlot,
 }: RestaurantDetailBaseProps) {
-  // const { isBookmarked, toggleBookmark } = useBookmarks();
-  // const [showFullAddress, setShowFullAddress] = React.useState(false);
-
-  // const handleBookmark = () => {
-  //   toggleBookmark({
-  //     id: restaurant._id,
-  //     title: restaurant.name,
-  //     logo_url: restaurant.logo_url,
-  //     url: `/restaurant/${restaurant._id}`,
-  //   });
-  //   toast.success(
-  //     isBookmarked(restaurant._id)
-  //       ? "Removed from bookmarks"
-  //       : "Added to bookmarks",
-  //   );
-  // };
-
   const initials = getFirstTwoWordInitialsFromName(restaurant.name);
   const isDapp = mode === "dapp";
 
@@ -89,15 +72,6 @@ export function RestaurantDetailBase({
               >
                 {restaurant.name}
               </h2>
-              {/* {!isDapp && restaurant.cashback_rate > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  Earn{" "}
-                  <span className="font-semibold">
-                    {restaurant.cashback_rate}%
-                  </span>{" "}
-                  cashback
-                </p>
-              )} */}
             </div>
           </div>
 
