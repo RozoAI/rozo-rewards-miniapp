@@ -6,6 +6,7 @@ import { Restaurant } from "@/types/restaurant";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo } from "react";
+import { RozoPayProvider } from "@rozoai/intent-pay";
 
 const RestaurantDiscoveryPayment = dynamic(
   () =>
@@ -105,25 +106,27 @@ export function RestaurantDiscoveryDetail({
   };
 
   return (
-    <RestaurantDetailBase
-      restaurant={restaurant}
-      mode="discovery"
-      paymentAmount={paymentAmount}
-      onAmountChange={setPaymentAmount}
-      onShare={handleShare}
-      onBack={onBack}
-      paymentSlot={
-        <RestaurantDiscoveryPayment
-          restaurant={restaurant}
-          paymentAmount={paymentAmount}
-          appId={appId}
-          merchantOrderId={merchantOrderId}
-          toAddress={toAddress}
-          generateMetadata={generateMetadata}
-          loading={loading}
-          setLoading={setLoading}
-        />
-      }
-    />
+    <RozoPayProvider>
+      <RestaurantDetailBase
+        restaurant={restaurant}
+        mode="discovery"
+        paymentAmount={paymentAmount}
+        onAmountChange={setPaymentAmount}
+        onShare={handleShare}
+        onBack={onBack}
+        paymentSlot={
+          <RestaurantDiscoveryPayment
+            restaurant={restaurant}
+            paymentAmount={paymentAmount}
+            appId={appId}
+            merchantOrderId={merchantOrderId}
+            toAddress={toAddress}
+            generateMetadata={generateMetadata}
+            loading={loading}
+            setLoading={setLoading}
+          />
+        }
+      />
+    </RozoPayProvider>
   );
 }

@@ -1,7 +1,7 @@
 import IntercomInitializer from "@/components/intercom";
 import { BookmarkProvider } from "@/contexts/BookmarkContext";
 import { generateOgMetadata } from "@/lib/og-image";
-import Web3Provider from "@/providers/Web3Provider";
+import Web3ProviderClient from "@/providers/Web3ProviderClient";
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "next-themes";
 import { Inter, JetBrains_Mono } from "next/font/google";
@@ -64,7 +64,7 @@ export default async function RootLayout({
         className={`${inter.variable} ${jetbrainsMono.variable} antialiased pr-0! relative`}
         suppressHydrationWarning={true}
       >
-        <Web3Provider>
+        <Web3ProviderClient>
           <BookmarkProvider>
             <ThemeProvider
               attribute="class"
@@ -85,7 +85,7 @@ export default async function RootLayout({
               </main>
             </ThemeProvider>
           </BookmarkProvider>
-        </Web3Provider>
+        </Web3ProviderClient>
       </body>
     </html>
   );
