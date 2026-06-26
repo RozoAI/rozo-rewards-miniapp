@@ -91,13 +91,20 @@ export function RestaurantDetailBase({
                   </span>
                   <Input
                     id="payment-amount"
-                    type="number"
-                    step="0.01"
-                    min="0.01"
+                    type="text"
+                    inputMode="decimal"
+                    pattern="[0-9]*\.?[0-9]*"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
                     placeholder="0.00"
                     value={paymentAmount}
-                    onChange={(e) => onAmountChange(e.target.value)}
-                    className={`pl-14 h-14 text-2xl font-semibold [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-moz-appearance]:textfield`}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(",", ".");
+                      if (/^\d*\.?\d*$/.test(val)) onAmountChange(val);
+                    }}
+                    className="pl-14 h-14 text-2xl font-semibold"
                     autoFocus
                   />
                 </div>
