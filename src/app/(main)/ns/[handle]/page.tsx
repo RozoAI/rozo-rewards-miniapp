@@ -33,7 +33,7 @@ export default function RestaurantDetailPage() {
   if (!restaurant) {
     return (
       <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
-        <PageHeader title="Back to Discovery" isBackButton />
+        <PageHeader title="" isHomeButton />
         <Card className="w-full">
           <CardContent className="flex flex-col items-center justify-center p-8 text-center">
             <p className="text-destructive text-lg font-medium mb-2">

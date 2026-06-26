@@ -1,4 +1,5 @@
 import { LandingAppStoreSection } from "@/components/landing/landing-app-store-section";
+import { RozoOgNotice } from "@/components/landing/rozo-og-notice";
 import { getAllRestaurants } from "@/lib/restaurants";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
@@ -89,6 +90,9 @@ export default function LandingPage() {
         >
           Discover more <ArrowRight className="size-4" />
         </Link>
+
+        {/* ROZO OG announcement */}
+        <RozoOgNotice />
       </section>
 
       <LandingAppStoreSection />
