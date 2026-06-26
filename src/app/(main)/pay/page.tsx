@@ -139,7 +139,7 @@ function ScanResult({
         return false;
       })
       .map(([, tokens]) =>
-        tokens.filter((token) => token.symbol === TokenSymbol.USDC)
+        tokens.filter((token) => token.symbol === TokenSymbol.USDC),
       )
       .flat();
   }, [data.type]);
@@ -157,7 +157,7 @@ function ScanResult({
 
     return getKnownToken(
       Number(paymentData?.chain_id),
-      destinationTokenAddress
+      destinationTokenAddress,
     );
   }, [paymentData, destinationTokenAddress, data]);
 
@@ -176,7 +176,7 @@ function ScanResult({
     if (!paymentData?.amount || !getDestinationToken) return "";
     return formatUnits(
       BigInt(paymentData.amount),
-      Number(getDestinationToken.decimals)
+      Number(getDestinationToken.decimals),
     );
   }, [paymentData, getDestinationToken]);
 
@@ -242,7 +242,7 @@ function ScanResult({
           toToken: tokenToUse.token,
           toUnits: amountToUse,
           intent: `Pay for $${amountToUse} to ${formatAddress(
-            destinationAddress
+            destinationAddress,
           )}`,
         };
 
@@ -389,7 +389,7 @@ function ScanResult({
                   onValueChange={(value) =>
                     setSelectedToken(
                       availableTokens.find((token) => token.token === value) ||
-                        null
+                        null,
                     )
                   }
                 >
@@ -435,7 +435,7 @@ function ScanResult({
             toToken={intentConfig.toToken}
             toUnits={finalAmount}
             intent={`Pay for $${finalAmount} to ${formatAddress(
-              destinationAddress
+              destinationAddress,
             )}`}
             onPaymentCompleted={() => {
               toast.success("Payment completed successfully!");
@@ -599,7 +599,6 @@ export default function PayPage() {
             You need to connect your wallet to access payment features
           </p>
         </div>
-
       </div>
     );
   }
