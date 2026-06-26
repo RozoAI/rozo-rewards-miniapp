@@ -29,11 +29,11 @@ export default function LandingPage() {
           <h1 className="text-[2rem] font-semibold leading-[1.15] tracking-tight text-balance mb-3">
             Spend stablecoins.
             <br />
-            Earn real cashback.
+            Earn cashback.
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-[280px]">
             Pay at partner merchants with USDC and get up to{" "}
-            <span className="font-mono font-medium text-foreground">15%</span>{" "}
+            <span className="font-mono font-medium text-foreground">10%</span>{" "}
             back in ROZO points.
           </p>
         </div>
