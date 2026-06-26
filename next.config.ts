@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "cdn1.npcdn.net" },
       { protocol: "https", hostname: "ns.com" },
       { protocol: "https", hostname: "www.rozo.ai" },
+      { protocol: "https", hostname: "dcdn.rozo.ai" },
     ],
   },
   async redirects() {
