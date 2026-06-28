@@ -2,6 +2,7 @@
 
 import { getDefaultConfig } from "@rozoai/intent-pay";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Attribution } from "ox/erc8021";
 import { createConfig, WagmiProvider } from "wagmi";
 
 // One-time purge of stale wagmi/WalletConnect storage that can trigger
@@ -28,12 +29,19 @@ if (typeof window !== "undefined") {
 }
 
 const queryClient = new QueryClient();
+
+const DATA_SUFFIX = Attribution.toDataSuffix({
+  codes: [process.env.NEXT_PUBLIC_BASE_BUILDER_CODE ?? ""],
+});
+
 export const wagmiConfig = createConfig(
   getDefaultConfig({
     appName: "Rozo Rewards",
+    appDescription: "A stablecoin payment platform for merchants.",
     // ponytail: "eoaOnly" prevents Coinbase Wallet from opening its keys.coinbase.com popup
     // on wagmi's auto-reconnect at page load when a wallet was previously connected.
     coinbaseWalletPreference: "eoaOnly",
+    dataSuffix: DATA_SUFFIX,
   }),
 );
 
