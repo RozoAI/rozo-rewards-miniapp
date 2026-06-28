@@ -60,7 +60,6 @@ export default function AIServiceDetailPage() {
       )
     : null;
 
-
   useEffect(() => {
     function loadService() {
       try {
@@ -233,10 +232,7 @@ export default function AIServiceDetailPage() {
   return (
     <div className="w-full mb-20 flex flex-col gap-4 mt-4 px-4 max-w-xl mx-auto">
       {/* Header */}
-      <PageHeader
-        title="Back to Discovery"
-        isBackButton
-      />
+      <PageHeader title="Back to Discovery" isBackButton />
 
       {/* Service Info Card */}
       <Card className="w-full overflow-hidden gap-0">
