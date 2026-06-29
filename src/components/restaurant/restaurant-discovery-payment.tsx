@@ -6,6 +6,7 @@ import { capture } from "@/lib/analytics/index";
 import { createMerchantPayment } from "@/lib/api";
 import { savePaymentReceipt, type PaymentData } from "@/lib/payment-storage";
 import { convertToUSD, getDisplayCurrency } from "@/lib/utils";
+import { DATA_SUFFIX } from "@/providers/Web3Provider";
 import { Restaurant } from "@/types/restaurant";
 import { PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton } from "@rozoai/intent-pay";
@@ -38,7 +39,9 @@ export function RestaurantDiscoveryPayment({
   const router = useRouter();
 
   const [paymentId, setPaymentId] = React.useState<string | null>(null);
-  const [confirmedAmount, setConfirmedAmount] = React.useState<string | null>(null);
+  const [confirmedAmount, setConfirmedAmount] = React.useState<string | null>(
+    null,
+  );
   const [isCreatingPayment, setIsCreatingPayment] = React.useState(false);
   const [isPreparingPayment, setIsPreparingPayment] = React.useState(false);
   const showRef = useRef<(() => void) | null>(null);
@@ -80,6 +83,7 @@ export function RestaurantDiscoveryPayment({
         amount_local: paymentAmount,
         currency_local: displayCurrency,
         source: { chainId: "8453", tokenSymbol: "USDC" },
+        metadata: { dataSuffix: DATA_SUFFIX },
       });
       setPaymentId(response.id);
       setConfirmedAmount(response.source.amount ?? null);
@@ -215,7 +219,6 @@ export function RestaurantDiscoveryPayment({
             : `Pay $${isNaN(parseFloat(usdAmount)) ? "0.00" : usdAmount} with Crypto`}
         </Button>
       )}
-
     </>
   );
 }

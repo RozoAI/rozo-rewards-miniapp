@@ -30,7 +30,7 @@ if (typeof window !== "undefined") {
 
 const queryClient = new QueryClient();
 
-const DATA_SUFFIX = Attribution.toDataSuffix({
+export const DATA_SUFFIX = Attribution.toDataSuffix({
   codes: [process.env.NEXT_PUBLIC_BASE_BUILDER_CODE ?? ""],
 });
 

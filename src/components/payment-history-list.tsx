@@ -21,11 +21,14 @@ interface PaymentHistoryListProps {
    * - When omitted/empty, all stored payments are shown (web behavior).
    */
   address?: string | null;
+  /** Re-fetch payments whenever this flips to true (e.g. Sheet open state). */
+  isOpen?: boolean;
 }
 
 export function PaymentHistoryList({
   onSelectPayment,
   address,
+  isOpen,
 }: PaymentHistoryListProps) {
   const [payments, setPayments] = useState<PaymentData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,7 +68,7 @@ export function PaymentHistoryList({
 
     setIsLoading(true);
     loadPayments();
-  }, [address]);
+  }, [address, isOpen]);
 
   if (isLoading) {
     return (

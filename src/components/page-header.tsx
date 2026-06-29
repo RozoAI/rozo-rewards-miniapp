@@ -96,6 +96,7 @@ export function PageHeader({
           </SheetHeader>
           <PaymentHistoryList
             address={paymentHistoryAddress}
+            isOpen={isHistoryOpen}
             onSelectPayment={(paymentId) => {
               setIsHistoryOpen(false);
               router.push(
