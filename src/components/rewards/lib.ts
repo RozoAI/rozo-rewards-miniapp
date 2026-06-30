@@ -97,7 +97,7 @@ export function fmt(n: number, dec: number) {
 }
 
 export function fmtPoints(n: number) {
-  return n < 1 && n > 0 ? fmt(n, 3) : fmt(n, 0);
+  return fmt(n, 2);
 }
 
 // ─── API ──────────────────────────────────────────────────────────────────────
@@ -114,7 +114,8 @@ export async function fetchPoints(type: WalletType, address: string): Promise<nu
   const res = await fetch(`https://auth0.rozo.ai/functions/v1/cashback?${param}=${value}`);
   if (!res.ok) return null;
   const data = await res.json();
-  return data?.balance?.points ?? null;
+  const points = data?.balance?.points;
+  return points == null ? null : points * 100;
 }
 
 export async function fetchStellarRewards(address: string): Promise<StellarRewards | null> {
