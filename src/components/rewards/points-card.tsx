@@ -2,9 +2,8 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { TrendingUp } from "lucide-react";
-import { fmt, fmtPoints, SILVER_THRESHOLD, StellarRewards, WalletType } from "./lib";
+import { fmtPoints, StellarRewards, WalletType } from "./lib";
 
 export function PointsCard({
   points,
@@ -35,7 +34,9 @@ export function PointsCard({
                   <span className="text-5xl font-bold tracking-tight tabular-nums leading-none">
                     {fmtPoints(points)}
                   </span>
-                  <span className="text-sm font-medium text-primary-foreground/60">pts</span>
+                  <span className="text-sm font-medium text-primary-foreground/60">
+                    pts
+                  </span>
                 </>
               )}
             </div>
@@ -46,7 +47,7 @@ export function PointsCard({
           </Badge>
         </div>
 
-        {walletType === "stellar" && (
+        {/* {walletType === "stellar" && (
           <div className="mt-5">
             {stellarRewardsLoading || stellarRewards === null ? (
               <div className="h-10 w-full rounded-lg bg-primary-foreground/15 animate-pulse" />
@@ -72,7 +73,7 @@ export function PointsCard({
               );
             })()}
           </div>
-        )}
+        )} */}
       </CardContent>
     </Card>
   );

@@ -11,7 +11,6 @@ import {
 import { PointsCard } from "@/components/rewards/points-card";
 import { SeedsCard } from "@/components/rewards/seeds-card";
 import { TeaserCard } from "@/components/rewards/teaser-card";
-import { TierBenefitsCard } from "@/components/rewards/tier-benefits-card";
 import { WalletChooser } from "@/components/rewards/wallet-chooser";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,7 +37,9 @@ function detectAddressType(addr: string): WalletType | null {
 export default function RewardsPage() {
   const searchParams = useSearchParams();
   const queryAddress = searchParams.get("address") ?? "";
-  const queryAddressType = queryAddress ? detectAddressType(queryAddress) : null;
+  const queryAddressType = queryAddress
+    ? detectAddressType(queryAddress)
+    : null;
   const hasQueryAddress = !!queryAddressType;
 
   const { open: openAppKit } = useAppKit();
@@ -100,11 +101,12 @@ export default function RewardsPage() {
   }, [isConnected, displayAddress, activeWalletType]);
 
   useEffect(() => {
-    const addr = hasQueryAddress && queryAddressType === "stellar"
-      ? queryAddress
-      : walletType === "stellar"
-        ? stellarAddress
-        : null;
+    const addr =
+      hasQueryAddress && queryAddressType === "stellar"
+        ? queryAddress
+        : walletType === "stellar"
+          ? stellarAddress
+          : null;
     if (!addr) {
       setStellarRewards(null);
       return;
@@ -113,7 +115,13 @@ export default function RewardsPage() {
     fetchStellarRewards(addr)
       .then(setStellarRewards)
       .finally(() => setStellarRewardsLoading(false));
-  }, [walletType, stellarAddress, hasQueryAddress, queryAddressType, queryAddress]);
+  }, [
+    walletType,
+    stellarAddress,
+    hasQueryAddress,
+    queryAddressType,
+    queryAddress,
+  ]);
 
   useEffect(() => {
     if (walletType === "evm" && !evmConnected) {
@@ -175,9 +183,6 @@ export default function RewardsPage() {
         <div className="flex items-center justify-between px-4 pb-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Rewards</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Points and Seeds, in one place
-            </p>
           </div>
 
           {isConnected && shortAddress ? (
@@ -239,7 +244,7 @@ export default function RewardsPage() {
                   stellarRewardsLoading={stellarRewardsLoading}
                 />
               )}
-              <TierBenefitsCard />
+              {/* <TierBenefitsCard /> */}
             </>
           ) : (
             <TeaserCard onConnect={() => setChooser(true)} />

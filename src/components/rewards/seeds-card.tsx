@@ -15,7 +15,9 @@ export function SeedsCard({
   return (
     <Card className="rounded-3xl">
       <CardContent className="p-5 py-0">
-        <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Seeds</p>
+        <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+          Seeds
+        </p>
         {stellarRewardsLoading || stellarRewards === null ? (
           <div className="h-10 w-28 rounded-lg bg-muted animate-pulse mt-1" />
         ) : (
@@ -24,8 +26,7 @@ export function SeedsCard({
           </p>
         )}
         <p className="text-sm leading-relaxed text-muted-foreground mt-4">
-          Rewards for bridging and depositing USDC, used in campaigns and future
-          rewards. Separate from Points — they never convert into tier.
+          Rewards for bridging and depositing USDC.
         </p>
         <Separator className="mt-4" />
         <div className="mt-4">
@@ -33,8 +34,12 @@ export function SeedsCard({
             Earn by
           </p>
           <div className="flex gap-2">
-            {["Bridge", "Deposit", "Hold"].map((label) => (
-              <Badge key={label} variant="secondary" className="rounded-lg font-medium">
+            {["Bridge", "Deposit"].map((label) => (
+              <Badge
+                key={label}
+                variant="secondary"
+                className="rounded-lg font-medium"
+              >
                 {label}
               </Badge>
             ))}
