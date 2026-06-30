@@ -3,7 +3,14 @@
 import { getDefaultConfig } from "@rozoai/intent-pay";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Attribution } from "ox/erc8021";
-import { createConfig, WagmiProvider } from "wagmi";
+import {
+  cookieStorage,
+  cookieToInitialState,
+  createConfig,
+  createStorage,
+  WagmiProvider,
+  type State,
+} from "wagmi";
 
 // One-time purge of stale wagmi/WalletConnect storage that can trigger
 // unwanted reconnect popups. Runs at module load, before wagmi initializes.
@@ -42,16 +49,20 @@ export const wagmiConfig = createConfig(
     // on wagmi's auto-reconnect at page load when a wallet was previously connected.
     coinbaseWalletPreference: "eoaOnly",
     dataSuffix: DATA_SUFFIX,
+    ssr: true,
+    storage: createStorage({ storage: cookieStorage }),
   }),
 );
 
 export default function Web3Provider({
   children,
+  initialState,
 }: {
   children: React.ReactNode;
+  initialState?: State;
 }) {
   return (
-    <WagmiProvider config={wagmiConfig}>
+    <WagmiProvider config={wagmiConfig} initialState={initialState}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
   );
