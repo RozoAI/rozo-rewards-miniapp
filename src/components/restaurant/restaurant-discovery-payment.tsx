@@ -133,6 +133,7 @@ export function RestaurantDiscoveryPayment({
         restaurant_name: restaurant.name,
         restaurant_address: restaurant.address_line1,
         is_using_points: false,
+        payment_id: paymentId ?? undefined,
       };
 
       console.log("[Restaurant] Pay with Crypto - About to save receipt:", {

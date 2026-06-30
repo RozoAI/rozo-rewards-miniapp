@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getPaymentReceipt, type PaymentData } from "@/lib/payment-storage";
 import { getDisplayCurrency } from "@/lib/utils";
-import { ArrowLeftIcon, Check } from "lucide-react";
+import { ArrowLeftIcon, BadgeCheckIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // ponytail: Intl instead of date-fns, saves ~75KB
 const fmt = new Intl.DateTimeFormat("en-US", {
@@ -20,6 +20,8 @@ const fmt = new Intl.DateTimeFormat("en-US", {
 function readPaymentData(
   searchParams: ReturnType<typeof useSearchParams>,
 ): PaymentData | null {
+  if (typeof window === "undefined") return null;
+
   const paymentId = searchParams.get("payment_id");
   if (paymentId) {
     const data = getPaymentReceipt(paymentId);
@@ -51,7 +53,7 @@ function DetailRow({
     <div className="flex justify-between items-center py-3 border-t border-border first:border-t-0">
       <span className="text-sm text-muted-foreground">{label}</span>
       <span
-        className={`text-sm font-medium text-foreground ${mono ? "font-mono" : ""}`}
+        className={`text-sm font-medium text-foreground text-right ${mono ? "font-mono" : ""}`}
       >
         {value}
       </span>
@@ -67,8 +69,11 @@ export default function ReceiptContent() {
   // ponytail: lazy init — sync read, no effect, no loading state, no 300ms delay
   const [paymentData] = useState(() => readPaymentData(searchParams));
 
+  useEffect(() => {
+    if (!paymentData) router.replace(withRozoWallet ? "/merchants" : "/");
+  }, [paymentData, withRozoWallet, router]);
+
   if (!paymentData) {
-    router.replace(withRozoWallet ? "/merchants" : "/");
     return null;
   }
 
@@ -87,20 +92,21 @@ export default function ReceiptContent() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-center p-4 border-b border-border">
+      {/* <div className="flex items-center justify-center p-4 border-b border-border">
         <h1 className="text-base font-semibold tracking-tight">
           Payment confirmed
         </h1>
-      </div>
+      </div> */}
 
       {/* Content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 gap-6 max-w-sm mx-auto w-full">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 gap-6 max-w-md mx-auto w-full">
         {/* Success icon — DS success token, no raw Tailwind green */}
-        <div className="size-20 rounded-full bg-success/8 flex items-center justify-center">
+        {/* <div className="size-20 rounded-full bg-success/8 flex items-center justify-center">
           <div className="size-12 rounded-full bg-success/12 flex items-center justify-center">
             <Check className="size-6 text-success" strokeWidth={2.5} />
           </div>
-        </div>
+        </div> */}
+        <BadgeCheckIcon className="size-[90px] fill-[#0052FF] text-white" />
 
         {/* Heading */}
         <div className="text-center space-y-1">
@@ -108,7 +114,7 @@ export default function ReceiptContent() {
             className="text-2xl font-semibold tracking-tight"
             style={{ textWrap: "balance" } as React.CSSProperties}
           >
-            Payment confirmed
+            Payment Confirmed
           </h2>
           <p className="text-sm text-muted-foreground">
             Paid{" "}
@@ -120,7 +126,7 @@ export default function ReceiptContent() {
         </div>
 
         {/* Payment details — DS card tokens, no green wash */}
-        <Card className="w-full bg-card border-border">
+        <Card className="w-full bg-card border-border py-0">
           <CardContent className="px-4 py-0">
             {isNonUsd && (
               <DetailRow

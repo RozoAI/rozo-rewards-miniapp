@@ -21,6 +21,7 @@ export interface PaymentData {
   service_domain?: string;
   restaurant_name?: string;
   restaurant_address?: string;
+  payment_id?: string;
 }
 
 /**
