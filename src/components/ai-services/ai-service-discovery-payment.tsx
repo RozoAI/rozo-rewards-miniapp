@@ -5,6 +5,7 @@ import { getAiServiceById } from "@/lib/ai-services";
 import { PAYMENT_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
 import { savePaymentReceipt, type PaymentData } from "@/lib/payment-storage";
+import { DATA_SUFFIX } from "@/providers/Web3Provider";
 import { baseUSDC, PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton, useRozoPayUI } from "@rozoai/intent-pay";
 import { CreditCard, Wallet } from "lucide-react";
@@ -46,6 +47,7 @@ export function AiServiceDiscoveryPayment({
       amount_local: service?.price_usd,
       currency_local: "USD",
       email: userEmail,
+      dataSuffix: DATA_SUFFIX,
       items: [
         {
           name: service?.name,
@@ -226,7 +228,6 @@ export function AiServiceDiscoveryPayment({
           </div>
         )}
       </RozoPayButton.Custom>
-
     </>
   );
 }

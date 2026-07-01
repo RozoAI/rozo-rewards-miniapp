@@ -2,12 +2,14 @@ import IntercomInitializer from "@/components/intercom";
 import { BookmarkProvider } from "@/contexts/BookmarkContext";
 import { generateOgMetadata } from "@/lib/og-image";
 import Web3ProviderClient from "@/providers/Web3ProviderClient";
+import { wagmiConfig } from "@/providers/Web3Provider";
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "next-themes";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "sonner";
+import { cookieToInitialState } from "wagmi";
 import "../globals.css";
 
 const inter = Inter({
@@ -57,6 +59,7 @@ export default async function RootLayout({
 }>) {
   const headersObj = await headers();
   const cookies = headersObj.get("cookie");
+  const initialState = cookieToInitialState(wagmiConfig, cookies);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -64,7 +67,7 @@ export default async function RootLayout({
         className={`${inter.variable} ${jetbrainsMono.variable} antialiased pr-0! relative`}
         suppressHydrationWarning={true}
       >
-        <Web3ProviderClient>
+        <Web3ProviderClient initialState={initialState}>
           <BookmarkProvider>
             <ThemeProvider
               attribute="class"

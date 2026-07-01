@@ -235,6 +235,7 @@ export function RestaurantDappPayment({
           restaurant_name: restaurant.name,
           restaurant_address: restaurant.address_line1,
           is_using_points: false,
+          payment_id: paymentId,
         };
 
         savePaymentReceipt(merchantOrderId, receiptData);

@@ -5,6 +5,7 @@ export interface MerchantPaymentRequest {
   amount_local: string;
   currency_local: string;
   source?: { chainId: string; tokenSymbol: string };
+  metadata?: { [key: string]: any };
 }
 
 export interface MerchantPaymentResponse {
@@ -69,7 +70,7 @@ export interface MerchantPaymentResponse {
 }
 
 export async function createMerchantPayment(
-  params: MerchantPaymentRequest
+  params: MerchantPaymentRequest,
 ): Promise<MerchantPaymentResponse> {
   const response = await fetch(
     `${INTENT_API_BASE}/payment-api/payments/merchant`,
@@ -77,13 +78,13 @@ export async function createMerchantPayment(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(params),
-    }
+    },
   );
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     throw new Error(
-      error.message ?? `Failed to create merchant payment: ${response.status}`
+      error.message ?? `Failed to create merchant payment: ${response.status}`,
     );
   }
 
