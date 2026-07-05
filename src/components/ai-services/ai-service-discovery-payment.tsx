@@ -14,7 +14,7 @@ import React, { useEffect } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 
-const toAddress = "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897";
+const toAddress = "0x2352Fa2970dBadD12d21808DB0F56CDEC8141739";
 
 interface AiServiceDiscoveryPaymentProps {
   service: NonNullable<ReturnType<typeof getAiServiceById>>;

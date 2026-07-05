@@ -46,7 +46,7 @@ export function RestaurantDiscoveryDetail({
   const receiptUrl = `https://ns.rozo.ai/payment/success?order_id=${merchantOrderId}`;
 
   const toAddress = useMemo(() => {
-    return restaurant?.payTo ?? "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897";
+    return restaurant?.payTo ?? "0x2352Fa2970dBadD12d21808DB0F56CDEC8141739";
   }, [restaurant]);
 
   const generateMetadata = (amountLocal: string, currencyLocal: string) => {

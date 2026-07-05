@@ -49,7 +49,7 @@ export function RestaurantDappPayment({
   const [confirmedAmount, setConfirmedAmount] = React.useState<string | null>(null);
 
   const toAddress = React.useMemo(() => {
-    return restaurant?.payTo ?? "0x5772FBe7a7817ef7F586215CA8b23b8dD22C8897";
+    return restaurant?.payTo ?? "0x2352Fa2970dBadD12d21808DB0F56CDEC8141739";
   }, [restaurant]);
 
   const displayCurrency = React.useMemo(
