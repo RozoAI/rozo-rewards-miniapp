@@ -11,7 +11,10 @@ export async function generateMetadata({
   const { handle } = await params;
   const restaurant = await getRestaurantByHandle(handle);
 
-  const title = restaurant ? `${restaurant.name} — Restaurant` : "Restaurant Details";
+  // Branded share title: "NS Cafe @ Network School | ROZO"
+  const title = restaurant
+    ? `${restaurant.name} @ Network School | ROZO`
+    : "Restaurant Details | ROZO";
 
   const addressParts = [restaurant?.address_line1, restaurant?.address_line2]
     .filter(Boolean)
@@ -27,21 +30,24 @@ export async function generateMetadata({
     ? `${addressParts}${priceInfo}${cashbackInfo}`
     : "View restaurant details, address and pay with crypto.";
 
-  const ogImages = restaurant?.logo_url ? [restaurant.logo_url] : undefined;
+  // OG image is provided by the sibling opengraph-image.tsx (branded centered
+  // card). Don't set openGraph/twitter images here or it overrides the file
+  // convention with the bare merchant logo.
+  const ogTitle = restaurant
+    ? `${restaurant.name} @ Network School`
+    : "Restaurant Details";
 
   return {
     title,
     description,
     openGraph: {
-      title: restaurant?.name,
+      title: ogTitle,
       description,
-      images: ogImages,
     },
     twitter: {
       card: "summary_large_image",
-      title: restaurant?.name,
+      title: ogTitle,
       description,
-      images: ogImages,
     },
     alternates: { canonical: `/ns/${handle}` },
     other: restaurant
