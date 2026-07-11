@@ -1,7 +1,6 @@
 import { ImageResponse } from "next/og";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { getRestaurantByHandle } from "@/lib/restaurants";
+import { ROZO_FLAG_DATA_URI } from "@/lib/og-logo";
 
 // Per-merchant share card, same centered style as the landing / partners OG
 // images. Renders "<Merchant> @ Network School" so a shared /ns/<handle> link
@@ -10,11 +9,6 @@ export const alt = "Network School merchant on Rozo";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-function publicPng(file: string): string {
-  const buf = readFileSync(join(process.cwd(), "public", file));
-  return `data:image/png;base64,${buf.toString("base64")}`;
-}
-
 export default async function OpengraphImage({
   params,
 }: {
@@ -22,7 +16,7 @@ export default async function OpengraphImage({
 }) {
   const { handle } = await params;
   const restaurant = getRestaurantByHandle(handle);
-  const logo = publicPng("rozo-square-black.png");
+  const logo = ROZO_FLAG_DATA_URI;
 
   const name = restaurant?.name ?? "Network School";
   // Single string node — satori errors on a <div> with multiple text children

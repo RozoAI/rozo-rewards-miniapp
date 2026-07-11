@@ -1,7 +1,6 @@
 import { ImageResponse } from "next/og";
 import { headers } from "next/headers";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { ROZO_FLAG_DATA_URI } from "@/lib/og-logo";
 
 // Social share image for the landing / root URL. Centered layout matching
 // partners.rozo.ai's opengraph-image (logo plate + title + subtitle on white)
@@ -16,12 +15,6 @@ export const alt = "Rozo Rewards";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-// Read a /public asset and inline it as a data URI (satori can't fetch files).
-function publicPng(file: string): string {
-  const buf = readFileSync(join(process.cwd(), "public", file));
-  return `data:image/png;base64,${buf.toString("base64")}`;
-}
-
 function isNetworkSchoolHost(hostHeader: string | null | undefined): boolean {
   if (!hostHeader) return false;
   const host = hostHeader.split(":")[0].toLowerCase();
@@ -32,7 +25,7 @@ export default async function OpengraphImage() {
   const h = await headers();
   const isNs = isNetworkSchoolHost(h.get("host"));
 
-  const logo = publicPng("rozo-square-black.png");
+  const logo = ROZO_FLAG_DATA_URI;
   const title = isNs ? "Network School NS Community" : "Rozo Rewards";
   const subtitle = isNs
     ? "Pay with stablecoins at NS. Earn cashback."
