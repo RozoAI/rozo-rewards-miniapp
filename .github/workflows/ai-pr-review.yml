@@ -34,10 +34,13 @@ permissions:
   pull-requests: write
   issues: write
 
-# One in-flight review per PR; a new push/comment cancels the previous run.
+# One in-flight review per PR. Only pull_request events (new pushes) cancel an
+# in-flight run; comment-triggered runs queue instead. Otherwise ANY PR comment
+# (e.g. the Vercel bot's preview comment) enters this group, cancels the real
+# review, and then skips itself on the job-level guard — killing the review.
 concurrency:
   group: ai-pr-review-${{ github.event.pull_request.number || github.event.issue.number }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   review:
