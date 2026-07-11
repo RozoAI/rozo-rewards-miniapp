@@ -1,6 +1,7 @@
 import IntercomInitializer from "@/components/intercom";
 import { BookmarkProvider } from "@/contexts/BookmarkContext";
 import { generateOgMetadata } from "@/lib/og-image";
+import { SITE_URL_OBJECT } from "@/lib/site";
 import Web3ProviderClient from "@/providers/Web3ProviderClient";
 import { wagmiConfig } from "@/providers/Web3Provider";
 import type { Metadata, Viewport } from "next";
@@ -41,7 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    robots: { index: false, follow: false },
+    metadataBase: SITE_URL_OBJECT,
     ...ogMetadata,
   };
 }
