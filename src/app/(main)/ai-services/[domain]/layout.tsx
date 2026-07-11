@@ -33,6 +33,12 @@ export async function generateMetadata({
       description: service.description,
       images: service.logoUrl ? [service.logoUrl] : undefined,
     },
+    twitter: {
+      card: "summary_large_image",
+      title: service.name,
+      description: service.description,
+      images: service.logoUrl ? [service.logoUrl] : undefined,
+    },
     other: {
       "service:id": service.id,
       "service:name": service.name,

@@ -4,7 +4,6 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "AI Services | Rozo",
   description: "Discover AI services and tools for enhanced experiences",
-  robots: { index: false, follow: false },
 };
 
 export default function AiServicesLayout({ children }: { children: React.ReactNode }) {

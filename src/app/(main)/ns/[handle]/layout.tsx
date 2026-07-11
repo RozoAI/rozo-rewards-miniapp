@@ -27,13 +27,21 @@ export async function generateMetadata({
     ? `${addressParts}${priceInfo}${cashbackInfo}`
     : "View restaurant details, address and pay with crypto.";
 
+  const ogImages = restaurant?.logo_url ? [restaurant.logo_url] : undefined;
+
   return {
     title,
     description,
     openGraph: {
       title: restaurant?.name,
       description,
-      images: restaurant?.logo_url ? [restaurant.logo_url] : undefined,
+      images: ogImages,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: restaurant?.name,
+      description,
+      images: ogImages,
     },
     alternates: { canonical: `/ns/${handle}` },
     other: restaurant

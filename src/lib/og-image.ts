@@ -25,7 +25,12 @@ function getOgImageUrl({
   originalPrice,
   cashbackRate,
 }: OgImageParams): string {
-  const baseUrl = process.env.NEXT_PUBLIC_URL || "https://rewards.rozo.ai";
+  // Trim any trailing slash so NEXT_PUBLIC_URL="https://rewards.rozo.ai/"
+  // doesn't produce a double-slash ".../\/api/og" URL that some scrapers reject.
+  const baseUrl = (process.env.NEXT_PUBLIC_URL || "https://rewards.rozo.ai").replace(
+    /\/+$/,
+    "",
+  );
   const endpoint = `${baseUrl}/api/og`;
 
   const params = new URLSearchParams({
