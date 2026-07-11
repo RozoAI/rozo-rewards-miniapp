@@ -80,6 +80,7 @@ export const LOCATIONS = [
     is_live: true,
     ns_id: "dol",
     price: "$$",
+    hidden: true,
   },
   {
     _id: "58c62be12697d882a8b03e60",
@@ -100,6 +101,7 @@ export const LOCATIONS = [
     is_live: true,
     ns_id: "paper",
     price: "$",
+    hidden: true,
   },
 ];
 
