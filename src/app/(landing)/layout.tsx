@@ -1,8 +1,8 @@
 import { LandingProviders } from "@/providers/landing-providers";
-import { generateOgMetadata } from "@/lib/og-image";
 import { SITE_URL_OBJECT } from "@/lib/site";
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import "../globals.css";
 
 const inter = Inter({
@@ -17,34 +17,42 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-const LANDING_TITLE = "Rozo Rewards";
-const LANDING_DESCRIPTION = "Pay with stablecoins. Earn cashback.";
+const DEFAULT_TITLE = "Rozo Rewards";
+const DEFAULT_DESCRIPTION = "Pay with stablecoins. Earn cashback.";
+const NS_TITLE = "Network School NS Community | ROZO";
+const NS_DESCRIPTION = "Pay with stablecoins at NS. Earn cashback.";
 
-// The root URL (rewards.rozo.ai) is served by THIS (landing) route group — the
-// full OG/Twitter setup previously lived only in (main), which the root never
-// hits, so shared links had no preview image. Wire the dynamic /api/og card in
-// here, set metadataBase so relative OG/canonical URLs resolve to the right
-// origin, and open the site up to indexing (this is now a public rewards/
-// discovery site, not a private mini-app).
-export const metadata: Metadata = {
-  // generateOgMetadata supplies title/description/openGraph/twitter; the fields
-  // below add what it doesn't cover (base URL, canonical, base miniapp id).
-  ...generateOgMetadata({
-    title: LANDING_TITLE,
-    description: LANDING_DESCRIPTION,
-    ogImageParams: {
-      type: "homepage",
-      title: LANDING_TITLE,
-      subtitle: LANDING_DESCRIPTION,
-      image: process.env.NEXT_PUBLIC_APP_HERO_IMAGE || "/logo.png",
+function isNetworkSchoolHost(hostHeader: string | null | undefined): boolean {
+  if (!hostHeader) return false;
+  const host = hostHeader.split(":")[0].toLowerCase();
+  return host === "ns.rozo.ai" || host.startsWith("ns.");
+}
+
+// The root URL is served by THIS (landing) route group. Title/description are
+// host-aware: ns.rozo.ai (the Network School community domain) gets its own
+// branding, every other host shows the default Rozo Rewards. The OG image is
+// provided by the sibling opengraph-image.tsx (host-aware centered card),
+// which Next wires in automatically — so no images are set here. Using
+// headers() opts this layout into dynamic rendering, acceptable for a light
+// entry/redirect root.
+export async function generateMetadata(): Promise<Metadata> {
+  const h = await headers();
+  const isNs = isNetworkSchoolHost(h.get("host"));
+  const title = isNs ? NS_TITLE : DEFAULT_TITLE;
+  const description = isNs ? NS_DESCRIPTION : DEFAULT_DESCRIPTION;
+
+  return {
+    metadataBase: SITE_URL_OBJECT,
+    title,
+    description,
+    openGraph: { title, description, type: "website" },
+    twitter: { card: "summary_large_image", title, description },
+    alternates: { canonical: "/" },
+    other: {
+      "base:app_id": "6a3ddd166c2d0cbe7329c3e7",
     },
-  }),
-  metadataBase: SITE_URL_OBJECT,
-  alternates: { canonical: "/" },
-  other: {
-    "base:app_id": "6a3ddd166c2d0cbe7329c3e7",
-  },
-};
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
