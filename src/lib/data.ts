@@ -62,7 +62,7 @@ export const LOCATIONS = [
     price: "$",
   },
   {
-    _id: "28c62be12697d882a8b03e60",
+    _id: "68c62be12697d882a8b03e60",
     name: "NS Dolcevita",
     handle: "dol",
     currency: "USD",
@@ -82,7 +82,7 @@ export const LOCATIONS = [
     price: "$$",
   },
   {
-    _id: "38c62be12697d882a8b03e60",
+    _id: "58c62be12697d882a8b03e60",
     name: "Paper Cottage",
     handle: "paper",
     currency: "USD",
