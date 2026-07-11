@@ -18,4 +18,5 @@ export type Restaurant = {
   ns_id?: string;
   is_live?: boolean;
   currency?: string;
+  hidden?: boolean;
 };
