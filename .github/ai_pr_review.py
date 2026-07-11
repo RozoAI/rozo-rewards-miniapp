@@ -340,7 +340,14 @@ def add_label(repo: str, pr: int, token: str, label: str) -> None:
 
 
 def submit_approval(repo: str, pr: int, token: str, body: str) -> bool:
-    """Submit approval; return False only for GitHub's self-approval rejection."""
+    """Submit approval; return False when GitHub rejects it with a 422.
+
+    Approval is best-effort: the review comment and pass label are already
+    posted by the time this runs, so a policy rejection (self-approval,
+    "GitHub Actions is not permitted to approve pull requests", org rules)
+    must not fail the whole job. Any 422 is logged and treated as a skip;
+    other HTTP errors still raise.
+    """
     try:
         gh_request(
             "POST",
@@ -354,8 +361,8 @@ def submit_approval(repo: str, pr: int, token: str, body: str) -> bool:
                 message = str(json.loads(e.read().decode("utf-8")).get("message", ""))
             except (json.JSONDecodeError, UnicodeDecodeError):
                 message = ""
-            if "approve your own pull request" in message.lower():
-                return False
+            eprint(f"approval rejected by GitHub (422): {message or 'no message'}")
+            return False
         raise
     return True
 
@@ -576,11 +583,11 @@ def main() -> int:
                         "AI review found no P0 blockers for a trusted Rozo contributor.",
                     )
                     if not approved:
-                        set_output("trusted_auto_approve", "skipped-self-approval")
+                        set_output("trusted_auto_approve", "skipped-approval-rejected")
                         write_step_summary(
-                            "Trusted-author auto-approve skipped: the approver "
-                            "token belongs to the PR author, and GitHub forbids "
-                            "self-approval."
+                            "Trusted-author auto-approve skipped: GitHub rejected "
+                            "the approval (self-approval or org policy — see the "
+                            "job log for the exact message)."
                         )
                     else:
                         set_output("trusted_auto_approve", "approved")
