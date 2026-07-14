@@ -10,6 +10,7 @@ import { getAllAiServices } from "@/lib/ai-services";
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/`, changeFrequency: "weekly", priority: 1.0 },
+    { url: `${SITE_URL}/ns`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${SITE_URL}/discovery`, changeFrequency: "daily", priority: 0.9 },
     { url: `${SITE_URL}/ai-services`, changeFrequency: "daily", priority: 0.8 },
   ];
