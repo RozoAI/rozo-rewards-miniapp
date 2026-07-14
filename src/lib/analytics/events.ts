@@ -40,12 +40,24 @@ export const DAPP_EVENTS = {
   DAPP_MERCHANT_SEARCHED: "dapp_merchant_searched",
 } as const;
 
+export const WALLET_EVENTS = {
+  WALLET_CONNECT_CLICKED: "wallet_connect_clicked",
+  WALLET_CONNECTED: "wallet_connected",
+  AMOUNT_ENTERED: "amount_entered",
+} as const;
+
+export const DOWNLOAD_EVENTS = {
+  APP_DOWNLOAD_CLICKED: "app_download_clicked",
+} as const;
+
 export const ROZO_EVENTS = {
   ...GLOBAL_EVENTS,
   ...PAYMENT_EVENTS,
   ...REWARDS_EVENTS,
   ...DISCOVERY_EVENTS,
   ...DAPP_EVENTS,
+  ...WALLET_EVENTS,
+  ...DOWNLOAD_EVENTS,
 } as const;
 
 export type RozoEventName = (typeof ROZO_EVENTS)[keyof typeof ROZO_EVENTS];

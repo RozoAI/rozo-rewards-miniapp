@@ -4,6 +4,8 @@ import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { capture } from "@/lib/analytics";
+import { WALLET_EVENTS } from "@/lib/analytics/events";
 import {
   convertToUSD,
   getDisplayCurrency,
@@ -11,7 +13,7 @@ import {
 } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
 import { Info } from "lucide-react";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 export interface RestaurantDetailBaseProps {
   restaurant: Restaurant;
@@ -36,6 +38,22 @@ export function RestaurantDetailBase({
 }: RestaurantDetailBaseProps) {
   const initials = getFirstTwoWordInitialsFromName(restaurant.name);
   const isDapp = mode === "dapp";
+
+  // ponytail: native setTimeout debounce, no lib needed
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!paymentAmount) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      capture(WALLET_EVENTS.AMOUNT_ENTERED, {
+        merchant_id: restaurant._id,
+        merchant_name: restaurant.name,
+        amount_usd: paymentAmount,
+      });
+    }, 800);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentAmount]);
 
   return (
     <div className="w-full max-w-xl mx-auto mb-16 flex flex-col gap-3 mt-4 px-4 sm:px-0">

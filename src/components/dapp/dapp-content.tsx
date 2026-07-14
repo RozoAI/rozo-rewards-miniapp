@@ -223,7 +223,17 @@ export function DappContent({
             {itemContent}
           </button>
         ) : (
-          <Link href={`/ns/${restaurant.handle}`} className={itemClassName}>
+          <Link
+            href={`/ns/${restaurant.handle}`}
+            className={itemClassName}
+            onClick={() =>
+              capture(REWARDS_EVENTS.MERCHANT_VIEWED, {
+                merchant_id: restaurant._id,
+                merchant_name: restaurant.name,
+                category: "network_schools",
+              })
+            }
+          >
             {itemContent}
           </Link>
         )}

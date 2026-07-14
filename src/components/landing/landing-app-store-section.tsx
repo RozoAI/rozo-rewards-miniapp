@@ -1,5 +1,8 @@
 "use client";
 
+import { capture } from "@/lib/analytics";
+import { DOWNLOAD_EVENTS } from "@/lib/analytics/events";
+
 export function LandingAppStoreSection() {
   return (
     <section className="px-5 py-6 border-t border-border flex flex-col gap-3">
@@ -11,6 +14,7 @@ export function LandingAppStoreSection() {
           href="https://apps.apple.com/id/app/rozo-wallet/id6754191938"
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => capture(DOWNLOAD_EVENTS.APP_DOWNLOAD_CLICKED, { channel: "ios" })}
           className="flex items-center gap-2.5 flex-1 px-4 py-3 rounded-xl border border-border bg-card hover:border-border-strong transition-colors"
         >
           <svg
@@ -33,6 +37,7 @@ export function LandingAppStoreSection() {
           href="https://play.google.com/store/apps/details?id=com.rozoapp&pcampaignid=web_share"
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => capture(DOWNLOAD_EVENTS.APP_DOWNLOAD_CLICKED, { channel: "android" })}
           className="flex items-center gap-2.5 flex-1 px-4 py-3 rounded-xl border border-border bg-card hover:border-border-strong transition-colors"
         >
           <svg
