@@ -26,6 +26,7 @@ const ALLOWED_PROPERTY_KEYS = new Set([
   "error_context",
   "fid",
   "wallet_address",
+  "chain",
 ]);
 
 function sanitizeProperties(

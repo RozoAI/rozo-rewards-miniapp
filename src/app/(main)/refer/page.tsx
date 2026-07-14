@@ -24,6 +24,8 @@ import {
   isValidStellarAddress,
 } from "@rozoai/intent-common";
 import { LogOut } from "lucide-react";
+import { capture, identifyUser } from "@/lib/analytics";
+import { WALLET_EVENTS } from "@/lib/analytics/events";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -88,6 +90,20 @@ export default function RewardsPage() {
       ? `${displayAddress.slice(0, 6)}…${displayAddress.slice(-4)}`
       : `${displayAddress.slice(0, 4)}…${displayAddress.slice(-4)}`
     : null;
+
+  // Identify user and emit wallet_connected on first connection
+  const prevAddress = useRef<string | null>(null);
+  useEffect(() => {
+    if (isConnected && displayAddress && !hasQueryAddress && displayAddress !== prevAddress.current) {
+      identifyUser(displayAddress.toLowerCase());
+      capture(WALLET_EVENTS.WALLET_CONNECTED, {
+        chain: activeWalletType ?? "evm",
+        wallet_address: displayAddress.toLowerCase(),
+      });
+      prevAddress.current = displayAddress;
+    }
+    if (!isConnected) prevAddress.current = null;
+  }, [isConnected, displayAddress, activeWalletType, hasQueryAddress]);
 
   useEffect(() => {
     if (!isConnected || !displayAddress || !activeWalletType) {
