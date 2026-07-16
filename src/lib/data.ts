@@ -92,16 +92,15 @@ export const LOCATIONS = [
     address_line2: " Jalan Forest City",
     lat: 1.3361,
     lon: 103.5938,
-    payTo: "0x2352Fa2970dBadD12d21808DB0F56CDEC8141739",
+    payTo: "0x157D4d35d8963dAF9Fc636A090AD69d0BD9fd60c",
     createdAt: "2026-01-08T12:19:15.152Z",
-    updatedAt: "2026-07-11T00:00:00.000Z",
+    updatedAt: "2026-07-16T00:00:00.000Z",
     __v: 0,
     logo_url: "https://dcdn.rozo.ai/papercottage.png",
     cashback_rate: 1,
     is_live: true,
     ns_id: "paper",
     price: "$",
-    hidden: true,
   },
 ];
 
