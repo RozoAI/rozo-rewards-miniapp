@@ -92,7 +92,8 @@ export const LOCATIONS = [
     address_line2: " Jalan Forest City",
     lat: 1.3361,
     lon: 103.5938,
-    payTo: "0x157D4d35d8963dAF9Fc636A090AD69d0BD9fd60c",
+    // Receiving address lives in the backend merchant (app_id below), not here.
+    app_id: "merchant_paper",
     createdAt: "2026-01-08T12:19:15.152Z",
     updatedAt: "2026-07-16T00:00:00.000Z",
     __v: 0,

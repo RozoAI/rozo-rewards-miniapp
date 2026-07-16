@@ -28,7 +28,7 @@ export function RestaurantDappDetail({
   });
 
   const [appId] = React.useState<string>(
-    () => `pos_${restaurant?.handle || ""}`,
+    () => restaurant?.app_id ?? `pos_${restaurant?.handle || ""}`,
   );
 
   const [merchantOrderId] = React.useState<string>(
