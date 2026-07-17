@@ -89,18 +89,35 @@ export function RestaurantDetailBase({
               >
                 {restaurant.name}
               </h2>
-              {restaurant.website && (
-                <a
-                  href={`https://${restaurant.website}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block truncate text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
-                >
-                  {restaurant.website}
-                </a>
+              {(restaurant.website || restaurant.whatsapp) && (
+                <div className="flex items-center gap-2">
+                  {restaurant.website && (
+                    <a
+                      href={`https://${restaurant.website}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="truncate text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                    >
+                      {restaurant.website}
+                    </a>
+                  )}
+                  {restaurant.whatsapp && (
+                    <a
+                      href={restaurant.whatsapp}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 text-xs text-green-700 dark:text-green-400 underline underline-offset-2 hover:opacity-80"
+                    >
+                      WhatsApp
+                    </a>
+                  )}
+                </div>
               )}
               {restaurant.host && (
                 <div className="mt-1 flex items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    Hosted by
+                  </span>
                   <Avatar className="size-4 rounded-full ring-1 ring-border bg-muted shrink-0">
                     <AvatarImage
                       src={restaurant.host.avatar_url}
@@ -111,7 +128,7 @@ export function RestaurantDetailBase({
                     </AvatarFallback>
                   </Avatar>
                   <span className="text-xs text-muted-foreground truncate">
-                    Hosted by {restaurant.host.name}
+                    {restaurant.host.name}
                   </span>
                 </div>
               )}

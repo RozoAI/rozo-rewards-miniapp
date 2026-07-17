@@ -11,6 +11,10 @@ export const LOCATIONS = [
     lat: 1.3361,
     lon: 103.5938,
     payTo: "0x2352Fa2970dBadD12d21808DB0F56CDEC8141739",
+    host: {
+      name: "Network School",
+      avatar_url: "https://dcdn.rozo.ai/ns-logo.webp",
+    },
     createdAt: "2025-08-09T12:21:20.572Z",
     updatedAt: "2025-08-09T12:21:20.572Z",
     __v: 0,
@@ -32,6 +36,10 @@ export const LOCATIONS = [
     lat: 1.3359,
     lon: 103.5938,
     payTo: "0x2352Fa2970dBadD12d21808DB0F56CDEC8141739",
+    website: "sgmytaxi288service.com",
+    // Ride is the only merchant with a WhatsApp contact link (owner 2026-07-17).
+    whatsapp: "https://wa.me/60192551688",
+    host: { name: "Carol" },
     createdAt: "2025-08-09T12:21:20.572Z",
     updatedAt: "2025-08-09T12:21:20.572Z",
     __v: 0,
@@ -54,7 +62,11 @@ export const LOCATIONS = [
     // Receiving address lives in the backend merchant (app_id below), not here.
     app_id: "merchant_paper",
     website: "papercottage.site",
-    host: { name: "Tara" },
+    host: {
+      name: "Tara",
+      avatar_url:
+        "https://aozudqtlykbhzbuzalzz.supabase.co/storage/v1/object/public/merchant-assets/avatars/tara.png",
+    },
     createdAt: "2026-01-08T12:19:15.152Z",
     updatedAt: "2026-07-16T00:00:00.000Z",
     __v: 0,
@@ -78,7 +90,11 @@ export const LOCATIONS = [
     // Receiving address lives in the backend merchant (app_id below), not here.
     app_id: "merchant_parallelsociety",
     website: "parallelsociety.shop",
-    host: { name: "Romina" },
+    host: {
+      name: "Romina",
+      avatar_url:
+        "https://aozudqtlykbhzbuzalzz.supabase.co/storage/v1/object/public/merchant-assets/avatars/romina.png",
+    },
     createdAt: "2026-07-17T00:00:00.000Z",
     updatedAt: "2026-07-17T00:00:00.000Z",
     __v: 0,
@@ -122,7 +138,11 @@ export const LOCATIONS = [
     lat: 1.3411,
     lon: 103.5874,
     payTo: "0x2352Fa2970dBadD12d21808DB0F56CDEC8141739",
-    host: { name: "shawnmuggle" },
+    host: {
+      name: "shawnmuggle",
+      avatar_url:
+        "https://aozudqtlykbhzbuzalzz.supabase.co/storage/v1/object/public/merchant-assets/avatars/shawnmuggle.png",
+    },
     createdAt: "2025-08-09T12:21:20.572Z",
     updatedAt: "2025-08-09T12:21:20.572Z",
     __v: 0,

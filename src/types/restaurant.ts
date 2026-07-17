@@ -26,6 +26,8 @@ export type Restaurant = {
   // Merchant website (bare domain, no scheme) — rendered as a clickable
   // reference link on the merchant page.
   website?: string;
-  // Who runs this merchant — rendered as "Hosted by <name>" with an avatar.
+  // WhatsApp contact link (full wa.me URL) — currently only Ride uses this.
+  whatsapp?: string;
+  // Who runs this merchant — rendered as "Hosted by <avatar> <name>".
   host?: { name: string; avatar_url?: string };
 };
