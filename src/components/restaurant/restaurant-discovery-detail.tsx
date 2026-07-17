@@ -88,13 +88,8 @@ export function RestaurantDiscoveryDetail({
   }, [restaurant, router]);
 
   const handleShare = () => {
-    const text = `Check out ${restaurant?.name} at ${
-      restaurant?.address_line1
-    }!${
-      restaurant?.cashback_rate
-        ? ` Get ${restaurant.cashback_rate}% Cashback!`
-        : ""
-    }`;
+    // No location / cashback in share copy (owner 2026-07-17).
+    const text = `Check out ${restaurant?.name} on Rozo!`;
 
     (async () => {
       try {

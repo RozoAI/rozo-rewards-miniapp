@@ -176,25 +176,7 @@ export function DappContent({
           <h3 className="font-semibold text-foreground truncate text-sm leading-tight">
             {restaurant.name}
           </h3>
-          {/* Hide this on dApp */}
-          {!isDapp && (
-            <>
-              <div className="flex items-center gap-2 mt-1.5">
-                {restaurant.cashback_rate > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded text-foreground">
-                      {restaurant.cashback_rate}% Cashback
-                    </span>
-                  </div>
-                )}
-                {restaurant.price && (
-                  <span className="text-xs text-muted-foreground">
-                    {restaurant.price}
-                  </span>
-                )}
-              </div>
-            </>
-          )}
+          {/* Cashback / price badges removed (owner 2026-07-17): no information value. */}
         </div>
         <ChevronRight className="size-4 text-muted-foreground shrink-0 self-center" />
       </>

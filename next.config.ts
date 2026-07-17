@@ -20,6 +20,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "ns.com" },
       { protocol: "https", hostname: "www.rozo.ai" },
       { protocol: "https", hostname: "dcdn.rozo.ai" },
+      // Merchant logos uploaded to the Supabase merchant-assets bucket
+      // (e.g. Parallel Society).
+      { protocol: "https", hostname: "aozudqtlykbhzbuzalzz.supabase.co" },
     ],
   },
   async redirects() {
