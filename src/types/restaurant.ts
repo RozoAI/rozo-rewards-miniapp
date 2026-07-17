@@ -23,4 +23,9 @@ export type Restaurant = {
   // Set explicitly for merchants whose backend id doesn't follow that convention
   // (e.g. non-custodial intent-forwarding merchants like `merchant_paper`).
   app_id?: string;
+  // Merchant website (bare domain, no scheme) — rendered as a clickable
+  // reference link on the merchant page.
+  website?: string;
+  // Who runs this merchant — rendered as "Hosted by <name>" with an avatar.
+  host?: { name: string; avatar_url?: string };
 };

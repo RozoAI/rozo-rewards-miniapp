@@ -53,6 +53,8 @@ export const LOCATIONS = [
     lon: 103.5938,
     // Receiving address lives in the backend merchant (app_id below), not here.
     app_id: "merchant_paper",
+    website: "papercottage.site",
+    host: { name: "Tara" },
     createdAt: "2026-01-08T12:19:15.152Z",
     updatedAt: "2026-07-16T00:00:00.000Z",
     __v: 0,
@@ -75,6 +77,8 @@ export const LOCATIONS = [
     lon: 103.5938,
     // Receiving address lives in the backend merchant (app_id below), not here.
     app_id: "merchant_parallelsociety",
+    website: "parallelsociety.shop",
+    host: { name: "Romina" },
     createdAt: "2026-07-17T00:00:00.000Z",
     updatedAt: "2026-07-17T00:00:00.000Z",
     __v: 0,
@@ -118,6 +122,7 @@ export const LOCATIONS = [
     lat: 1.3411,
     lon: 103.5874,
     payTo: "0x2352Fa2970dBadD12d21808DB0F56CDEC8141739",
+    host: { name: "shawnmuggle" },
     createdAt: "2025-08-09T12:21:20.572Z",
     updatedAt: "2025-08-09T12:21:20.572Z",
     __v: 0,

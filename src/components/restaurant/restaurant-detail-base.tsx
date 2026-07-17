@@ -12,7 +12,6 @@ import {
   getFirstTwoWordInitialsFromName,
 } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
-import { Info } from "lucide-react";
 import React, { useEffect, useRef } from "react";
 
 export interface RestaurantDetailBaseProps {
@@ -90,6 +89,32 @@ export function RestaurantDetailBase({
               >
                 {restaurant.name}
               </h2>
+              {restaurant.website && (
+                <a
+                  href={`https://${restaurant.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block truncate text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                >
+                  {restaurant.website}
+                </a>
+              )}
+              {restaurant.host && (
+                <div className="mt-1 flex items-center gap-1.5">
+                  <Avatar className="size-4 rounded-full ring-1 ring-border bg-muted shrink-0">
+                    <AvatarImage
+                      src={restaurant.host.avatar_url}
+                      alt={restaurant.host.name}
+                    />
+                    <AvatarFallback className="text-[8px] font-medium">
+                      {restaurant.host.name[0]?.toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-xs text-muted-foreground truncate">
+                    Hosted by {restaurant.host.name}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -138,15 +163,8 @@ export function RestaurantDetailBase({
                 )}
               </div>
 
-              {isDapp && (
-                <div className="flex items-start gap-1.5">
-                  <Info className="size-4 text-muted-foreground" />
-                  <p className="text-left text-xs text-muted-foreground">
-                    Physical goods & services only. No digital content or in-app
-                    features.
-                  </p>
-                </div>
-              )}
+              {/* "Physical goods & services only" disclaimer removed for all
+                  merchants (owner 2026-07-17). */}
 
               {/* Payment Buttons */}
               {paymentSlot}
