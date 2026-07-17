@@ -23,4 +23,11 @@ export type Restaurant = {
   // Set explicitly for merchants whose backend id doesn't follow that convention
   // (e.g. non-custodial intent-forwarding merchants like `merchant_paper`).
   app_id?: string;
+  // Merchant website (bare domain, no scheme) — rendered as a clickable
+  // reference link on the merchant page.
+  website?: string;
+  // WhatsApp contact link (full wa.me URL) — currently only Ride uses this.
+  whatsapp?: string;
+  // Who runs this merchant — rendered as "Hosted by <avatar> <name>".
+  host?: { name: string; avatar_url?: string };
 };
