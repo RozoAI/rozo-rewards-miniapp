@@ -7,10 +7,9 @@ import {
   getFirstTwoWordInitialsFromName,
 } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
-import { BadgePercent, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
-import { Badge } from "../ui/badge";
 
 function ListRow({ location }: { location: Restaurant }) {
   const initials = getFirstTwoWordInitialsFromName(location.name);
@@ -55,22 +54,7 @@ function ListRow({ location }: { location: Restaurant }) {
               {location.formatted}
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            {location.price && (
-              <p className="text-xs text-muted-foreground">
-                Price: <b>{location.price}</b>
-              </p>
-            )}
-            {location.cashback_rate > 0 && (
-              <Badge
-                variant="default"
-                className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full"
-              >
-                <BadgePercent className="size-3" />
-                Cashback: <b>{location.cashback_rate}%</b>
-              </Badge>
-            )}
-          </div>
+          {/* Cashback / price badges removed (owner 2026-07-17): no information value. */}
         </div>
       </Link>
     </li>

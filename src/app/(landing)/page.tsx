@@ -70,15 +70,9 @@ export default function LandingPage() {
               )}
             </div>
             <div className="flex-1 min-w-0">
+              {/* Location + cashback removed (owner 2026-07-17): don't show
+                  location; badges carry no information value. */}
               <p className="text-sm font-semibold">{nsCafe.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {nsCafe.address_line1}
-              </p>
-              <div className="flex items-center gap-1.5 mt-1.5">
-                <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded text-foreground">
-                  {nsCafe.cashback_rate}% Cashback
-                </span>
-              </div>
             </div>
             <ArrowRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
           </Link>
