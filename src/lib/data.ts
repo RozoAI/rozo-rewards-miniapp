@@ -78,7 +78,7 @@ export const LOCATIONS = [
   },
   {
     _id: "78c62be12697d882a8b03e60",
-    name: "Parallel Society",
+    name: "Parallel Society (Merch)",
     handle: "parallelsociety",
     currency: "USD",
     formatted:
