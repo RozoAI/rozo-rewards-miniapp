@@ -15,6 +15,9 @@ if (POSTHOG_KEY) {
   posthog.init(POSTHOG_KEY, {
     api_host:
       process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
+    // Auto-capture unhandled JS errors and promise rejections as $exception
+    // events (does not capture console.error). Mirrors rozo-invoice#31.
+    capture_exceptions: true,
   });
   posthog.register({ app_name: "rozo-rewards-miniapp" });
 }
