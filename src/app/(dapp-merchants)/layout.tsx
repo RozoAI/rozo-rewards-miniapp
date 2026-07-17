@@ -1,3 +1,4 @@
+import { DappBrowserGuard } from "@/components/dapp/dapp-browser-guard";
 import { BookmarkProvider } from "@/contexts/BookmarkContext";
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "next-themes";
@@ -50,7 +51,9 @@ export default function DappRootLayout({
             disableTransitionOnChange
           >
             <main className="flex min-h-screen flex-col justify-between md:min-h-screen md:items-center md:justify-start relative">
-              {children}
+              {/* Regular browsers (no window.rozo) are redirected to /discovery,
+                  which has working Pay buttons. Rozo App WebView passes through. */}
+              <DappBrowserGuard>{children}</DappBrowserGuard>
               <Toaster position="top-center" />
             </main>
           </ThemeProvider>
