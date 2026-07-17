@@ -79,7 +79,7 @@ export function RestaurantDiscoveryPayment({
     try {
       const displayCurrency = getDisplayCurrency(restaurant.currency);
       const response = await createMerchantPayment({
-        appId: `pos_${restaurant.handle}`,
+        appId: restaurant.app_id ?? `pos_${restaurant.handle}`,
         amount_local: paymentAmount,
         currency_local: displayCurrency,
         source: { chainId: "8453", tokenSymbol: "USDC" },

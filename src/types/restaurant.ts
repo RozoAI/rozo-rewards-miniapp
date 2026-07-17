@@ -19,4 +19,8 @@ export type Restaurant = {
   is_live?: boolean;
   currency?: string;
   hidden?: boolean;
+  // Backend merchant app_id override. Defaults to `pos_${handle}` when absent.
+  // Set explicitly for merchants whose backend id doesn't follow that convention
+  // (e.g. non-custodial intent-forwarding merchants like `merchant_paper`).
+  app_id?: string;
 };
