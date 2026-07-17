@@ -18,25 +18,35 @@ import { useEffect } from "react";
  * useRozoWallet already handles the async injection race (waits up to 3s for the
  * `rozo:ready` event before concluding "no wallet"), so we only decide once
  * isChecking is false. While checking, show a spinner instead of a blank page.
+ *
+ * Redirect strictly on PROVIDER PRESENCE (`window.rozo` missing), NOT on
+ * isAvailable — isAvailable also goes false when the provider IS present but a
+ * bridge call (isConnected / getAddress / getBalance) transiently fails, which
+ * would wrongly eject a real Rozo App user on a network blip (codex P2).
  */
 export function DappBrowserGuard({ children }: { children: React.ReactNode }) {
-  const { isAvailable, isChecking } = useRozoWallet();
+  const { isChecking } = useRozoWallet();
   const router = useRouter();
   const pathname = usePathname();
 
+  // Only meaningful after isChecking resolves (the hook has waited for the
+  // async rozo:ready injection). A regular browser has no window.rozo.
+  const hasProvider =
+    typeof window !== "undefined" && !!window.rozo;
+
   useEffect(() => {
     if (isChecking) return;
-    if (!isAvailable) {
+    if (!hasProvider) {
       // Regular browser — send to the discovery experience (has Pay buttons).
       // Preserve any query string (e.g. filters) on the redirect.
       const qs =
         typeof window !== "undefined" ? window.location.search : "";
       router.replace(`/discovery${qs}`);
     }
-  }, [isChecking, isAvailable, pathname, router]);
+  }, [isChecking, hasProvider, pathname, router]);
 
   // Still checking, or redirecting away — don't flash dapp UI to a browser user.
-  if (isChecking || !isAvailable) {
+  if (isChecking || !hasProvider) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
         <Loader2 className="size-5 animate-spin text-muted-foreground" />
