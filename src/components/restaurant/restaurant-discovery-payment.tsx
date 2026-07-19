@@ -27,6 +27,7 @@ interface RestaurantDiscoveryPaymentProps {
   prefilledPayment?: {
     id: string;
     source: { amount?: string };
+    metadata?: { amount_local?: string } | null;
   } | null;
 }
 
@@ -43,8 +44,14 @@ export function RestaurantDiscoveryPayment({
 }: RestaurantDiscoveryPaymentProps) {
   const router = useRouter();
 
-  const prefilledAmount = prefilledPayment?.source?.amount
-    ? String(parseFloat(prefilledPayment.source.amount))
+  const prefilledAmount = prefilledPayment
+    ? String(
+        parseFloat(
+          prefilledPayment.metadata?.amount_local ??
+            prefilledPayment.source?.amount ??
+            "0",
+        ),
+      )
     : null;
   const [paymentId, setPaymentId] = React.useState<string | null>(
     prefilledPayment?.id ?? null,

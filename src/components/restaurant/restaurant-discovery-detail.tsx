@@ -33,6 +33,9 @@ export function RestaurantDiscoveryDetail({
   const [loading, setLoading] = React.useState(false);
   const [paymentAmount, setPaymentAmount] = React.useState<string>(() => {
     // Use prefilled amount from payment link if available (strip trailing zeros)
+    if (prefilledPayment?.metadata?.amount_local) {
+      return String(parseFloat(prefilledPayment.metadata.amount_local));
+    }
     if (prefilledPayment?.source?.amount) {
       return String(parseFloat(prefilledPayment.source.amount));
     }
