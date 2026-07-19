@@ -12,7 +12,7 @@ import { PaymentCompletedEvent } from "@rozoai/intent-common";
 import { RozoPayButton } from "@rozoai/intent-pay";
 import { CreditCard, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface RestaurantDiscoveryPaymentProps {
@@ -24,6 +24,10 @@ interface RestaurantDiscoveryPaymentProps {
   generateMetadata: (amountLocal: string, currencyLocal: string) => object;
   loading: boolean;
   setLoading: (value: boolean) => void;
+  prefilledPayment?: {
+    id: string;
+    source: { amount: string };
+  } | null;
 }
 
 export function RestaurantDiscoveryPayment({
@@ -35,15 +39,18 @@ export function RestaurantDiscoveryPayment({
   generateMetadata,
   loading,
   setLoading,
+  prefilledPayment,
 }: RestaurantDiscoveryPaymentProps) {
   const router = useRouter();
 
-  const [paymentId, setPaymentId] = React.useState<string | null>(null);
-  const [confirmedAmount, setConfirmedAmount] = React.useState<string | null>(
-    null,
+  const [paymentId, setPaymentId] = React.useState<string | null>(
+    prefilledPayment?.id ?? null,
   );
-  const [isCreatingPayment, setIsCreatingPayment] = React.useState(false);
-  const [isPreparingPayment, setIsPreparingPayment] = React.useState(false);
+  const [confirmedAmount, setConfirmedAmount] = useState<string | null>(
+    prefilledPayment?.source?.amount ?? null,
+  );
+  const [isCreatingPayment, setIsCreatingPayment] = useState(false);
+  const [isPreparingPayment, setIsPreparingPayment] = useState(false);
   const showRef = useRef<(() => void) | null>(null);
 
   // Reset payment when amount changes
@@ -83,7 +90,10 @@ export function RestaurantDiscoveryPayment({
         amount_local: paymentAmount,
         currency_local: displayCurrency,
         source: { chainId: "8453", tokenSymbol: "USDC" },
-        metadata: { dataSuffix: DATA_SUFFIX },
+        metadata: {
+          dataSuffix: DATA_SUFFIX,
+          customDeeplink: `${window.location.origin}${window.location.pathname}?paymentId=`,
+        },
       });
       setPaymentId(response.id);
       setConfirmedAmount(response.source.amount ?? null);

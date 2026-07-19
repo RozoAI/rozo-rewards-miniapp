@@ -2,6 +2,7 @@
 
 import { RestaurantDetailBase } from "@/components/restaurant/restaurant-detail-base";
 import { convertToUSD, getDisplayCurrency } from "@/lib/utils";
+import { type PaymentResponse } from "@rozoai/intent-common";
 import { Restaurant } from "@/types/restaurant";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -19,16 +20,22 @@ const RestaurantDiscoveryPayment = dynamic(
 export interface RestaurantDiscoveryDetailProps {
   restaurant: Restaurant;
   onBack?: () => void;
+  prefilledPayment?: PaymentResponse | null;
 }
 
 export function RestaurantDiscoveryDetail({
   restaurant,
   onBack,
+  prefilledPayment,
 }: RestaurantDiscoveryDetailProps) {
   const router = useRouter();
 
   const [loading, setLoading] = React.useState(false);
   const [paymentAmount, setPaymentAmount] = React.useState<string>(() => {
+    // Use prefilled amount from payment link if available
+    if (prefilledPayment?.source?.amount) {
+      return prefilledPayment.source.amount;
+    }
     const price =
       restaurant?.price && !isNaN(Number(restaurant.price))
         ? Number(restaurant.price)
@@ -119,6 +126,7 @@ export function RestaurantDiscoveryDetail({
             generateMetadata={generateMetadata}
             loading={loading}
             setLoading={setLoading}
+            prefilledPayment={prefilledPayment}
           />
         }
       />
