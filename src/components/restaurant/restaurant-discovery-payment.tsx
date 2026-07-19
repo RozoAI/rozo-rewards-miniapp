@@ -26,7 +26,7 @@ interface RestaurantDiscoveryPaymentProps {
   setLoading: (value: boolean) => void;
   prefilledPayment?: {
     id: string;
-    source: { amount: string };
+    source: { amount?: string };
   } | null;
 }
 
