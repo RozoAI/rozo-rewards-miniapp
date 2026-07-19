@@ -32,9 +32,9 @@ export function RestaurantDiscoveryDetail({
 
   const [loading, setLoading] = React.useState(false);
   const [paymentAmount, setPaymentAmount] = React.useState<string>(() => {
-    // Use prefilled amount from payment link if available
+    // Use prefilled amount from payment link if available (strip trailing zeros)
     if (prefilledPayment?.source?.amount) {
-      return prefilledPayment.source.amount;
+      return String(parseFloat(prefilledPayment.source.amount));
     }
     const price =
       restaurant?.price && !isNaN(Number(restaurant.price))

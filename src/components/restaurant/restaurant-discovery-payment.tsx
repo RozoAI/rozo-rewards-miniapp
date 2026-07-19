@@ -43,23 +43,27 @@ export function RestaurantDiscoveryPayment({
 }: RestaurantDiscoveryPaymentProps) {
   const router = useRouter();
 
+  const prefilledAmount = prefilledPayment?.source?.amount
+    ? String(parseFloat(prefilledPayment.source.amount))
+    : null;
   const [paymentId, setPaymentId] = React.useState<string | null>(
     prefilledPayment?.id ?? null,
   );
   const [confirmedAmount, setConfirmedAmount] = useState<string | null>(
-    prefilledPayment?.source?.amount ?? null,
+    prefilledAmount,
   );
   const [isCreatingPayment, setIsCreatingPayment] = useState(false);
   const [isPreparingPayment, setIsPreparingPayment] = useState(false);
   const showRef = useRef<(() => void) | null>(null);
 
-  // Reset payment when amount changes
+  // Reset payment only when amount changes from the original prefilled value
   useEffect(() => {
+    if (prefilledAmount && paymentAmount === prefilledAmount) return;
     setPaymentId(null);
     setConfirmedAmount(null);
     setIsPreparingPayment(false);
     showRef.current = null;
-  }, [paymentAmount]);
+  }, [paymentAmount, prefilledAmount]);
 
   // Auto-open modal once paymentId is set and show function available
   useEffect(() => {
@@ -92,11 +96,15 @@ export function RestaurantDiscoveryPayment({
         source: { chainId: "8453", tokenSymbol: "USDC" },
         metadata: {
           dataSuffix: DATA_SUFFIX,
-          customDeeplink: `${window.location.origin}${window.location.pathname}?paymentId=`,
+          customDeeplinkUrl: `${window.location.origin}${window.location.pathname}?paymentId=`,
         },
       });
       setPaymentId(response.id);
-      setConfirmedAmount(response.source.amount ?? null);
+      setConfirmedAmount(
+        response.source.amount
+          ? String(parseFloat(response.source.amount))
+          : null,
+      );
     } catch (error) {
       console.error("[Restaurant] Failed to create payment:", error);
       toast.error("Failed to create payment. Please try again.");
