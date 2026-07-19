@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PAYMENT_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
 import { getRestaurantByHandle } from "@/lib/restaurants";
-import { PaymentStatus, type PaymentResponse } from "@rozoai/intent-common";
+import { getPayment, PaymentStatus, type PaymentResponse } from "@rozoai/intent-common";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -22,13 +22,9 @@ const RestaurantDiscoveryDetail = dynamic(
 
 function LoadingSpinner({ text }: { text: string }) {
   return (
-    <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
-      <Card className="w-full">
-        <CardContent className="flex flex-col items-center justify-center p-8 text-center">
-          <Loader2 className="size-5 animate-spin text-muted-foreground mb-3" />
-          <p className="text-foreground font-medium mb-1">{text}</p>
-        </CardContent>
-      </Card>
+    <div className="flex min-h-screen w-full flex-col items-center justify-center gap-2">
+      <Loader2 className="size-5 animate-spin text-muted-foreground" />
+      <p className="text-sm text-muted-foreground">{text}</p>
     </div>
   );
 }
@@ -72,9 +68,7 @@ function RestaurantDetailContent() {
       source: "url_param",
     });
 
-    import("@rozoai/intent-common").then(({ getPayment }) =>
-      getPayment(paymentIdParam),
-    )
+    getPayment(paymentIdParam)
       .then((response) => {
         if (response.error) {
           throw new Error(response.error.message ?? "Failed to fetch payment");
