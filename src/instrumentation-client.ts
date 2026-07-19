@@ -16,6 +16,7 @@ if (POSTHOG_KEY) {
     // Route all PostHog traffic through our own domain to bypass
     // MetaMask WebView and ad-blocker restrictions on analytics domains.
     api_host: "/api/posthog",
+    api_transport: 'fetch',
     // Keep direct host for PostHog UI links (feature flags, session replay, etc.)
     ui_host:
       process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
