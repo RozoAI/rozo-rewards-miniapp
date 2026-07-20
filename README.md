@@ -178,3 +178,5 @@ supabase functions deploy
 ---
 
 **Built by the Rozo AI Team** · support@rozo.ai
+
+<!-- ci-verify: trivial change to exercise the AI PR review pipeline (2026-07-20). Safe to revert. -->
