@@ -178,3 +178,5 @@ supabase functions deploy
 ---
 
 **Built by the Rozo AI Team** · support@rozo.ai
+
+<!-- ci-verify-v2: trigger claude-code-action review (2026-07-20). Safe to revert. -->
