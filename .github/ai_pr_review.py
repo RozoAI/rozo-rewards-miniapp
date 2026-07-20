@@ -34,16 +34,44 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-# ── Model + pricing ──────────────────────────────────────────────────────────
-# PR review is a bounded task -> Sonnet 5 (near-Opus quality on code review at
-# Sonnet cost). claude-api skill: exact id "claude-sonnet-5" (no date suffix).
+# ── Model + pricing (selected by credential kind at runtime) ─────────────────
+# Model is chosen by resolve_credentials(): a subscription OAuth token gets
+# Opus 4.8 (the subscription already pays for it), a plain API key gets Sonnet 5
+# (near-Opus quality on code review at Sonnet cost, on independent billing).
+# claude-api skill: exact ids "claude-opus-4-8" / "claude-sonnet-5" (no suffix).
+# CI runs a pure code review with NO tool calls (no WebSearch / WebFetch) — the
+# raw-API request below carries no `tools`, so this is enforced by construction.
+# A future migration to anthropics/claude-code-action MUST keep tools disabled.
+#
+# $/1M tokens (claude-api skill cached table): Opus 4.8 = $5 / $25;
+# Sonnet 5 standard = $3 / $15 (intro $2 / $10 through 2026-08-31 — we bill the
+# standard rate to stay safe). PRICE_* and MODEL are set by pick_model() once
+# credentials are resolved; the module-level defaults match the api_key path.
 MODEL = "claude-sonnet-5"
-ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
-ANTHROPIC_VERSION = "2023-06-01"
-# $/1M tokens (claude-api skill cached table). Sonnet 5 standard rate = $3 / $15
-# (intro $2 / $10 through 2026-08-31 — we bill the standard rate to stay safe).
 PRICE_IN_PER_MTOK = 3.00
 PRICE_OUT_PER_MTOK = 15.00
+
+_MODEL_BY_KIND = {
+    "oauth_token": ("claude-opus-4-8", 5.00, 25.00),
+    "api_key": ("claude-sonnet-5", 3.00, 15.00),
+}
+
+ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
+ANTHROPIC_VERSION = "2023-06-01"
+
+
+def pick_model(kind: str) -> str:
+    """Set module-level MODEL + PRICE_* for the resolved credential kind.
+
+    Returns the chosen model id. oauth_token -> Opus 4.8 (subscription pays);
+    api_key -> Sonnet 5 (independent billing). Falls back to the api_key row for
+    any unknown kind so the comment footer + cost math never go blank.
+    """
+    global MODEL, PRICE_IN_PER_MTOK, PRICE_OUT_PER_MTOK
+    MODEL, PRICE_IN_PER_MTOK, PRICE_OUT_PER_MTOK = _MODEL_BY_KIND.get(
+        kind, _MODEL_BY_KIND["api_key"]
+    )
+    return MODEL
 
 AGENT_NAME = "github-pr-review"
 PASS_LABEL = "ai-review-passed"
@@ -132,20 +160,21 @@ class BudgetExceeded(Exception):
 def resolve_credentials() -> tuple[str, str] | None:
     """Pick a credential from the environment. Returns (kind, secret) or None.
 
-    Preference order:
-      1. ANTHROPIC_API_KEY  → ("api_key", ...)      — plain API key, own billing.
-      2. CLAUDE_CODE_OAUTH_TOKEN → ("oauth_token", ...) — Claude Code / subscription
+    Preference order (owner decision 2026-07-20 — subscription-first):
+      1. CLAUDE_CODE_OAUTH_TOKEN → ("oauth_token", ...) — Claude Code / subscription
          OAuth token (the same secret the Anthropic claude-code-action uses).
-    API key wins when both are present: it has independent billing and rate limits,
-    so it won't draw down the subscription. Either one is enough — you do NOT need
-    to create a new API key if the OAuth token is already an org secret.
+      2. ANTHROPIC_API_KEY  → ("api_key", ...)      — plain API key, own billing.
+    The subscription OAuth token wins when both are present so routine PR reviews
+    draw down the flat-rate subscription instead of metered API billing; the API
+    key stays as the fallback for contexts where no OAuth token is configured.
+    Either one is enough. The chosen kind also selects the model (see pick_model).
     """
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
-    if api_key:
-        return ("api_key", api_key)
     oauth = os.environ.get("CLAUDE_CODE_OAUTH_TOKEN", "").strip()
     if oauth:
         return ("oauth_token", oauth)
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    if api_key:
+        return ("api_key", api_key)
     return None
 
 
@@ -168,6 +197,26 @@ def _auth_headers(creds: tuple[str, str]) -> dict[str, str]:
     else:  # api_key
         base["x-api-key"] = secret                    # header only — never printed
     return base
+
+
+def _read_error_detail(e: urllib.error.HTTPError) -> str:
+    """Extract a terse ` — <type>: <message>` from an Anthropic HTTPError body.
+
+    The response body is Anthropic's error envelope, which does NOT contain the
+    request secret (the credential is sent only in a request header). Returns an
+    empty string when the body is missing or unparseable; truncates the message
+    so a long body can't flood the CI log. Consumes e's body once.
+    """
+    try:
+        payload = json.loads(e.read().decode("utf-8"))
+        err = payload.get("error", {}) if isinstance(payload, dict) else {}
+        etype = str(err.get("type", "")).strip()
+        emsg = str(err.get("message", "")).strip()[:300]
+        if etype or emsg:
+            return f" — {etype}: {emsg}" if etype else f" — {emsg}"
+    except Exception:
+        pass
+    return ""
 
 
 def call_claude(creds: tuple[str, str], diff: str, *, max_tokens: int, max_retries: int) -> dict:
@@ -208,16 +257,23 @@ def call_claude(creds: tuple[str, str], diff: str, *, max_tokens: int, max_retri
             return {"text": text, "usage": payload.get("usage", {})}
         except urllib.error.HTTPError as e:
             status = e.code
-            # Do NOT dump the response body verbatim — keep error logs terse and
-            # secret-free. 4xx (except 429) is not retryable.
+            # The Anthropic error body is our own error envelope — it never
+            # echoes the request secret (the key lives only in the request
+            # header, not the response). Surfacing error.type / error.message is
+            # what makes a 4xx debuggable: without it a bad model id, a rejected
+            # param, or an expired token all read as an opaque "HTTP 400". Read
+            # it defensively (the body may be empty or non-JSON) and truncate.
+            detail = _read_error_detail(e)
             if status == 429 or status >= 500:
-                last_err = RuntimeError(f"Anthropic HTTP {status} (attempt {attempt}/{max_retries})")
+                last_err = RuntimeError(
+                    f"Anthropic HTTP {status} (attempt {attempt}/{max_retries}){detail}")
                 eprint(str(last_err))
                 if attempt < max_retries:
                     time.sleep(min(2 ** attempt, 30))
                     continue
             else:
-                raise RuntimeError(f"Anthropic HTTP {status} — non-retryable") from None
+                raise RuntimeError(
+                    f"Anthropic HTTP {status} — non-retryable{detail}") from None
         except (urllib.error.URLError, TimeoutError) as e:
             last_err = RuntimeError(f"Anthropic connection error (attempt {attempt}/{max_retries}): {type(e).__name__}")
             eprint(str(last_err))
@@ -539,9 +595,13 @@ def main() -> int:
     else:
         creds = resolve_credentials()
         if creds is None:
-            eprint("Neither ANTHROPIC_API_KEY nor CLAUDE_CODE_OAUTH_TOKEN set — "
+            eprint("Neither CLAUDE_CODE_OAUTH_TOKEN nor ANTHROPIC_API_KEY set — "
                    "cannot run review.")
             return 1
+        # Model + pricing follow the resolved credential kind (oauth -> Opus 4.8,
+        # api_key -> Sonnet 5). Set before the call so cost math + the comment
+        # footer report the model that actually ran.
+        pick_model(creds[0])
         try:
             result = call_claude(creds, diff, max_tokens=max_tokens, max_retries=max_retries)
         except Exception as e:  # network / API failure -> record + fail soft
