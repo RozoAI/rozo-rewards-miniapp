@@ -178,3 +178,5 @@ supabase functions deploy
 ---
 
 **Built by the Rozo AI Team** · support@rozo.ai
+
+<!-- ci-verify-approve: trigger v2 auto-approve path (2026-07-20). Safe to revert. -->
