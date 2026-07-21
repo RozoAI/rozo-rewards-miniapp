@@ -1,11 +1,14 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { PAYMENT_EVENTS } from "@/lib/analytics/events";
+import { capture } from "@/lib/analytics/index";
 import { getRestaurantByHandle } from "@/lib/restaurants";
-import { Loader2 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { getPayment, PaymentStatus, type PaymentResponse } from "@rozoai/intent-common";
+import { AlertCircle, Loader2 } from "lucide-react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 
 const RestaurantDappDetail = dynamic(
   () => import("@/components/restaurant/restaurant-dapp-detail").then((m) => ({ default: m.RestaurantDappDetail })),
@@ -17,11 +20,34 @@ const RestaurantDiscoveryDetail = dynamic(
   { ssr: false },
 );
 
+function LoadingSpinner({ text }: { text: string }) {
+  return (
+    <div className="flex min-h-screen w-full flex-col items-center justify-center gap-2">
+      <Loader2 className="size-5 animate-spin text-muted-foreground" />
+      <p className="text-sm text-muted-foreground">{text}</p>
+    </div>
+  );
+}
+
 export default function RestaurantDetailPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner text="Loading..." />}>
+      <RestaurantDetailContent />
+    </Suspense>
+  );
+}
+
+function RestaurantDetailContent() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const handle = params.handle as string;
+  const paymentIdParam = searchParams.get("paymentId");
+
   const [isRozoWallet, setIsRozoWallet] = useState(false);
+  const [prefilledPayment, setPrefilledPayment] = useState<PaymentResponse | null>(null);
+  const [isLoadingPayment, setIsLoadingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   useEffect(() => {
     setIsRozoWallet(typeof window !== "undefined" && !!window.rozo);
@@ -32,12 +58,81 @@ export default function RestaurantDetailPage() {
     [handle],
   );
 
+  // Fetch payment data when paymentId is provided
+  useEffect(() => {
+    if (!paymentIdParam) return;
+
+    setIsLoadingPayment(true);
+    capture(PAYMENT_EVENTS.PAYMENT_LINK_OPENED, {
+      payment_id: paymentIdParam,
+      source: "url_param",
+    });
+
+    getPayment(paymentIdParam)
+      .then((response) => {
+        if (response.error) {
+          throw new Error(response.error.message ?? "Failed to fetch payment");
+        }
+
+        const payment = response.data;
+        if (!payment) {
+          throw new Error("No payment data returned");
+        }
+
+        if (payment.status === PaymentStatus.PaymentUnpaid) {
+          setPrefilledPayment(payment);
+          capture(PAYMENT_EVENTS.PAYMENT_LINK_LOADED, {
+            payment_id: paymentIdParam,
+            payment_status: payment.status,
+          });
+        } else {
+          setPaymentError(
+            payment.status === PaymentStatus.PaymentCompleted
+              ? "This payment has already been completed."
+              : `This payment cannot be processed (status: ${payment.status}).`
+          );
+          capture(PAYMENT_EVENTS.PAYMENT_LINK_ERROR, {
+            payment_id: paymentIdParam,
+            payment_status: payment.status,
+            error_message: `Payment status: ${payment.status}`,
+          });
+        }
+      })
+      .catch((err) => {
+        console.error("[PaymentLink] Failed to fetch payment:", err);
+        setPaymentError("Failed to load payment details. Please try again.");
+        capture(PAYMENT_EVENTS.PAYMENT_LINK_ERROR, {
+          payment_id: paymentIdParam,
+          error_message: err instanceof Error ? err.message : "Unknown error",
+        });
+      })
+      .finally(() => setIsLoadingPayment(false));
+  }, [paymentIdParam]);
+
   useEffect(() => {
     if (!restaurant) {
       const timer = setTimeout(() => router.replace("/discovery"), 2500);
       return () => clearTimeout(timer);
     }
   }, [restaurant, router]);
+
+  if (isLoadingPayment) {
+    return <LoadingSpinner text="Loading payment details..." />;
+  }
+
+  if (paymentError) {
+    return (
+      <div className="w-full mb-16 flex flex-col gap-4 mt-4 px-4">
+        <Card className="w-full">
+          <CardContent className="flex flex-col items-center justify-center p-8 text-center">
+            <AlertCircle className="size-8 text-destructive mb-3" />
+            <p className="text-foreground font-medium mb-1">Payment Issue</p>
+            <p className="text-muted-foreground text-sm">{paymentError}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!restaurant) {
     return (
@@ -70,6 +165,7 @@ export default function RestaurantDetailPage() {
     <RestaurantDiscoveryDetail
       restaurant={restaurant}
       onBack={() => router.push("/discovery")}
+      prefilledPayment={prefilledPayment}
     />
   );
 }
