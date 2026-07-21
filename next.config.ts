@@ -8,6 +8,7 @@ const withBundleAnalyzer = createBundleAnalyzer({
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["@rozoai/intent-pay"],
+  skipTrailingSlashRedirect: true,
   devIndicators: false,
   images: {
     remotePatterns: [
@@ -24,6 +25,26 @@ const nextConfig: NextConfig = {
       // (e.g. Parallel Society).
       { protocol: "https", hostname: "aozudqtlykbhzbuzalzz.supabase.co" },
     ],
+  },
+  async rewrites() {
+    const host = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";
+    const assetsHost = host
+      .replace("//us.i.", "//us-assets.i.")
+      .replace("//eu.i.", "//eu-assets.i.");
+    return [
+      {
+        source: "/api/posthog/static/:path*",
+        destination: `${assetsHost}/static/:path*`,
+      },
+      {
+        source: "/api/posthog/array/:path*",
+        destination: `${assetsHost}/array/:path*`,
+      },
+      {
+        source: "/api/posthog/:path*",
+        destination: `${host}/:path*`,
+      },
+    ];
   },
   async redirects() {
     return [
