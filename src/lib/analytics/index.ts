@@ -27,6 +27,9 @@ const ALLOWED_PROPERTY_KEYS = new Set([
   "fid",
   "wallet_address",
   "chain",
+  "payment_id",
+  "payment_status",
+  "source",
 ]);
 
 function sanitizeProperties(
