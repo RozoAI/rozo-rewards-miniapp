@@ -1,6 +1,10 @@
 import posthog from "posthog-js";
+import { formatAddress } from "@/lib/utils";
 import type { RozoEventName } from "./events";
 import type { IdentifyProperties } from "./properties";
+
+// Properties truncated to first6+last4 before leaving the client (B3 privacy rule).
+const TRUNCATED_PROPERTY_KEYS = new Set(["wallet_address", "payment_id"]);
 
 /**
  * Allowlist of property keys safe to send to PostHog. Anything not listed
@@ -39,9 +43,11 @@ function sanitizeProperties(
 
   const sanitized: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(properties)) {
-    if (ALLOWED_PROPERTY_KEYS.has(key) && value !== undefined) {
-      sanitized[key] = value;
-    }
+    if (!ALLOWED_PROPERTY_KEYS.has(key) || value === undefined) continue;
+    sanitized[key] =
+      TRUNCATED_PROPERTY_KEYS.has(key) && typeof value === "string"
+        ? formatAddress(value)
+        : value;
   }
   return sanitized;
 }
