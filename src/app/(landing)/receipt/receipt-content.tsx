@@ -66,12 +66,19 @@ export default function ReceiptContent() {
   const searchParams = useSearchParams();
   const withRozoWallet = Boolean(searchParams.get("withRozoWallet"));
 
-  // ponytail: lazy init — sync read, no effect, no loading state, no 300ms delay
-  const [paymentData] = useState(() => readPaymentData(searchParams));
+  // Must start null on both server and first client render — reading
+  // sessionStorage/localStorage in a lazy initializer returns real data on
+  // the client but null on the server (no window), producing a whole-element
+  // hydration mismatch (server renders nothing, client renders the full
+  // receipt). Read happens in an effect instead, after hydration.
+  const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
 
   useEffect(() => {
-    if (!paymentData) router.replace(withRozoWallet ? "/merchants" : "/");
-  }, [paymentData, withRozoWallet, router]);
+    const data = readPaymentData(searchParams);
+    setPaymentData(data);
+    if (!data) router.replace(withRozoWallet ? "/merchants" : "/");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!paymentData) {
     return null;
