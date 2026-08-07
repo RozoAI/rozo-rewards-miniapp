@@ -215,16 +215,6 @@ export const SERVICES = [
       "Workflow engine for AI automation. Visually orchestrate AI, humans, code, and APIs.",
   },
   {
-    id: "atlas",
-    name: "Atlas",
-    description: "40% off Stripe Atlas",
-    price_usd: 40,
-    original_price_usd: 200,
-    logoUrl: "/ai-services/atlas.svg",
-    long_description:
-      "Incorporate your company in a few clicks. Bank, fundraise, and charge customers immediately after incorporating.",
-  },
-  {
     id: "chatprd",
     name: "ChatPRD",
     description: "1 year free of ChatPRD Pro",
