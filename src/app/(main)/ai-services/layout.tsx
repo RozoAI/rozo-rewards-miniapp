@@ -4,6 +4,10 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "AI Services | Rozo",
   description: "Discover AI services and tools for enhanced experiences",
+  // Self-referencing canonical, matching the other indexable surfaces
+  // (/ns, /ns/[handle], /ai-services/[domain]). These two index pages were the
+  // only sitemap-listed URLs shipping without one.
+  alternates: { canonical: "/ai-services" },
 };
 
 export default function AiServicesLayout({ children }: { children: React.ReactNode }) {
