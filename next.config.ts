@@ -6,7 +6,22 @@ const withBundleAnalyzer = createBundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
+function gitSha(): string {
+  try {
+    const sha =
+      process.env.VERCEL_GIT_COMMIT_SHA ??
+      require("child_process").execSync("git rev-parse HEAD").toString();
+    return sha.trim().slice(-4);
+  } catch {
+    return "unknown";
+  }
+}
+
 const nextConfig: NextConfig = {
+  env: {
+    // ponytail: Vercel injects the sha; local git is a best-effort fallback.
+    NEXT_PUBLIC_GIT_SHA: gitSha(),
+  },
   serverExternalPackages: ["@rozoai/intent-pay"],
   skipTrailingSlashRedirect: true,
   devIndicators: false,
