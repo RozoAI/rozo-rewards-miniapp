@@ -11,7 +11,7 @@ function gitSha(): string {
     const sha =
       process.env.VERCEL_GIT_COMMIT_SHA ??
       require("child_process").execSync("git rev-parse HEAD").toString();
-    return sha.trim().slice(-4);
+    return sha.trim().slice(0, 7);
   } catch {
     return "unknown";
   }
