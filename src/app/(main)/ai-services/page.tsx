@@ -1,4 +1,4 @@
-import { DiscoveryDappContent } from "@/components/dapp/discovery-dapp-content";
+import { DiscoveryMerchantContent } from "@/components/dapp/discovery-merchant-content";
 import { getAllAiServices } from "@/lib/ai-services";
 import { getAllRestaurants } from "@/lib/restaurants";
 import { Binoculars } from "lucide-react";
@@ -18,7 +18,7 @@ export default function AiServicesPage() {
 
   return (
     <Suspense>
-      <DiscoveryDappContent
+      <DiscoveryMerchantContent
         title="Discovery"
         icon={<Binoculars className="size-6" />}
         restaurants={restaurants}
