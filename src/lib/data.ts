@@ -295,7 +295,7 @@ export const SERVICES = [
     id: "manus",
     name: "Manus",
     description: "1 year free of Manus with 4,000 credits/month",
-    price_usd: 20,
+    price_usd: 100,
     original_price_usd: 240,
     logoUrl: "/ai-services/manus.svg",
     long_description:
