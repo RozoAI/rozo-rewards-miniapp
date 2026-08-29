@@ -4,14 +4,17 @@ import { capture, identifyUser } from "@/lib/analytics";
 import { WALLET_EVENTS } from "@/lib/analytics/events";
 import { useEffect, useRef } from "react";
 import { useAccount } from "wagmi";
-import { DappContent, type DappContentProps } from "./dapp-content";
+import {
+  MerchantContent,
+  type MerchantContentProps,
+} from "./merchant-content";
 
-type DiscoveryDappContentProps = Omit<
-  DappContentProps,
+type DiscoveryMerchantContentProps = Omit<
+  MerchantContentProps,
   "evmAddress" | "evmConnected"
 >;
 
-export function DiscoveryDappContent(props: DiscoveryDappContentProps) {
+export function DiscoveryMerchantContent(props: DiscoveryMerchantContentProps) {
   const { address, isConnected } = useAccount();
   const prevConnected = useRef(false);
 
@@ -24,7 +27,7 @@ export function DiscoveryDappContent(props: DiscoveryDappContentProps) {
   }, [isConnected, address]);
 
   return (
-    <DappContent
+    <MerchantContent
       {...props}
       evmAddress={address}
       evmConnected={isConnected}
