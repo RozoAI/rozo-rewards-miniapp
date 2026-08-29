@@ -183,7 +183,7 @@ export function DiscoverContent({
               >
                 <Avatar className="size-11 rounded-lg ring-1 ring-border bg-muted shrink-0">
                 <AvatarImage
-                  src={NETWORK_SCHOOL_LOGO}
+                  src={restaurant.logo_url}
                   alt={restaurant.name}
                 />
                   <AvatarFallback className="rounded-lg font-medium text-sm">
