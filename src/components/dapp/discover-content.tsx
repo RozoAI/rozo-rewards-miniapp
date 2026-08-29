@@ -10,16 +10,11 @@ import { capture } from "@/lib/analytics/index";
 import { DAPPS } from "@/lib/dapps";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, GlobeIcon } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type DappRestaurant = Restaurant;
-
-
-// Network School brand logo — used for the in-app "Network School" list rows
-// (Apple App Review: list merchants under the Network School label).
-const NETWORK_SCHOOL_LOGO = "https://dcdn.rozo.ai/ns-logo.webp";
 
 const RECENT_STORAGE_KEY = "dapp_recent_merchants";
 const RECENT_LIMIT = 3;
@@ -115,6 +110,7 @@ export function DiscoverContent({
     return (
       <RestaurantDappDetail
         restaurant={selectedRestaurant}
+        backTitle={"Back to Discover"}
         onBack={() => setSelectedRestaurant(null)}
       />
     );
@@ -124,6 +120,7 @@ export function DiscoverContent({
     <div className={cn("w-full flex flex-col gap-6 mt-4 mb-20", className)}>
       <PageHeader
         title={title}
+        icon={<GlobeIcon className="size-6" />}
         paymentHistoryAddress={
           isRozoWalletConnected ? walletAddress : undefined
         }

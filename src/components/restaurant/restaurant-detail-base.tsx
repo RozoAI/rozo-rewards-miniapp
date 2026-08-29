@@ -19,6 +19,7 @@ export interface RestaurantDetailBaseProps {
   mode: "dapp" | "discovery";
   rozoWalletAddress?: string;
   paymentAmount: string;
+  backTitle?: string;
   onAmountChange: (value: string) => void;
   onShare: () => void;
   onBack?: () => void;
@@ -30,6 +31,7 @@ export function RestaurantDetailBase({
   mode,
   rozoWalletAddress,
   paymentAmount,
+  backTitle = "Back to Merchants",
   onAmountChange,
   onShare,
   onBack,
@@ -59,7 +61,7 @@ export function RestaurantDetailBase({
       {/* Header */}
       {isDapp ? (
         <PageHeader
-          title="Back to Merchants"
+          title={backTitle}
           isBackButton
           paymentHistoryAddress={rozoWalletAddress || ""}
           onBack={onBack}

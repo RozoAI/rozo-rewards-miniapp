@@ -10,11 +10,13 @@ import React from "react";
 
 export interface RestaurantDappDetailProps {
   restaurant: Restaurant;
+  backTitle?: string;
   onBack?: () => void;
 }
 
 export function RestaurantDappDetail({
   restaurant,
+  backTitle,
   onBack,
 }: RestaurantDappDetailProps) {
   const { walletAddress: rozoWalletAddress } = useRozoWallet();
@@ -57,6 +59,7 @@ export function RestaurantDappDetail({
       mode="dapp"
       rozoWalletAddress={rozoWalletAddress || ""}
       paymentAmount={paymentAmount}
+      backTitle={backTitle}
       onAmountChange={setPaymentAmount}
       onShare={handleShare}
       onBack={onBack}
