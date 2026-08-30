@@ -9,6 +9,8 @@ import { DAPP_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { capture } from "@/lib/analytics/index";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 import { DAPPS } from "@/lib/dapps";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
@@ -17,6 +19,14 @@ import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type DappRestaurant = Restaurant;
+interface AiServiceItem {
+  id: string;
+  name: string;
+  description: string;
+  price_usd: number | null;
+  original_price_usd?: number | null;
+  logoUrl: string;
+}
 
 interface AiServiceItem {
   id: string;
@@ -104,7 +114,7 @@ export function DiscoverContent({
         .slice(0, RECENT_LIMIT),
     [recentIds, restaurantsById],
   );
-
+  
   const clearRecent = useCallback(() => {
     try {
       window.localStorage.removeItem(RECENT_STORAGE_KEY);
@@ -148,18 +158,17 @@ export function DiscoverContent({
       />
 
       {/* Recent */}
-        <section className="flex flex-col gap-2">
-          <div className="flex items-center justify-between px-4 sm:px-0">
-            <h2 className="text-sm font-semibold text-foreground">Recent</h2>
-            <button
-              type="button"
-              disabled={recentRestaurants.length === 0}
-              onClick={clearRecent}
-              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors duration-150 disabled:opacity-50 disabled:hover:text-muted-foreground"
-            >
-              Clear
-            </button>
-          </div>
+      <section className="flex flex-col gap-2">
+        <div className="flex items-center justify-between px-4 sm:px-0">
+          <h2 className="text-sm font-semibold text-foreground">Recent</h2>
+          <button
+            type="button"
+            onClick={clearRecent}
+            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors duration-150"
+          >
+            Clear
+          </button>
+        </div>
         {recentRestaurants.length > 0 && (
           <ul className="divide-y divide-border rounded-xl border border-border bg-card mx-4 sm:mx-0 overflow-hidden">
             {recentRestaurants.map((restaurant) => (
