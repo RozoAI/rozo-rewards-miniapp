@@ -26,6 +26,14 @@ interface AiServiceItem {
   logoUrl: string;
 }
 
+interface AiServiceItem {
+  id: string;
+  name: string;
+  description: string;
+  price_usd: number | null;
+  original_price_usd?: number | null;
+  logoUrl: string;
+}
 const RECENT_STORAGE_KEY = "dapp_recent_merchants";
 const RECENT_LIMIT = 3;
 
@@ -65,7 +73,7 @@ export function DiscoverContent({
   className,
   title = "Discover",
   restaurants,
-    aiServices,
+  aiServices,
 }: DiscoverContentProps) {
   const searchParams = useSearchParams();
   const [selectedRestaurant, setSelectedRestaurant] =
@@ -104,6 +112,7 @@ export function DiscoverContent({
         .slice(0, RECENT_LIMIT),
     [recentIds, restaurantsById],
   );
+
   const clearRecent = useCallback(() => {
     try {
       window.localStorage.removeItem(RECENT_STORAGE_KEY);
@@ -147,18 +156,18 @@ export function DiscoverContent({
       />
 
       {/* Recent */}
-      <section className="flex flex-col gap-2">
-        <div className="flex items-center justify-between px-4 sm:px-0">
-          <h2 className="text-sm font-semibold text-foreground">Recent</h2>
-          <button
-            type="button"
-            onClick={clearRecent}
-            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors duration-150"
-          >
-            Clear
-          </button>
-        </div>
         {recentRestaurants.length > 0 && (
+      <section className="flex flex-col gap-2">
+          <div className="flex items-center justify-between px-4 sm:px-0">
+            <h2 className="text-sm font-semibold text-foreground">Recent</h2>
+            <button
+              type="button"
+              onClick={clearRecent}
+              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors duration-150"
+            >
+              Clear
+            </button>
+          </div>
           <ul className="divide-y divide-border rounded-xl border border-border bg-card mx-4 sm:mx-0 overflow-hidden">
             {recentRestaurants.map((restaurant) => (
               <li key={restaurant._id}>
@@ -189,8 +198,8 @@ export function DiscoverContent({
               </li>
             ))}
           </ul>
-        )}
       </section>
+        )}
 
       {/* Merchants — full non-hidden list; tap opens the payment detail */}
       <section className="flex flex-col gap-2">
@@ -235,9 +244,10 @@ export function DiscoverContent({
           dApps
         </h2>
         <div className="mx-4 sm:mx-0">
-          <DappList dapps={DAPPS} />
+          <DappList dapps={DAPPS} os={os !== null ? os.toLowerCase() : null} />
         </div>
       </section>
+
       {/* AI Services — Rozo Android in-app browser only */}
       {os === "Android" && aiServices.length > 0 && (
         <section className="flex flex-col gap-2">
