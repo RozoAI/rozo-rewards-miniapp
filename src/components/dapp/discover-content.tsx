@@ -6,8 +6,6 @@ import { RestaurantDappDetail } from "@/components/restaurant/restaurant-dapp-de
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { DAPP_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
-import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
 import { capture } from "@/lib/analytics/index";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -114,7 +112,7 @@ export function DiscoverContent({
         .slice(0, RECENT_LIMIT),
     [recentIds, restaurantsById],
   );
-  
+
   const clearRecent = useCallback(() => {
     try {
       window.localStorage.removeItem(RECENT_STORAGE_KEY);
