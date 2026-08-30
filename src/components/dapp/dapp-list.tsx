@@ -9,11 +9,19 @@ import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
 
 export interface DappListProps {
   dapps: DappItem[];
+  os?: string | null;
   className?: string;
 }
 
-export function DappList({ dapps, className }: DappListProps) {
-  if (dapps.length === 0) return null;
+export function DappList({ dapps, os = null, className }: DappListProps) {
+  const visibleDapps = dapps.filter(
+    (dapp) =>
+      os === null ||
+      dapp.visibleOs === undefined ||
+      dapp.visibleOs.includes(os),
+  );
+
+  if (visibleDapps.length === 0) return null;
 
   return (
     <ul
@@ -22,7 +30,7 @@ export function DappList({ dapps, className }: DappListProps) {
         className,
       )}
     >
-      {dapps.map((dapp) => {
+      {visibleDapps.map((dapp) => {
         const initials = getFirstTwoWordInitialsFromName(dapp.name);
         return (
           <li key={dapp.id}>

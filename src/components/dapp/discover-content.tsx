@@ -244,7 +244,7 @@ export function DiscoverContent({
           dApps
         </h2>
         <div className="mx-4 sm:mx-0">
-          <DappList dapps={DAPPS} />
+          <DappList dapps={DAPPS} os={os !== null ? os.toLowerCase() : null} />
         </div>
       </section>
 
