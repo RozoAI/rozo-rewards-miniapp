@@ -156,7 +156,7 @@ export function DiscoverContent({
       />
 
       {/* Recent */}
-        {recentRestaurants.length > 0 && (
+        {/*{recentRestaurants.length > 0 && (
       <section className="flex flex-col gap-2">
           <div className="flex items-center justify-between px-4 sm:px-0">
             <h2 className="text-sm font-semibold text-foreground">Recent</h2>
@@ -199,10 +199,10 @@ export function DiscoverContent({
             ))}
           </ul>
       </section>
-        )}
+        )}*/}
 
       {/* Merchants — full non-hidden list; tap opens the payment detail */}
-      <section className="flex flex-col gap-2">
+      {/*<section className="flex flex-col gap-2">
         <h2 className="text-sm font-semibold text-foreground px-4 sm:px-0">
           Network School
         </h2>
@@ -236,7 +236,7 @@ export function DiscoverContent({
             </li>
           ))}
         </ul>
-      </section>
+      </section>*/}
 
       {/* dApps */}
       <section className="flex flex-col gap-2">
@@ -248,8 +248,8 @@ export function DiscoverContent({
         </div>
       </section>
 
-      {/* AI Services — Rozo Android in-app browser only */}
-      {os === "Android" && aiServices.length > 0 && (
+      {/* AI Services — Rozo Android in-app browser only or desktop web */}
+      {os !== "iOS" && aiServices.length > 0 && (
         <section className="flex flex-col gap-2">
           <h2 className="text-sm font-semibold text-foreground px-4 sm:px-0">
             AI Services
