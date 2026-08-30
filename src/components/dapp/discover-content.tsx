@@ -158,18 +158,18 @@ export function DiscoverContent({
       />
 
       {/* Recent */}
-      <section className="flex flex-col gap-2">
-        <div className="flex items-center justify-between px-4 sm:px-0">
-          <h2 className="text-sm font-semibold text-foreground">Recent</h2>
-          <button
-            type="button"
-            onClick={clearRecent}
-            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors duration-150"
-          >
-            Clear
-          </button>
-        </div>
         {recentRestaurants.length > 0 && (
+      <section className="flex flex-col gap-2">
+          <div className="flex items-center justify-between px-4 sm:px-0">
+            <h2 className="text-sm font-semibold text-foreground">Recent</h2>
+            <button
+              type="button"
+              onClick={clearRecent}
+              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors duration-150"
+            >
+              Clear
+            </button>
+          </div>
           <ul className="divide-y divide-border rounded-xl border border-border bg-card mx-4 sm:mx-0 overflow-hidden">
             {recentRestaurants.map((restaurant) => (
               <li key={restaurant._id}>
@@ -200,8 +200,8 @@ export function DiscoverContent({
               </li>
             ))}
           </ul>
-        )}
       </section>
+        )}
 
       {/* Merchants — full non-hidden list; tap opens the payment detail */}
       <section className="flex flex-col gap-2">
