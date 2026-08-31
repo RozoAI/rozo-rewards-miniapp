@@ -48,7 +48,7 @@ export function DappList({ dapps, os = null, className }: DappListProps) {
                   {dapp.name}
                 </h3>
                 <p className="text-xs text-muted-foreground truncate mt-0.5">
-                  {dapp.category}
+                  {dapp.description}
                 </p>
               </div>
               <Button

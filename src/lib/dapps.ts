@@ -2,7 +2,6 @@ export type DappItem = {
   id: string;
   name: string;
   description: string;
-  category: string;
   logoUrl?: string;
   url: string;
   visibleOs?: string[];
@@ -12,20 +11,18 @@ export type DappItem = {
 // Rozo Wallet in-app browser (or a new tab on the web).
 export const DAPPS: DappItem[] = [
   {
-    id: "rozo-checkout",
-    name: "ROZO POS Checkout",
-    description: "Payments",
-    category: "Payments",
-    logoUrl: "/rozo-square-black.png",
+    id: "pos-scan",
+    name: "POS Scan",
+    description: "Accept Stellar payments with a QR-powered point of sale.",
+    logoUrl: "/qr.png",
     url: "https://stellar.rozo.ai/stellar",
     visibleOs: ["ios", "android"],
   },
   {
-    id: "rozo-pay-openrouter",
-    name: "Pay OpenRouter",
-    description: "Top up OpenRouter with more checkout options.",
-    category: "Payments",
-    logoUrl: "/openrouter.svg",
+    id: "rozo-checkout",
+    name: "ROZO Checkout",
+    description: "Top up your OpenRouter credit with more payment options.",
+    logoUrl: "/rozo-square-black.png",
     url: "https://checkout.rozo.ai",
     visibleOs: ["android"],
   },
