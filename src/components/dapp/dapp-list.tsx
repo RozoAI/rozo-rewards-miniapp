@@ -34,7 +34,7 @@ export function DappList({ dapps, os = null, className }: DappListProps) {
         const initials = getFirstTwoWordInitialsFromName(dapp.name);
         return (
           <li key={dapp.id}>
-            <div className="flex items-center gap-3 px-4 py-3">
+            <div className="flex items-start gap-3 px-4 py-3">
               <Avatar className="size-11 rounded-lg ring-1 ring-border bg-muted shrink-0">
                 {dapp.logoUrl && (
                   <AvatarImage src={dapp.logoUrl} alt={`${dapp.name} logo`} />
@@ -47,14 +47,14 @@ export function DappList({ dapps, os = null, className }: DappListProps) {
                 <h3 className="font-semibold text-foreground truncate text-sm leading-tight">
                   {dapp.name}
                 </h3>
-                <p className="text-xs text-muted-foreground truncate mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {dapp.description}
                 </p>
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-full shrink-0"
+                className="rounded-full shrink-0 mb"
                 onClick={() => {
                   capture(DAPP_EVENTS.DAPP_OPENED, { dapp_id: dapp.id });
                   window.open(dapp.url, "_blank", "noopener,noreferrer");
