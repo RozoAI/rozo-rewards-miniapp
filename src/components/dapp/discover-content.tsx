@@ -150,9 +150,6 @@ export function DiscoverContent({
       <PageHeader
         title={title}
         icon={<GlobeIcon className="size-6" />}
-        paymentHistoryAddress={
-          isRozoWalletConnected ? walletAddress : undefined
-        }
       />
 
       {/* Recent */}

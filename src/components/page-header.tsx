@@ -76,7 +76,7 @@ export function PageHeader({
         )}
       </div>
 
-      <Sheet open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+      {paymentHistoryAddress && <Sheet open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
         <SheetTrigger asChild>
           <Button
             variant="ghost"
@@ -105,7 +105,7 @@ export function PageHeader({
             }}
           />
         </SheetContent>
-      </Sheet>
+      </Sheet>}
     </div>
   );
 }
