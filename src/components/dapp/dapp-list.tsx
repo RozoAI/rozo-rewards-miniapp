@@ -1,27 +1,20 @@
 "use client";
 
+import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DappItem } from "@/lib/dapps";
 import { Button } from "@/components/ui/button";
 import { DAPP_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
+import { DappItem } from "@/lib/dapps";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
 
 export interface DappListProps {
   dapps: DappItem[];
-  os?: string | null;
   className?: string;
 }
 
-export function DappList({ dapps, os = null, className }: DappListProps) {
-  const visibleDapps = dapps.filter(
-    (dapp) =>
-      os === null ||
-      dapp.visibleOs === undefined ||
-      dapp.visibleOs.includes(os),
-  );
-
-  if (visibleDapps.length === 0) return null;
+export function DappList({ dapps, className }: DappListProps) {
+  if (dapps.length === 0) return null;
 
   return (
     <ul
@@ -30,11 +23,11 @@ export function DappList({ dapps, os = null, className }: DappListProps) {
         className,
       )}
     >
-      {visibleDapps.map((dapp) => {
+      {dapps.map((dapp) => {
         const initials = getFirstTwoWordInitialsFromName(dapp.name);
         return (
           <li key={dapp.id}>
-            <div className="flex items-center gap-3 px-4 py-3">
+            <div className="flex items-start gap-3 px-4 py-3">
               <Avatar className="size-11 rounded-lg ring-1 ring-border bg-muted shrink-0">
                 {dapp.logoUrl && (
                   <AvatarImage src={dapp.logoUrl} alt={`${dapp.name} logo`} />
@@ -47,7 +40,7 @@ export function DappList({ dapps, os = null, className }: DappListProps) {
                 <h3 className="font-semibold text-foreground truncate text-sm leading-tight">
                   {dapp.name}
                 </h3>
-                <p className="text-xs text-muted-foreground truncate mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {dapp.description}
                 </p>
               </div>

@@ -4,7 +4,6 @@ export type DappItem = {
   description: string;
   logoUrl?: string;
   url: string;
-  visibleOs?: string[];
 };
 
 // In-app dApps surfaced on the Discover page. `url` values are opened in the
@@ -13,17 +12,15 @@ export const DAPPS: DappItem[] = [
   {
     id: "pos-scan",
     name: "POS Scan",
-    description: "Accept Stellar payments with a QR-powered point of sale.",
+    description: "Send USDC to EVM, Solana and Stellar",
     logoUrl: "/qr.png",
     url: "https://stellar.rozo.ai/stellar",
-    visibleOs: ["ios", "android"],
   },
   {
     id: "rozo-checkout",
     name: "ROZO Checkout",
-    description: "Top up your OpenRouter credit with more payment options.",
+    description: "Pay invoice with more payment options.",
     logoUrl: "/rozo-square-black.png",
     url: "https://checkout.rozo.ai",
-    visibleOs: ["android"],
   },
 ];
