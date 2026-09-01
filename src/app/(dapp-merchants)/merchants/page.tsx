@@ -1,10 +1,8 @@
 import { DiscoverContent } from "@/components/dapp/discover-content";
-import { getAllRestaurants } from "@/lib/restaurants";
 import { getAllAiServices } from "@/lib/ai-services";
 import { Suspense } from "react";
 
 export default function DiscoverPage() {
-  const restaurants = getAllRestaurants();
   const aiServices = getAllAiServices().map((service) => ({
     id: service.id,
     name: service.name,
@@ -16,7 +14,7 @@ export default function DiscoverPage() {
 
   return (
     <Suspense>
-      <DiscoverContent restaurants={restaurants} aiServices={aiServices} />
+      <DiscoverContent aiServices={aiServices} />
     </Suspense>
   );
 }

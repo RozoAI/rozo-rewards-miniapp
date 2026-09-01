@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DAPP_EVENTS } from "@/lib/analytics/events";
@@ -46,7 +47,7 @@ export function DappList({ dapps, className }: DappListProps) {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-full shrink-0 mb-auto"
+                className="rounded-full shrink-0"
                 onClick={() => {
                   capture(DAPP_EVENTS.DAPP_OPENED, { dapp_id: dapp.id });
                   window.open(dapp.url, "_blank", "noopener,noreferrer");
