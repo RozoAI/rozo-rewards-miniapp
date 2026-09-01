@@ -14,7 +14,7 @@ export async function runDappCopyCheck() {
   assert.equal(DAPPS.some((dapp) => "visibleOs" in dapp), false);
   assert.equal(html.includes("OpenRouter"), false);
   assert.equal(html.includes("POS Scan"), true);
-  assert.equal(html.includes("ROZO Checkout"), true);
+  assert.equal(html.includes("ROZO Agent"), true);
 
   console.log("dapp copy check ok");
 }

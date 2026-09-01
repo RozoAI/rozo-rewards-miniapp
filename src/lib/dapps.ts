@@ -17,8 +17,8 @@ export const DAPPS: DappItem[] = [
     url: "https://stellar.rozo.ai/stellar",
   },
   {
-    id: "rozo-checkout",
-    name: "ROZO Checkout",
+    id: "rozo-agent",
+    name: "ROZO Agent",
     description: "Pay invoice with more payment options.",
     logoUrl: "/rozo-square-black.png",
     url: "https://checkout.rozo.ai",
