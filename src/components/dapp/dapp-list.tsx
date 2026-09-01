@@ -1,27 +1,19 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DappItem } from "@/lib/dapps";
 import { Button } from "@/components/ui/button";
 import { DAPP_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
+import { DappItem } from "@/lib/dapps";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
 
 export interface DappListProps {
   dapps: DappItem[];
-  os?: string | null;
   className?: string;
 }
 
-export function DappList({ dapps, os = null, className }: DappListProps) {
-  const visibleDapps = dapps.filter(
-    (dapp) =>
-      os === null ||
-      dapp.visibleOs === undefined ||
-      dapp.visibleOs.includes(os),
-  );
-
-  if (visibleDapps.length === 0) return null;
+export function DappList({ dapps, className }: DappListProps) {
+  if (dapps.length === 0) return null;
 
   return (
     <ul
@@ -30,7 +22,7 @@ export function DappList({ dapps, os = null, className }: DappListProps) {
         className,
       )}
     >
-      {visibleDapps.map((dapp) => {
+      {dapps.map((dapp) => {
         const initials = getFirstTwoWordInitialsFromName(dapp.name);
         return (
           <li key={dapp.id}>
@@ -54,7 +46,7 @@ export function DappList({ dapps, os = null, className }: DappListProps) {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-full shrink-0 mb"
+                className="rounded-full shrink-0 mb-auto"
                 onClick={() => {
                   capture(DAPP_EVENTS.DAPP_OPENED, { dapp_id: dapp.id });
                   window.open(dapp.url, "_blank", "noopener,noreferrer");

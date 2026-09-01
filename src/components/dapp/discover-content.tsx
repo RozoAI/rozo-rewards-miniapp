@@ -14,7 +14,7 @@ import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
 import { Restaurant } from "@/types/restaurant";
 import { ChevronRight, GlobeIcon } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type DappRestaurant = Restaurant;
 interface AiServiceItem {
@@ -34,33 +34,33 @@ interface AiServiceItem {
   original_price_usd?: number | null;
   logoUrl: string;
 }
-const RECENT_STORAGE_KEY = "dapp_recent_merchants";
-const RECENT_LIMIT = 3;
+// const RECENT_STORAGE_KEY = "dapp_recent_merchants";
+// const RECENT_LIMIT = 3;
 
 /** Persisted list of recently viewed merchant ids (most recent first). */
-function readRecentIds(): string[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(RECENT_STORAGE_KEY);
-    const parsed: unknown = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.filter((v) => typeof v === "string") : [];
-  } catch {
-    return [];
-  }
-}
+// function readRecentIds(): string[] {
+//   if (typeof window === "undefined") return [];
+//   try {
+//     const raw = window.localStorage.getItem(RECENT_STORAGE_KEY);
+//     const parsed: unknown = raw ? JSON.parse(raw) : [];
+//     return Array.isArray(parsed) ? parsed.filter((v) => typeof v === "string") : [];
+//   } catch {
+//     return [];
+//   }
+// }
 
-function pushRecentId(id: string): string[] {
-  const next = [id, ...readRecentIds().filter((v) => v !== id)].slice(
-    0,
-    RECENT_LIMIT,
-  );
-  try {
-    window.localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(next));
-  } catch {
-    // storage unavailable (private mode) — recent is best-effort
-  }
-  return next;
-}
+// function pushRecentId(id: string): string[] {
+//   const next = [id, ...readRecentIds().filter((v) => v !== id)].slice(
+//     0,
+//     RECENT_LIMIT,
+//   );
+//   try {
+//     window.localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(next));
+//   } catch {
+//     // storage unavailable (private mode) — recent is best-effort
+//   }
+//   return next;
+// }
 
 export interface DiscoverContentProps {
   className?: string;
@@ -78,8 +78,8 @@ export function DiscoverContent({
   const searchParams = useSearchParams();
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<DappRestaurant | null>(null);
-  const [recentIds, setRecentIds] = useState<string[]>([]);
-  const { walletAddress, isConnected: isRozoWalletConnected } = useRozoWallet();
+  const { walletAddress } = useRozoWallet();
+  // const [recentIds, setRecentIds] = useState<string[]>([]);
 
   // Catch the ?os=Android|iOS query param the Rozo Wallet app appends when it
   // opens this page in its in-app browser. Unknown/absent values mean plain web.
@@ -94,46 +94,46 @@ export function DiscoverContent({
   }, [os]);
 
   // Load recent merchant ids once on mount (client-only storage).
-  useEffect(() => {
-    setRecentIds(readRecentIds());
-  }, []);
+  // useEffect(() => {
+  //   setRecentIds(readRecentIds());
+  // }, []);
 
-  const restaurantsById = useMemo(
-    () => new Map(restaurants.map((r) => [r._id, r])),
-    [restaurants],
-  );
+  // const restaurantsById = useMemo(
+  //   () => new Map(restaurants.map((r) => [r._id, r])),
+  //   [restaurants],
+  // );
 
 
-  const recentRestaurants = useMemo(
-    () =>
-      recentIds
-        .map((id) => restaurantsById.get(id))
-        .filter((r): r is DappRestaurant => Boolean(r))
-        .slice(0, RECENT_LIMIT),
-    [recentIds, restaurantsById],
-  );
+  // const recentRestaurants = useMemo(
+  //   () =>
+  //     recentIds
+  //       .map((id) => restaurantsById.get(id))
+  //       .filter((r): r is DappRestaurant => Boolean(r))
+  //       .slice(0, RECENT_LIMIT),
+  //   [recentIds, restaurantsById],
+  // );
 
-  const clearRecent = useCallback(() => {
-    try {
-      window.localStorage.removeItem(RECENT_STORAGE_KEY);
-    } catch {
-      // storage unavailable — best-effort
-    }
-    setRecentIds([]);
-  }, []);
+  // const clearRecent = useCallback(() => {
+  //   try {
+  //     window.localStorage.removeItem(RECENT_STORAGE_KEY);
+  //   } catch {
+  //     // storage unavailable — best-effort
+  //   }
+  //   setRecentIds([]);
+  // }, []);
 
-  const openMerchant = useCallback(
-    (restaurant: DappRestaurant) => {
-      capture(REWARDS_EVENTS.MERCHANT_VIEWED, {
-        merchant_id: restaurant._id,
-        merchant_name: restaurant.name,
-        category: "network_schools",
-      });
-      setRecentIds(pushRecentId(restaurant._id));
-      setSelectedRestaurant(restaurant);
-    },
-    [],
-  );
+  // const openMerchant = useCallback(
+  //   (restaurant: DappRestaurant) => {
+  //     capture(REWARDS_EVENTS.MERCHANT_VIEWED, {
+  //       merchant_id: restaurant._id,
+  //       merchant_name: restaurant.name,
+  //       category: "network_schools",
+  //     });
+  //     setRecentIds(pushRecentId(restaurant._id));
+  //     setSelectedRestaurant(restaurant);
+  //   },
+  //   [],
+  // );
 
   if (selectedRestaurant) {
     return (
@@ -150,6 +150,7 @@ export function DiscoverContent({
       <PageHeader
         title={title}
         icon={<GlobeIcon className="size-6" />}
+        paymentHistoryAddress={os !== "iOS" ? walletAddress : null}
       />
 
       {/* Recent */}
@@ -241,9 +242,7 @@ export function DiscoverContent({
           dApps
         </h2>
         <div className="mx-4 sm:mx-0">
-          {/*<DappList dapps={DAPPS} os={os !== null ? os.toLowerCase() : null} />*/}
-          {/* Show all dApps as temporary */}
-          <DappList dapps={DAPPS} os={null} />
+          <DappList dapps={DAPPS} />
         </div>
       </section>
 
