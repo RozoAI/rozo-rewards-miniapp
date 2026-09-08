@@ -44,8 +44,7 @@ export function DiscoverContent({
   const { walletAddress } = useRozoWallet();
 
   const osParam = searchParams.get("os");
-  const os =
-    osParam === "Android" || osParam === "iOS" ? osParam : null;
+  const os = osParam === "Android" || osParam === "iOS" ? osParam : null;
 
   useEffect(() => {
     if (os) {
@@ -73,7 +72,7 @@ export function DiscoverContent({
 
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-semibold text-foreground px-4 sm:px-0">
-          dApps
+          Services
         </h2>
         <div className="mx-4 sm:mx-0">
           <DappList dapps={DAPPS} />
