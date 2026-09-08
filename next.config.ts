@@ -42,7 +42,8 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    const host = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";
+    const host =
+      process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";
     const assetsHost = host
       .replace("//us.i.", "//us-assets.i.")
       .replace("//eu.i.", "//eu-assets.i.");
@@ -65,6 +66,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/dapp",
+        destination: "/merchants",
+        permanent: true,
+      },
+      {
+        source: "/discover",
         destination: "/merchants",
         permanent: true,
       },
