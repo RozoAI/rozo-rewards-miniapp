@@ -29,8 +29,7 @@ export default function LandingPage() {
             Better than cards
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-[280px]">
-            Pay with USDC at verified services and partner merchants — no card,
-            no borders, no chargebacks.
+            Pay with USDC at verified services.
           </p>
         </div>
       </section>
