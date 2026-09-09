@@ -15,9 +15,19 @@ export type VerifiedService = {
   name: string;
   description: string;
   logoUrl: string;
+  /** Overrides the /services/<id> URL. OpenRouter is checkout's own front page. */
+  url?: string;
 };
 
 export const VERIFIED_SERVICES: VerifiedService[] = [
+  {
+    id: "openrouter",
+    name: "OpenRouter",
+    description: "AI model gateway — one API for every LLM.",
+    logoUrl: "https://checkout.rozo.ai/assets/img/openrouter-logo-2.svg",
+    // OpenRouter is the default flow: checkout.rozo.ai's home page, not /services/<id>.
+    url: "https://checkout.rozo.ai/",
+  },
   {
     id: "venice",
     name: "Venice AI",
