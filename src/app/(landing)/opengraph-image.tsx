@@ -29,7 +29,7 @@ export default async function OpengraphImage() {
   const title = isNs ? "Network School NS Community" : "Rozo Rewards";
   const subtitle = isNs
     ? "Pay with stablecoins at NS. Earn cashback."
-    : "Pay with stablecoins. Earn cashback.";
+    : "Pay with stablecoins. Better than cards.";
 
   return new ImageResponse(
     (

@@ -9,8 +9,13 @@ import { useRozoWallet } from "@/hooks/useRozoWallet";
 import { DAPP_EVENTS, REWARDS_EVENTS } from "@/lib/analytics/events";
 import { capture } from "@/lib/analytics/index";
 import { cn, getFirstTwoWordInitialsFromName } from "@/lib/utils";
+import {
+  CHECKOUT_SERVICE_URL,
+  VERIFIED_SERVICES,
+  type VerifiedService,
+} from "@/lib/verified-services";
 import { Restaurant } from "@/types/restaurant";
-import { ChevronRight, Globe, Sparkles, Store } from "lucide-react";
+import { BadgeCheck, ChevronRight, Globe, Sparkles, Store } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -26,8 +31,14 @@ interface AiServiceItem {
   logoUrl: string;
 }
 
-type FilterRegion = "network-schools" | "united-states" | "ai-services" | null;
+type FilterRegion =
+  | "verified-services"
+  | "network-schools"
+  | "united-states"
+  | "ai-services"
+  | null;
 const FILTER_REGIONS = [
+  "verified-services",
   "network-schools",
   "united-states",
   "ai-services",
@@ -68,10 +79,25 @@ export function DappContent({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const typeParam = searchParams.get("type");
-  const filter: FilterRegion =
-    isFilterRegion(typeParam) && !(isDapp && typeParam === "ai-services")
+  // Discovery (isDapp=false) defaults to the verified-services tab; the
+  // Network Schools tab only exists when ?type=network-schools is explicit.
+  // The in-app merchants view (isDapp=true) keeps its original behaviour.
+  const filter: FilterRegion = isDapp
+    ? isFilterRegion(typeParam) &&
+      typeParam !== "ai-services" &&
+      typeParam !== "verified-services"
       ? typeParam
-      : "network-schools";
+      : "network-schools"
+    : isFilterRegion(typeParam)
+      ? typeParam
+      : "verified-services";
+
+  // Only Discovery renders the "Graduated" placeholder; isDapp keeps the list.
+  const showNetworkSchoolsTab = isDapp || typeParam === "network-schools";
+  const showsRestaurantList =
+    filter !== "ai-services" &&
+    filter !== "verified-services" &&
+    !(filter === "network-schools" && !isDapp);
 
   const { walletAddress, isConnected: isRozoWalletConnected } = useRozoWallet();
 
@@ -223,6 +249,49 @@ export function DappContent({
     );
   };
 
+  const renderVerifiedServiceItem = (service: VerifiedService) => {
+    const initials = getFirstTwoWordInitialsFromName(service.name);
+
+    return (
+      <li key={service.id}>
+        <a
+          href={CHECKOUT_SERVICE_URL(service.id)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            "flex items-center gap-3 px-4 py-3.5",
+            "transition-colors duration-150 hover:bg-muted/50 active:bg-muted",
+          )}
+          onClick={() =>
+            capture(REWARDS_EVENTS.MERCHANT_VIEWED, {
+              merchant_id: service.id,
+              merchant_name: service.name,
+              category: "verified_services",
+            })
+          }
+        >
+          <Avatar className="size-11 rounded-lg ring-1 ring-border shrink-0">
+            <AvatarImage src={service.logoUrl} alt={`${service.name} logo`} />
+            <AvatarFallback className="rounded-lg text-xs font-semibold">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+
+          <div className="min-w-0 flex-1">
+            <h3 className="font-semibold text-foreground text-sm leading-tight truncate">
+              {service.name}
+            </h3>
+            <p className="text-xs text-muted-foreground truncate mt-0.5">
+              {service.description}
+            </p>
+          </div>
+
+          <ChevronRight className="size-4 text-muted-foreground shrink-0" />
+        </a>
+      </li>
+    );
+  };
+
   const renderAiServiceItem = (service: AiServiceItem) => {
     const priceLabel =
       service.price_usd === null ? "N/A" : `$${service.price_usd}`;
@@ -322,34 +391,52 @@ export function DappContent({
           aria-label="Filter category"
           className="inline-flex w-full rounded-lg border border-border bg-muted p-1 gap-1"
         >
-          <button
-            role="tab"
-            aria-selected={filter === "network-schools"}
-            onClick={() => setFilterInUrl("network-schools")}
-            className={cn(
-              "flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-150",
-              filter === "network-schools"
-                ? "bg-background text-foreground shadow-xs border border-border"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <svg
-              width="14"
-              height="10"
-              viewBox="0 0 30 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-              focusable="false"
-              className="shrink-0"
+          {!isDapp && (
+            <button
+              role="tab"
+              aria-selected={filter === "verified-services"}
+              onClick={() => setFilterInUrl("verified-services")}
+              className={cn(
+                "flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-150",
+                filter === "verified-services"
+                  ? "bg-background text-foreground shadow-xs border border-border"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
             >
-              <path
-                d="M9.04883 0C14.4015 1.58136e-05 18.0466 0.857342 21.4111 0.857422C24.5739 0.857419 26.8592 0.730968 29.0273 0.478516C29.2469 0.453142 29.4413 0.621298 29.4414 0.838867V19.2832C29.4411 19.4516 29.323 19.5976 29.1543 19.626C27.6623 19.8749 24.1475 20 21.4111 20C18.4798 19.9999 14.1466 19.1426 9.55859 19.1426C5.14747 19.1426 2.72034 19.3956 0.432617 19.7822C0.207077 19.8203 0.000341557 19.6499 0 19.4248V1.0332C3.69636e-05 0.851129 0.136849 0.697243 0.320312 0.673828C2.56107 0.389876 5.35291 0 9.04883 0ZM13.4951 8.76074C11.9493 8.65328 10.6111 8.66895 9.43164 8.66895V11.1475C10.2548 11.1475 11.7426 11.1495 13.4922 11.2998C13.4903 13.3072 13.492 15.0743 13.5088 15.4326C14.1458 15.5754 14.5286 15.5754 15.791 15.8018V11.5508C17.549 11.7554 18.8433 11.8613 20.1377 11.8613V9.29004C18.7357 9.29004 17.6985 9.187 15.791 8.98242V4.79199C15.7758 4.78999 14.1434 4.57627 13.5088 4.57617C13.5086 4.61678 13.5007 6.53989 13.4951 8.76074Z"
-                fill="currentColor"
-              />
-            </svg>
-            Network Schools
-          </button>
+              <BadgeCheck className="size-3.5 shrink-0" />
+              Verified Services
+            </button>
+          )}
+          {showNetworkSchoolsTab && (
+            <button
+              role="tab"
+              aria-selected={filter === "network-schools"}
+              onClick={() => setFilterInUrl("network-schools")}
+              className={cn(
+                "flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-150",
+                filter === "network-schools"
+                  ? "bg-background text-foreground shadow-xs border border-border"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <svg
+                width="14"
+                height="10"
+                viewBox="0 0 30 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+                focusable="false"
+                className="shrink-0"
+              >
+                <path
+                  d="M9.04883 0C14.4015 1.58136e-05 18.0466 0.857342 21.4111 0.857422C24.5739 0.857419 26.8592 0.730968 29.0273 0.478516C29.2469 0.453142 29.4413 0.621298 29.4414 0.838867V19.2832C29.4411 19.4516 29.323 19.5976 29.1543 19.626C27.6623 19.8749 24.1475 20 21.4111 20C18.4798 19.9999 14.1466 19.1426 9.55859 19.1426C5.14747 19.1426 2.72034 19.3956 0.432617 19.7822C0.207077 19.8203 0.000341557 19.6499 0 19.4248V1.0332C3.69636e-05 0.851129 0.136849 0.697243 0.320312 0.673828C2.56107 0.389876 5.35291 0 9.04883 0ZM13.4951 8.76074C11.9493 8.65328 10.6111 8.66895 9.43164 8.66895V11.1475C10.2548 11.1475 11.7426 11.1495 13.4922 11.2998C13.4903 13.3072 13.492 15.0743 13.5088 15.4326C14.1458 15.5754 14.5286 15.5754 15.791 15.8018V11.5508C17.549 11.7554 18.8433 11.8613 20.1377 11.8613V9.29004C18.7357 9.29004 17.6985 9.187 15.791 8.98242V4.79199C15.7758 4.78999 14.1434 4.57627 13.5088 4.57617C13.5086 4.61678 13.5007 6.53989 13.4951 8.76074Z"
+                  fill="currentColor"
+                />
+              </svg>
+              Network Schools
+            </button>
+          )}
           {!isDapp && (
             <button
               role="tab"
@@ -371,7 +458,9 @@ export function DappContent({
 
       {(filter === "ai-services"
         ? aiServices.length
-        : filteredRestaurants.length) > 10 && (
+        : showsRestaurantList
+          ? filteredRestaurants.length
+          : 0) > 10 && (
         <div className="px-4 sm:px-0">
           <Input
             value={searchValue}
@@ -383,13 +472,24 @@ export function DappContent({
       )}
 
       <div className="px-4 sm:px-0">
-        <ul className="divide-y divide-border rounded-xl border border-border bg-card overflow-hidden">
-          {filter === "ai-services"
-            ? searchedAiServices.map(renderAiServiceItem)
-            : searchedRestaurants.map(renderRestaurantItem)}
-        </ul>
+        {filter === "network-schools" && !isDapp ? (
+          <div className="flex flex-col items-center justify-center py-12 px-4 rounded-xl border border-border bg-card">
+            <Globe className="size-8 text-muted-foreground mb-3" />
+            <p className="text-sm text-muted-foreground text-center">
+              Graduated. New season coming soon.
+            </p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-border rounded-xl border border-border bg-card overflow-hidden">
+            {filter === "verified-services"
+              ? VERIFIED_SERVICES.map(renderVerifiedServiceItem)
+              : filter === "ai-services"
+                ? searchedAiServices.map(renderAiServiceItem)
+                : searchedRestaurants.map(renderRestaurantItem)}
+          </ul>
+        )}
 
-        {filter !== "ai-services" && searchedRestaurants.length === 0 && (
+        {showsRestaurantList && searchedRestaurants.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 px-4 rounded-xl border border-border bg-card">
             <Globe className="size-8 text-muted-foreground mb-3" />
             <h3 className="text-sm font-semibold text-foreground mb-1">
