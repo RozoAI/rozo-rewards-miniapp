@@ -1,13 +1,9 @@
 import { LandingAppStoreSection } from "@/components/landing/landing-app-store-section";
-import { RozoOgNotice } from "@/components/landing/rozo-og-notice";
-import { getAllRestaurants } from "@/lib/restaurants";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function LandingPage() {
-  const nsCafe = getAllRestaurants().find((r) => r.handle === "nscafe");
-
   return (
     <div className="w-full min-h-screen bg-background text-foreground flex flex-col">
       {/* Hero */}
@@ -30,12 +26,10 @@ export default function LandingPage() {
           <h1 className="text-[2rem] font-semibold leading-[1.15] tracking-tight text-balance mb-3">
             Spend stablecoins.
             <br />
-            Earn cashback.
+            Better than cards
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-[280px]">
-            Pay at partner merchants with USDC and get up to{" "}
-            <span className="font-mono font-medium text-foreground">10%</span>{" "}
-            back in ROZO points.
+            Pay with USDC at verified services.
           </p>
         </div>
       </section>
@@ -43,50 +37,14 @@ export default function LandingPage() {
       {/* Divider */}
       <div className="h-px bg-border mx-5" />
 
-      {/* Merchants */}
+      {/* Discover */}
       <section className="px-5 py-6 flex flex-col gap-3">
-        <h2 className="text-xs font-semibold text-muted-foreground">
-          Featured Merchant
-        </h2>
-
-        {nsCafe && (
-          <Link
-            href={`/ns/${nsCafe.handle}`}
-            className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:border-border-strong transition-colors group"
-          >
-            <div className="size-12 rounded-xl border border-border bg-muted overflow-hidden shrink-0 flex items-center justify-center">
-              {nsCafe.logo_url ? (
-                <Image
-                  src={nsCafe.logo_url}
-                  alt={nsCafe.name}
-                  width={48}
-                  height={48}
-                  className="object-contain"
-                />
-              ) : (
-                <span className="text-base font-semibold text-muted-foreground">
-                  {nsCafe.name[0]}
-                </span>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              {/* Location + cashback removed (owner 2026-07-17): don't show
-                  location; badges carry no information value. */}
-              <p className="text-sm font-semibold">{nsCafe.name}</p>
-            </div>
-            <ArrowRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
-          </Link>
-        )}
-
         <Link
           href="/discovery"
           className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-border text-sm font-medium hover:bg-muted transition-colors"
         >
           Discover more <ArrowRight className="size-4" />
         </Link>
-
-        {/* ROZO OG announcement */}
-        <RozoOgNotice />
       </section>
 
       <LandingAppStoreSection />

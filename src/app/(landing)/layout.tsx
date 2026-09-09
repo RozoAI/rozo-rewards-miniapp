@@ -18,7 +18,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 const DEFAULT_TITLE = "Rozo Rewards";
-const DEFAULT_DESCRIPTION = "Pay with stablecoins. Earn cashback.";
+const DEFAULT_DESCRIPTION = "Pay with stablecoins. Better than cards.";
 const NS_TITLE = "Network School NS Community | ROZO";
 const NS_DESCRIPTION = "Pay with stablecoins at NS. Earn cashback.";
 
