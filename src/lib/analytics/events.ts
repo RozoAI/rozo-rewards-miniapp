@@ -41,6 +41,8 @@ export const DISCOVERY_EVENTS = {
 export const DAPP_EVENTS = {
   DAPP_FILTER_CHANGED: "dapp_filter_changed",
   DAPP_MERCHANT_SEARCHED: "dapp_merchant_searched",
+  DAPP_OPENED: "dapp_opened",
+  DAPP_OS_PARAM_DETECTED: "dapp_os_param_detected",
 } as const;
 
 export const WALLET_EVENTS = {

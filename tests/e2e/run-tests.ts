@@ -4,7 +4,9 @@ import { RozoE2ETestSuite } from './main-test-suite.js';
 import { AuthTestSuite } from './auth-tests.js';
 import { PaymentTestSuite } from './payment-tests.js';
 import { OrderTestSuite } from './order-tests.js';
+import { runDappCopyCheck } from './dapp-copy-check.js';
 import { TEST_CONFIG } from './test-config.js';
+
 
 class TestRunner {
   private results: { suite: string; status: 'passed' | 'failed'; error?: string }[] = [];
@@ -21,6 +23,7 @@ class TestRunner {
     await this.runTestSuite('Payment System Tests', () => new PaymentTestSuite().runPaymentTests());
     await this.runTestSuite('Order Management Tests', () => new OrderTestSuite().runOrderTests());
     await this.runTestSuite('Complete Integration Tests', () => new RozoE2ETestSuite().runFullTestSuite());
+    await this.runTestSuite('Dapp Copy Checks', runDappCopyCheck);
 
     this.printSummary();
   }

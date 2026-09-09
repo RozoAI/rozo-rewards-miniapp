@@ -50,7 +50,7 @@ const isFilterRegion = (
   value !== null &&
   FILTER_REGIONS.includes(value as (typeof FILTER_REGIONS)[number]);
 
-export interface DappContentProps {
+export interface MerchantContentProps {
   className?: string;
   title?: string;
   icon?: React.ReactNode;
@@ -62,7 +62,7 @@ export interface DappContentProps {
   evmConnected?: boolean;
 }
 
-export function DappContent({
+export function MerchantContent({
   className,
   title = "Merchants",
   icon = <Store className="size-6" />,
@@ -71,7 +71,7 @@ export function DappContent({
   aiServices,
   evmAddress,
   evmConnected = false,
-}: DappContentProps) {
+}: MerchantContentProps) {
   const [searchValue, setSearchValue] = useState("");
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null);

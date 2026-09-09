@@ -1,11 +1,8 @@
-import { DappContent } from "@/components/dapp/dapp-content";
+import { DiscoverContent } from "@/components/dapp/discover-content";
 import { getAllAiServices } from "@/lib/ai-services";
-import { getAllRestaurants } from "@/lib/restaurants";
 import { Suspense } from "react";
 
-export default function DappPage() {
-  const restaurants = getAllRestaurants();
-
+export default function DiscoverPage() {
   const aiServices = getAllAiServices().map((service) => ({
     id: service.id,
     name: service.name,
@@ -17,12 +14,7 @@ export default function DappPage() {
 
   return (
     <Suspense>
-      <DappContent
-        isDapp={true}
-        title="Merchants"
-        restaurants={restaurants}
-        aiServices={aiServices}
-      />
+      <DiscoverContent aiServices={aiServices} />
     </Suspense>
   );
 }
