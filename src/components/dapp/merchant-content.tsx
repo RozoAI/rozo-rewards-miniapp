@@ -255,7 +255,7 @@ export function MerchantContent({
     return (
       <li key={service.id}>
         <a
-          href={CHECKOUT_SERVICE_URL(service.id)}
+          href={service.url ?? CHECKOUT_SERVICE_URL(service.id)}
           target="_blank"
           rel="noopener noreferrer"
           className={cn(
