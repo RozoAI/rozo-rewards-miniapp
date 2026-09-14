@@ -56,8 +56,8 @@ export default function AIServiceDetailPage() {
     ? Math.round(
         ((service.original_price_usd! - service.price_usd!) /
           service.original_price_usd!) *
-          100,
-      )
+          1000,
+      ) / 10
     : null;
 
   useEffect(() => {

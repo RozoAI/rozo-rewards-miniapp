@@ -267,6 +267,7 @@ export const SERVICES = [
     name: "Intercom",
     description: "1 year free of Fin AI Agent + Intercom Advanced",
     price_usd: 40,
+    // Deal value from original AI services pricing commit, not public base-plan annual price.
     original_price_usd: 7140,
     logoUrl: "/ai-services/intercom.svg",
     long_description: "AI Agent for customer service.",
@@ -326,6 +327,7 @@ export const SERVICES = [
     name: "PostHog",
     description: "1 year free of PostHog Scale with 2x monthly limit",
     price_usd: 15,
+    // Deal value from original AI services pricing commit, not public Scale package annual price.
     original_price_usd: 16500,
     logoUrl: "/ai-services/posthog.svg",
     long_description:
