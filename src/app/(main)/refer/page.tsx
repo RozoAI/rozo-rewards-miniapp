@@ -43,11 +43,13 @@ const DISCORD_URL = "https://discord.com/invite/EfWejgTbuU";
  * figure. This note is here so that anyone who remembers a non-zero balance has
  * somewhere to say so rather than assuming the number is simply wrong.
  */
-function RewardsHelpNote() {
+function RewardsHelpNote({ walletType }: { walletType: WalletType }) {
   return (
     <p className="px-1 pt-1 text-xs leading-relaxed text-muted-foreground">
-      Earlier points balances are no longer shown here. If something looks
-      wrong, tell us on{" "}
+      {walletType === "stellar"
+        ? "Earlier points balances are no longer shown here."
+        : "Seeds are tracked for Stellar wallets today, so there is nothing to show for this one yet. Earlier points balances are no longer shown here either."}{" "}
+      If something looks wrong, tell us on{" "}
       <a
         href={DISCORD_URL}
         target="_blank"
@@ -262,7 +264,7 @@ export default function RewardsPage() {
                   stellarRewardsLoading={stellarRewardsLoading}
                 />
               )}
-              <RewardsHelpNote />
+              <RewardsHelpNote walletType={activeWalletType!} />
               {/* <TierBenefitsCard /> */}
             </>
           ) : (
