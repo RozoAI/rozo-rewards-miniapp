@@ -102,22 +102,6 @@ export function fmtPoints(n: number) {
 
 // ─── API ──────────────────────────────────────────────────────────────────────
 
-const CASHBACK_PARAM: Record<WalletType, string> = {
-  evm: "evm_address",
-  stellar: "stellar_address",
-  solana: "solana_address",
-};
-
-export async function fetchPoints(type: WalletType, address: string): Promise<number | null> {
-  const param = CASHBACK_PARAM[type];
-  const value = type === "evm" ? address.toLowerCase() : address;
-  const res = await fetch(`https://auth0.rozo.ai/functions/v1/cashback?${param}=${value}`);
-  if (!res.ok) return null;
-  const data = await res.json();
-  const points = data?.balance?.points;
-  return points == null ? null : points * 100;
-}
-
 export async function fetchStellarRewards(address: string): Promise<StellarRewards | null> {
   const res = await fetch(
     `https://intentapiv4.rozo.ai/functions/v1/payment-api/rewards/${address}`,
