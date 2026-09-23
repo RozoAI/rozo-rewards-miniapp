@@ -2,13 +2,11 @@
 
 import { Ethereum, Solana, Stellar } from "@/components/chain-logo";
 import {
-  fetchPoints,
   fetchStellarRewards,
   kit,
   StellarRewards,
   WalletType,
 } from "@/components/rewards/lib";
-import { PointsCard } from "@/components/rewards/points-card";
 import { SeedsCard } from "@/components/rewards/seeds-card";
 import { TeaserCard } from "@/components/rewards/teaser-card";
 import { WalletChooser } from "@/components/rewards/wallet-chooser";
@@ -36,6 +34,33 @@ function detectAddressType(addr: string): WalletType | null {
   return null;
 }
 
+const DISCORD_URL = "https://discord.com/invite/EfWejgTbuU";
+
+/**
+ * Points earned before 2026 lived in a separate rewards backend that is being
+ * retired: it had stopped recording new points months before this page stopped
+ * reading it, so every balance it returned was zero. Seeds, above, are the live
+ * figure. This note is here so that anyone who remembers a non-zero balance has
+ * somewhere to say so rather than assuming the number is simply wrong.
+ */
+function RewardsHelpNote() {
+  return (
+    <p className="px-1 pt-1 text-xs leading-relaxed text-muted-foreground">
+      Earlier points balances are no longer shown here. If something looks
+      wrong, tell us on{" "}
+      <a
+        href={DISCORD_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-medium underline underline-offset-2"
+      >
+        Discord
+      </a>{" "}
+      and we will sort it out.
+    </p>
+  );
+}
+
 export default function RewardsPage() {
   const searchParams = useSearchParams();
   const queryAddress = searchParams.get("address") ?? "";
@@ -53,8 +78,6 @@ export default function RewardsPage() {
   const [stellarAddress, setStellarAddress] = useState<string | null>(null);
   const [chooser, setChooser] = useState(false);
   const [walletType, setWalletType] = useState<WalletType | null>(null);
-  const [points, setPoints] = useState<number | null>(null);
-  const [pointsLoading, setPointsLoading] = useState(false);
   const [stellarRewards, setStellarRewards] = useState<StellarRewards | null>(
     null,
   );
@@ -106,17 +129,6 @@ export default function RewardsPage() {
   }, [isConnected, displayAddress, activeWalletType, hasQueryAddress]);
 
   useEffect(() => {
-    if (!isConnected || !displayAddress || !activeWalletType) {
-      setPoints(null);
-      return;
-    }
-    setPointsLoading(true);
-    fetchPoints(activeWalletType, displayAddress)
-      .then(setPoints)
-      .finally(() => setPointsLoading(false));
-  }, [isConnected, displayAddress, activeWalletType]);
-
-  useEffect(() => {
     const addr =
       hasQueryAddress && queryAddressType === "stellar"
         ? queryAddress
@@ -142,7 +154,6 @@ export default function RewardsPage() {
   useEffect(() => {
     if (walletType === "evm" && !evmConnected) {
       setWalletType(null);
-      setPoints(null);
       disconnecting.current = false;
     }
   }, [evmConnected, walletType]);
@@ -150,7 +161,6 @@ export default function RewardsPage() {
   useEffect(() => {
     if (walletType === "solana" && !solanaConnected) {
       setWalletType(null);
-      setPoints(null);
       disconnecting.current = false;
     }
   }, [solanaConnected, walletType]);
@@ -180,7 +190,6 @@ export default function RewardsPage() {
     } else {
       setStellarAddress(null);
       setWalletType(null);
-      setPoints(null);
       setStellarRewards(null);
       disconnecting.current = false;
     }
@@ -247,19 +256,13 @@ export default function RewardsPage() {
         <div className="flex-1 px-4 space-y-3">
           {isConnected ? (
             <>
-              <PointsCard
-                points={points}
-                pointsLoading={pointsLoading}
-                walletType={activeWalletType!}
-                stellarRewards={stellarRewards}
-                stellarRewardsLoading={stellarRewardsLoading}
-              />
               {activeWalletType === "stellar" && (
                 <SeedsCard
                   stellarRewards={stellarRewards}
                   stellarRewardsLoading={stellarRewardsLoading}
                 />
               )}
+              <RewardsHelpNote />
               {/* <TierBenefitsCard /> */}
             </>
           ) : (
