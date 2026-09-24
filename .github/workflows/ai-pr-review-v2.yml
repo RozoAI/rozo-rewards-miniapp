@@ -23,9 +23,11 @@
 
 name: AI PR Review v2
 
+# Runs when a PR is opened, reopened or marked ready, not on every push.
+# To re-review after new pushes, close and reopen the PR.
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, reopened, ready_for_review]
 
 # Least privilege. contents:read to read the diff; pull-requests:write to comment
 # + approve; issues:write to add the ai-review-passed label; id-token for the
@@ -36,10 +38,11 @@ permissions:
   issues: write
   id-token: write
 
-# One in-flight review per PR; a new push cancels the previous run.
+# One in-flight review per PR. Never cancel a running review: a later
+# trigger queues behind it instead of killing it.
 concurrency:
   group: ai-pr-review-v2-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   review:
