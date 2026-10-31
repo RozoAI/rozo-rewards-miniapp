@@ -2,10 +2,11 @@ import * as Sentry from "@sentry/nextjs";
 import posthog from "posthog-js";
 
 Sentry.init({
-  dsn: "https://8ac642e5ad82a5c8b1822051c5ddc8d2@o4507980213649408.ingest.us.sentry.io/4510859565268992",
+  // Unset DSN = Sentry disabled. Set NEXT_PUBLIC_SENTRY_DSN to a project in the rozo org.
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   tracesSampleRate: 1,
   enableLogs: true,
-  sendDefaultPii: true,
+  sendDefaultPii: false,
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
